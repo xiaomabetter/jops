@@ -1,6 +1,6 @@
 source 'https://ruby.taobao.org/'
 
-gem 'asciidoctor-pdf-cjk-kai_gen_gothic', :github => 'chloerei/asciidoctor-pdf-cjk-kai_gen_gothic'
+gem 'asciidoctor-pdf-cjk-kai_gen_gothic'
 gem 'asciidoctor-pdf'
 gem 'asciidoctor-diagram'
 gem 'asciidoctor'
