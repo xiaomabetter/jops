@@ -1,5 +1,12 @@
+GIT
+  remote: git://github.com/chloerei/asciidoctor-pdf-cjk-kai_gen_gothic.git
+  revision: 24d0cf3aa8cf0ac574adc6ea3cb1b0ff658977b4
+  specs:
+    asciidoctor-pdf-cjk-kai_gen_gothic (0.1.0)
+      asciidoctor-pdf-cjk (~> 0.1.1)
+
 GEM
-  remote: https://rubygems.org/
+  remote: https://ruby.taobao.org/
   specs:
     Ascii85 (1.0.2)
     addressable (2.3.8)
@@ -19,8 +26,7 @@ GEM
       treetop (= 1.5.3)
     asciidoctor-pdf-cjk (0.1.1)
       asciidoctor-pdf (~> 1.5.0.alpha.8)
-    asciidoctor-pdf-cjk-kai_gen_gothic (0.1.0)
-      asciidoctor-pdf-cjk (~> 0.1.1)
+    coderay (1.1.0)
     css_parser (1.3.7)
       addressable
     hashery (2.1.1)
@@ -32,6 +38,7 @@ GEM
       ruby-rc4
       ttfunk
     polyglot (0.3.5)
+    posix-spawn (0.3.11)
     prawn (2.0.2)
       pdf-core (~> 0.6.0)
       ttfunk (~> 1.4.0)
@@ -45,19 +52,29 @@ GEM
     prawn-templates (0.0.3)
       pdf-reader (~> 1.3)
       prawn (>= 0.15.0)
+    pygments.rb (0.6.3)
+      posix-spawn (~> 0.3.6)
+      yajl-ruby (~> 1.2.0)
+    rouge (1.10.1)
     ruby-rc4 (0.1.5)
     safe_yaml (1.0.4)
     thread_safe (0.3.5)
     treetop (1.5.3)
       polyglot (~> 0.3)
     ttfunk (1.4.0)
+    yajl-ruby (1.2.1)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  asciidoctor
   asciidoctor-diagram
-  asciidoctor-pdf-cjk-kai_gen_gothic
+  asciidoctor-pdf
+  asciidoctor-pdf-cjk-kai_gen_gothic!
+  coderay
+  pygments.rb
+  rouge
 
 BUNDLED WITH
    1.10.6
