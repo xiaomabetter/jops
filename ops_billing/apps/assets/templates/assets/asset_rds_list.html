@@ -41,6 +41,7 @@
                    <div class="file-manager ">
                        <div id="assetTree" class="ztree">
                        </div>
+
                        <div class="clearfix"></div>
                    </div>
                </div>
@@ -53,13 +54,7 @@
                </div>
            </div>
            <div class="mail-box-header">
-               <div class="btn-group uc pull-left m-r-5" >
-                  <button data-toggle="dropdown" class="btn btn-primary btn-sm dropdown-toggle"> 资产类型:{{asset_category}}<span class="caret"></span></button>
-                  <ul class="dropdown-menu labels">
-                    <li><a href="{% url 'assets:assetslb-index' %}">SLB</a></li>
-                    <li><a href="{% url 'assets:asset-list' %}">ECS</a></li>
-                  </ul>
-               </div>
+               <div class="uc pull-left m-r-5"><a class="btn btn-sm btn-primary btn-create-asset"> {% trans "Create asset" %} </a></div>
                <div class="html5buttons">
                    <div class="dt-buttons btn-group">
                        <a class="btn btn-default btn_import" data-toggle="modal" data-target="#asset_import_modal" tabindex="0">
@@ -77,9 +72,6 @@
                           <li><a style="font-weight: bolder">{{ label.name }}:{{ label.value }}</a></li>
                       {% endfor %}
                   </ul>
-               </div>
-               <div class="btn-group" style="float: right">
-                    <button class="btn btn-default btn-sm" id="nogroup">点击查看未分组资产</button>
                </div>
                <table class="table table-striped table-bordered table-hover " id="asset_list_table" style="width: 100%">
                    <thead>
@@ -135,9 +127,8 @@
 {% include 'assets/_asset_import_modal.html' %}
 {% include 'assets/_asset_list_modal.html' %}
 {% endblock %}
+
 {% block custom_foot_js %}
-<script src="{% static 'js/plugins/datepicker/bootstrap-datepicker.js' %}"></script>
-<script src="{% static 'js/plugins/honeySwitch/bootstrap-select.min.js' %}"></script>
 <script>
 var zTree, rMenu, asset_table, show = 0;
 var update_node_action = "";
@@ -430,16 +421,6 @@ $(document).ready(function(){
     $("#asset_list_table_filter input").val(val);
     asset_table.search(val).draw();
  })
-.on('click', '#nogroup', function () {
-    var url = '{% url "api-assets:asset-list" %}';
-    console.log(url);
-    var tonode = 'True';
-    url = setUrlParam(url, 'tonode',tonode);
-    console.log(url);
-    //setCookie('node_selected', treeNode.id);
-    asset_table.ajax.url(url);
-    asset_table.ajax.reload();
- })
 .on('click', '.btn_export', function () {
     var $data_table = $('#asset_list_table').DataTable();
     var rows = $data_table.rows('.selected').data();
@@ -707,7 +688,6 @@ $(document).ready(function(){
     };
 
     var url = '';
-    console.log(current_node.id);
     if (update_node_action === "move") {
         url = "{% url 'api-assets:node-replace-assets' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", current_node.id);
     } else {

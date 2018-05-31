@@ -33,8 +33,9 @@ class AssetSlbViewSet(BulkModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         node_id = self.request.query_params.get("node_id")
-        print(node_id)
-
+        tonode = self.request.query_params.get('tonode')
+        if tonode:
+            queryset = queryset.filter(nodes=None)
         if node_id:
             node = get_object_or_404(NodeSlb, id=node_id)
             if not node.is_root():

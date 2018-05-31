@@ -1,0 +1,83 @@
+{% extends '_base_create_update.html' %}
+{% load static %}
+{% load bootstrap3 %}
+{% load i18n %}
+{% load asset_tags %}
+{% load common_tags %}
+
+{% block form %}
+    <form id="form-runcmd" action="" method="post" class="form-horizontal">
+    {% if  errors  %}
+         <div class="alert alert-danger">
+             {{ errors }}
+         </div>
+    {% endif %}
+    {% csrf_token %}
+    {% bootstrap_field form.module layout="horizontal" id="module"%}
+    {% bootstrap_field form.cmd layout="horizontal" id="cmd"%}
+    {% bootstrap_field form.hosts layout="horizontal" id="hosts"%}
+    {% bootstrap_field form.nodes layout="horizontal" id="nodes"%}
+
+    <div class="hr-line-dashed"></div>
+    <h3>{% trans 'Result' %}</h3>
+    {% bootstrap_field form.result layout="horizontal" id="result" %}
+
+    <div class="hr-line-dashed"></div>
+    <div class="form-group">
+        <div class="col-sm-4 col-sm-offset-2">
+            <button class="btn btn-default" type="reset"> {% trans 'Reset' %}</button>
+            <button id="submit_button" class="btn btn-primary" type="button">{% trans 'Submit' %}</button>
+        </div>
+    </div>
+    </form>
+{% endblock %}
+
+{% block custom_foot_js %}
+<script>
+function format(item) {
+   var group = item.element.parentElement.label;
+   return group + ':' + item.text;
+}
+
+$(document).ready(function () {
+    $('.select2').select2({
+        allowClear: true
+    });
+    $(".labels").select2({
+        allowClear: true,
+        templateSelection: format
+    });
+})
+
+$("#submit_button").click(function(){
+    var the_url = 'api/ops/v1/tasks/run/';
+    var module = $("#id_module").val()
+    var cmd = $("#id_cmd").val()
+    var hosts = $("#id_hosts").val()
+    var nodes = $("#hosts").val()
+    var reqdt = JSON.stringify({'cmd':cmd,'hosts':hosts,'nodes':nodes,'module':module})
+
+    var error = function (data) {
+        alert(data)
+    };
+    var success = function(data) {
+        var task_id = data.task;
+        //var url = '{% url "ops:celery-task-log" pk=DEFAULT_PK %}'.replace("{{ DEFAULT_PK }}", task_id);
+        //window.open(url, '', 'width=800,height=600')
+    };
+    $.ajax({
+            url: "{% url "api-ops:task-runcmd" %}",
+            data: reqdt,
+            type: "get",
+            dataType: "json",
+            contentType: "application/json",
+            success:function(data)
+            {
+            }
+           });
+
+})
+
+
+</script>
+{% endblock %}
