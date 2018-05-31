@@ -1,0 +1,14 @@
+<QuerySet []>
+Task create new adhoc: 更新资产硬件信息
+3333333333333333333
+2018-05-11 17:25:43 Start task: 更新资产硬件信息
+
+222222222222222
+Get matched hosts: [test]
+
+PLAY [更新资产硬件信息] 
+
+TASK [setup] 
+[1;31mfatal: [test]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: ssh: connect to host 10.10.10.1 port 22: Operation timed out\r\n", "unreachable": true}[0m
+
+2018-05-11 17:25:54 Task finished
