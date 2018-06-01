@@ -37,6 +37,7 @@ class Aliyun(object):
             request.set_query_params(dict(PageNumber=pageNumber, PageSize=pageSize))
             clt_result = json.loads(clt.do_action_with_exception(request))
             for Instance in clt_result['Instances']['Instance']:
+                print(Instance)
                 if Instance['InstanceNetworkType'] == 'vpc':
                     priip = Instance['VpcAttributes']['PrivateIpAddress']['IpAddress'][0]
                 elif Instance['InstanceNetworkType'] == 'classic':
@@ -45,7 +46,7 @@ class Aliyun(object):
                     'id':str(uuid.uuid4()),
                     'ip':priip,
                     'InstanceNetworkType':Instance['InstanceNetworkType'],
-                    'hostname':Instance['HostName'],
+                    'hostname':Instance['InstanceName'],
                     'instanceid':Instance['InstanceId'],
                     'port':3299,
                     'platform':'Linux',

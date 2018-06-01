@@ -52,6 +52,8 @@ class BillSlbListView(LoginRequiredMixin,DatetimeSearchMixin, ListView):
         nodes = NodeSlb.objects.all().values('value')
         nodegroup = self.request.GET.get('nodegroup', '')
         sumcost = self.queryset.aggregate(cost=Sum('cost'))
+        if not sumcost['cost']:
+            sumcost['cost'] = 0
         context = {
             'app': _('Ops'),
             'action': "费用记录",

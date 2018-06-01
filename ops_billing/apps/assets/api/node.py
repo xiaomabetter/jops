@@ -40,6 +40,7 @@ __all__ = [
 
 class NodeViewSet(BulkModelViewSet):
     queryset = Node.objects.all()
+    print(queryset)
     permission_classes = (IsSuperUser,)
     serializer_class = serializers.NodeSerializer
 

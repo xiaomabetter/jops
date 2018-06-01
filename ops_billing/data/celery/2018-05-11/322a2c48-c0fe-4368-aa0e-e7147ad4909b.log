@@ -1,3 +1,0 @@
-[<aliyunsdkcore.client.AcsClient object at 0x10602da20>]
-{'id': '3a00cad3-fa60-4477-903c-670c3a55a986', 'ip': '10.81.62.186', 'hostname': 'iZbp13gs93o23beefycs8bZ', 'port': 3299, 'platform': 'Linux', 'is_active': True, 'zoneid': 'cn-hangzhou', 'public_ip': '47.97.35.134', 'cpu_count': 4, 'memory': 16384}
-<class 'Exception'> : save() got an unexpected keyword argument 'id'

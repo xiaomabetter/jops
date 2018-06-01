@@ -64,7 +64,6 @@ class AssetSerializer(BulkSerializerMixin, serializers.ModelSerializer):
         ])
         return fields
 
-
 class AssetGrantedSerializer(serializers.ModelSerializer):
     """
     被授权资产的数据结构

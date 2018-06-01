@@ -151,9 +151,6 @@ function initTable() {
                 var detail_btn = '<a href="{{ the_url }}">' + cellData + '</a>';
                 $(td).html(detail_btn.replace('{{ DEFAULT_PK }}', rowData.id));
             }},
-            {targets: 3, createdCell: function (td, cellData, rowData) {
-                $(td).html(rowData.zoneid)
-            }},
             {targets: 4, createdCell: function (td, cellData) {
                 if (!cellData) {
                     $(td).html('<i class="fa fa-times text-danger"></i>')
@@ -432,10 +429,8 @@ $(document).ready(function(){
  })
 .on('click', '#nogroup', function () {
     var url = '{% url "api-assets:asset-list" %}';
-    console.log(url);
     var tonode = 'True';
     url = setUrlParam(url, 'tonode',tonode);
-    console.log(url);
     //setCookie('node_selected', treeNode.id);
     asset_table.ajax.url(url);
     asset_table.ajax.reload();

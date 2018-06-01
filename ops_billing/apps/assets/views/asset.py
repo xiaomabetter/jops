@@ -48,6 +48,7 @@ class AssetSlbListView(AdminUserRequiredMixin, TemplateView):
         context = {
             'app': _('Assets'),
             'action': _('Asset list'),
+            'asset_category': 'SLB',
             'nodes': NodeSlb.objects.all().order_by('-key'),
         }
         kwargs.update(context)

@@ -38,6 +38,8 @@ __all__ = [
 
 class NodeSlbViewSet(BulkModelViewSet):
     queryset = NodeSlb.objects.all()
+    if queryset.count() == 0:
+        NodeSlb.root()
     permission_classes = (IsSuperUser,)
     serializer_class = serializers.NodeSlbSerializer
 
