@@ -3,9 +3,9 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from .models import Task,RuncmdHistory
+from .models import Task,Deploy
 from common.utils import get_logger
-from assets.models import Node
+from assets.models import Node,Asset
 
 logger = get_logger(__file__)
 __all__ = ['TaskCreateForm']
@@ -23,23 +23,15 @@ class TaskCreateForm(forms.ModelForm):
             'created_by': '* required'
         }
 
-class RuncmdForm(forms.ModelForm):
-    class Meta:
-        model = RuncmdHistory
-        fields = [
-            'module','cmd','hosts','nodes','result'
-        ]
-        '''
-        widgets = {
-            'nodes': forms.SelectMultiple(
-                choices=tuple(N),
-                attrs={
-                'class': 'select2', 'data-placeholder': 'Nodes'
-            })
-        }
-        '''
+class DeployForm(forms.ModelForm):
+    hosts = forms.ModelMultipleChoiceField(
+        queryset=Asset.objects.all(), required=False,
+        widget=forms.SelectMultiple(
+            attrs={'class': 'select2', 'data-placeholder': _('Select assets')}
+        )
+    )
+    result = forms.CharField(widget=forms.Textarea)
 
-        help_texts = {
-            'module': '* required',
-            'cmd': '* required'
-        }
+    class Meta:
+        model = Deploy
+        fields = ['module', 'cmd', 'hosts','result']

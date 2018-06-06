@@ -2,16 +2,16 @@
 from __future__ import unicode_literals
 from rest_framework import serializers
 
-from .models import Task, AdHoc, AdHocRunHistory,RuncmdHistory
+from .models import Task, AdHoc, AdHocRunHistory,Deploy
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = '__all__'
 
-class RuncmdSerializer(serializers.ModelSerializer):
+class DeploySerializer(serializers.ModelSerializer):
     class Meta:
-        model = RuncmdHistory
+        model = Deploy
         fields = '__all__'
 
 class AdHocSerializer(serializers.ModelSerializer):

@@ -12,8 +12,7 @@ app_name = "ops"
 urlpatterns = [
     # TResource Task url
     url(r'^task/$', views.TaskListView.as_view(), name='task-list'),
-    url(r'^task/runcmdlist$', views.TaskRuncmdView.as_view(), name='runcmd-list'),
-    url(r'^task/runcmd/$', views.RuncmdView.as_view(), name='run-cmd'),
+    url(r'^task/deploy/$', views.TaskDeployView.as_view(), name='task-deploy'),
     url(r'^task/custom/$', views.TaskCustomView.as_view(), name='task-custom'),
     url(r'^task/(?P<pk>[0-9a-zA-Z\-]{36})/$', views.TaskDetailView.as_view(), name='task-detail'),
     url(r'^task/(?P<pk>[0-9a-zA-Z\-]{36})/adhoc/$', views.TaskAdhocView.as_view(), name='task-adhoc'),

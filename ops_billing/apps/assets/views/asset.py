@@ -44,7 +44,7 @@ class AssetSlbListView(AdminUserRequiredMixin, TemplateView):
 
     template_name = 'assets/asset_slb_list.html'
     def get_context_data(self, **kwargs):
-        Node.root()
+        NodeSlb.root()
         context = {
             'app': _('Assets'),
             'action': _('Asset list'),
@@ -68,7 +68,6 @@ class AssetListView(AdminUserRequiredMixin, TemplateView):
         }
         kwargs.update(context)
         return super().get_context_data(**kwargs)
-
 
 class UserAssetListView(LoginRequiredMixin, TemplateView):
     template_name = 'assets/user_asset_list.html'

@@ -49,12 +49,11 @@ def run_sync_bill_task(day_from,day_to, callback=None, **kwargs):
 
 @shared_task
 def run_sync_assets_task(asset_category, callback=None, **kwargs):
-        for region in ['cn-hangzhou','cn-beijing']:
-            r = Aliyun(region)
-            if asset_category == 'ecs':
-                r.aly_sync_asset()
-            elif asset_category == 'slb':
-                r.aly_sync_assetslb()
+    r = Aliyun()
+    if asset_category == 'ecs':
+        r.aly_sync_asset()
+    elif asset_category == 'slb':
+        r.aly_sync_assetslb()
 
 @shared_task
 def hello(name, callback=None):

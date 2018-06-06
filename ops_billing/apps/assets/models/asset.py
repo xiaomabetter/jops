@@ -48,7 +48,7 @@ class AssetSlb(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     instanceid = models.CharField(max_length=32, db_index=True)
     slb_name = models.CharField(max_length=128, unique=False)
-    slb_status = models.CharField(max_length=128, unique=False)
+    is_active = models.BooleanField(default=True, verbose_name=_('Is active'))
     slb_addr = models.GenericIPAddressField(max_length=32, unique=False)
     slb_region = models.CharField(max_length=128, unique=False)
     create_time = models.CharField(max_length=128, unique=False)

@@ -10,9 +10,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from common.const import create_success_msg, update_success_msg
 from common.mixins import DatetimeSearchMixin
-from .models import Task, AdHoc, AdHocRunHistory, CeleryTask, RuncmdHistory
+from .models import Task, AdHoc, AdHocRunHistory, CeleryTask, Deploy
 from .hands import AdminUserRequiredMixin
-from .forms import  TaskCreateForm,RuncmdForm
+from .forms import  TaskCreateForm,DeployForm
 from .utils import update_or_create_ansible_task
 from .tasks import run_sync_assets_task,run_sync_bill_task
 
@@ -50,35 +50,17 @@ class TaskListView(AdminUserRequiredMixin, DatetimeSearchMixin, ListView):
         kwargs.update(context)
         return super().get_context_data(**kwargs)
 
-class TaskRuncmdView(AdminUserRequiredMixin, DatetimeSearchMixin, ListView):
-    paginate_by = settings.DISPLAY_PER_PAGE
-    model = RuncmdHistory
-    ordering = ('-date_start',)
-    context_object_name = 'runcmd_list'
-    template_name = 'ops/runcmd_list.html'
-    keyword = ''
-
-    def get_queryset(self):
-        self.queryset = super().get_queryset()
-        self.keyword = self.request.GET.get('keyword', '')
-        self.queryset = self.queryset.filter(
-            date_start__gt=self.date_from,
-            date_start__lt=self.date_to
-        )
-
-        if self.keyword:
-            self.queryset = self.queryset.filter(
-                name__icontains=self.keyword,
-            )
-        return self.queryset
+class TaskDeployView(AdminUserRequiredMixin, CreateView):
+    model = Deploy
+    template_name = 'ops/task_deploy.html'
+    form_class = DeployForm
+    success_url = reverse_lazy('ops:task-deploy')
+    success_message = create_success_msg
 
     def get_context_data(self, **kwargs):
         context = {
             'app': _('Ops'),
             'action': '执行命令',
-            'date_from': self.date_from,
-            'date_to': self.date_to,
-            'keyword': self.keyword,
         }
         kwargs.update(context)
         return super().get_context_data(**kwargs)
@@ -110,59 +92,6 @@ class TaskCustomView(AdminUserRequiredMixin,TemplateView):
                 r = run_sync_assets_task.delay(asset_category)
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)
-
-class RuncmdView(AdminUserRequiredMixin, SuccessMessageMixin,CreateView):
-    model = RuncmdHistory
-    form_class = RuncmdForm
-    template_name = 'ops/runcmd_create.html'
-    success_url = reverse_lazy('ops:run-cmd')
-
-    def get_context_data(self, **kwargs):
-        context = {
-            'app': _('ops'),
-            'action': _('Create task'),
-        }
-        kwargs.update(context)
-        return super().get_context_data(**kwargs)
-
-    def post(self, request, *args, **kwargs):
-        body = request._post.dict()
-        task_name = body.get('cmd')
-        hosts = body.get('hosts')
-        nodes = body.get('nodes')
-
-        if not hosts and not nodes:
-            errors = 'must have one'
-            #return render(request,'ops/runcmd_create.html')
-            return  super(RuncmdView).post(request)
-        #task, created = update_or_create_ansible_task(task_name=task_name, hosts=hostname_list, tasks=tasks,
-                                      #task_type=task_type)
-
-        #return redirect('/ops/task/')
-
-class TaskCreateView(AdminUserRequiredMixin, SuccessMessageMixin,CreateView):
-    model = Task
-    form_class = TaskCreateForm
-    template_name = 'ops/task_create.html'
-    success_url = reverse_lazy('ops:task-create')
-
-    def get_context_data(self, **kwargs):
-        context = {
-            'app': _('ops'),
-            'action': _('Create task'),
-        }
-        kwargs.update(context)
-        return super().get_context_data(**kwargs)
-
-    def post(self, request, *args, **kwargs):
-        body = request._post.dict()
-        tasks = [{"name": "alisync", "action": {"module": "alisync"}}]
-        task_name = body.get('name')
-        hostname_list = ['all']
-        task_type = body.get('task_type')
-        task, created = update_or_create_ansible_task(task_name=task_name, hosts=hostname_list, tasks=tasks,
-                                      task_type=task_type)
-        return redirect('/ops/task/')
 
 '''
 class TaskCreateView(AdminUserRequiredMixin, SuccessMessageMixin, CreateView):

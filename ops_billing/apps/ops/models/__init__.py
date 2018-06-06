@@ -3,4 +3,4 @@
 
 from .adhoc import *
 from .celery import *
-from .cmd import *
+from .deploy import *

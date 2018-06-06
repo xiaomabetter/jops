@@ -50,11 +50,6 @@ class Bill():
         else:
             obj[id] = [name, round(cost, 3),servtime]
 
-    def isinsert(self,kid,model,v):
-        r = model.objects.filter(instanceid=kid,day=v[2])
-        if r.count() == 0 :
-            a = model.objects.create(id=str(uuid.uuid4()), instancename=v[0], instanceid=kid, day=v[2], cost=v[1])
-
     def handle(self,beginday,endday):
         begin = int(time.mktime(time.strptime(beginday, "%Y-%m-%d"))) + 23 * 3600
         end = int(time.mktime(time.strptime(endday, "%Y-%m-%d")) ) + 23 * 3600
@@ -80,8 +75,6 @@ class Bill():
                         elif "SLB" in instance_v:
                             self.k(instance_id, instance_name, cost,self.slb,fileday)
 
-                for k,v in self.rds.items():
-                    self.isinsert(k,Rds,v)
                 for k, v in self.ecs.items():
                     r = Ecs.objects.filter(instanceid=k, day=v[2])
                     if r.count() == 0:

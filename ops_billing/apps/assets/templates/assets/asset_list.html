@@ -398,6 +398,12 @@ function initTree() {
         zNodes = data;
         $.fn.zTree.init($("#assetTree"), setting, zNodes);
         zTree = $.fn.zTree.getZTreeObj("assetTree");
+        /*
+        var nodes = zTree.getNodes();
+        for (var i = 0; i < nodes.length; i++) { //设置节点展开
+                zTree.expandNode(nodes[i], true, false, true);
+        }
+        */
 		rMenu = $("#rMenu");
 		selectQueryNode();
     });

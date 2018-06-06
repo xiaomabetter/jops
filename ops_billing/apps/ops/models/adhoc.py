@@ -264,14 +264,6 @@ class AdHoc(models.Model):
             logger.warn("Failed run adhoc {}, {}".format(self.task.name, e))
             pass
 
-    def _run_custom(self):
-        s = Aliyun()
-        try:
-            result = s.aly_sync_asset()
-            return  result.get('results_raw'),result.get('results_summary')
-        except Exception as e:
-            logger.error(Exception,":",e)
-
     @become.setter
     def become(self, item):
         """

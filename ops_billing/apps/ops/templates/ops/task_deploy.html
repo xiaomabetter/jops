@@ -1,0 +1,80 @@
+{% extends '_base_create_update_deploy.html' %}
+{% load static %}
+{% load bootstrap3 %}
+{% load i18n %}
+
+
+
+{% block form %}
+<form id="deployform1" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% bootstrap_field form.module layout="horizontal" %}
+    {% bootstrap_field form.cmd layout="horizontal" %}
+    {% bootstrap_field form.hosts layout="horizontal" %}
+
+
+    <div class="hr-line-dashed"></div>
+    <div class="form-group">
+        <div class="col-sm-4 col-sm-offset-2">
+            <button class="btn btn-default" type="reset"> {% trans 'Reset' %}</button>
+            <button id="submit_button" class="btn btn-primary" type="button">运行</button>
+        </div>
+    </div>
+        {% bootstrap_field form.result rows="10" layout="horizontal" %},
+
+</form>
+
+{% include 'assets/_asset_list_modal.html' %}
+{% endblock %}
+
+{% block custom_foot_js %}
+<script type="text/javascript">
+$(document).ready(function () {
+    $('.select2').select2({
+        closeOnSelect: false
+    })
+}).on('click', '.select2-selection__rendered', function (e) {
+    e.preventDefault();
+    $("#asset_list_modal").modal();
+})
+.on('click', '#btn_asset_modal_confirm', function () {
+    var assets = asset_table2.selected;
+    $('.select2 option:selected').each(function (i, data) {
+        assets.push($(data).attr('value'))
+    });
+    $.each(assets, function (id, data) {
+        $('.select2').val(assets).trigger('change');
+    });
+    $("#asset_list_modal").modal('hide');
+})
+
+.on('click', '#submit_button', function () {
+    var deploy_id = guid()
+    var the_url = '{% url "ops:celery-task-log" pk=DEFAULT_PK %}'.replace("{{ DEFAULT_PK }}", deploy_id);
+    var data = $('#deployform').serialize()
+    var error = function (data) {
+        alert("begin")
+    };
+    var success = function(data) {
+        var task_id = data.task;
+        var url = '{% url "ops:celery-task-log" pk=DEFAULT_PK %}'.replace("{{ DEFAULT_PK }}", task_id);
+        window.open(url, '', 'width=800,height=600')
+    };
+    APIUpdateAttr({
+        url: the_url,
+        error: error,
+        method: 'GET',
+        body:data,
+        success: success,
+        success_message: "{% trans 'Task start: ' %}" + " " + "ansible模块执行"
+    });
+})
+
+function guid() {
+    function S4() {
+       return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+    }
+    return (S4()+S4()+S4()+S4()+S4()+S4()+S4()+S4());
+}
+</script>
+{% endblock %}
