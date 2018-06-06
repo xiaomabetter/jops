@@ -55,14 +55,4 @@ def run_sync_assets_task(asset_category, callback=None, **kwargs):
     elif asset_category == 'slb':
         r.aly_sync_assetslb()
 
-@shared_task
-def hello(name, callback=None):
-    print("Hello {}".format(name))
-    if callback is not None:
-        subtask(callback).delay("Guahongwei")
 
-
-@shared_task
-def hello_callback(result):
-    print(result)
-    print("Hello callback")

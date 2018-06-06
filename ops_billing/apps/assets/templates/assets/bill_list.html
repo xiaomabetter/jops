@@ -24,7 +24,7 @@
                     {% for node in nodes %}
                         {% if node.value ==  nodegroup %}
                             <option  selected>{{ node.value }}</option>
-                        {% elif node.value is not 'ROOT' %}
+                        {% elif node.value != 'ROOT' %}
                             <option >{{ node.value }}</option>
                         {% endif %}
                     {% endfor %}
