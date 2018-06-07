@@ -178,26 +178,28 @@ class NodeSlbAddAssetsApi(generics.UpdateAPIView):
 
 
 class NodeSlbRemoveAssetsApi(generics.UpdateAPIView):
-    serializer_class = serializers.NodeAssetsSerializer
+    serializer_class = serializers.NodeSlbAssetsSerializer
     queryset = NodeSlb.objects.all()
     permission_classes = (IsSuperUser,)
     instance = None
 
     def perform_update(self, serializer):
-        assets = serializer.validated_data.get('assets')
+        assets = serializer.validated_data.get('assetslb')
+        print(assets)
         instance = self.get_object()
+        print(instance)
         if instance != NodeSlb.root():
-            instance.assets.remove(*tuple(assets))
+            instance.assetslb.remove(*tuple(assets))
 
 
 class NodeSlbReplaceAssetsApi(generics.UpdateAPIView):
-    serializer_class = serializers.NodeAssetsSerializer
+    serializer_class = serializers.NodeSlbAssetsSerializer
     queryset = NodeSlb.objects.all()
     permission_classes = (IsSuperUser,)
     instance = None
 
     def perform_update(self, serializer):
-        assets = serializer.validated_data.get('assets')
+        assets = serializer.validated_data.get('assetslb')
         instance = self.get_object()
         for asset in assets:
             asset.nodes.set([instance])

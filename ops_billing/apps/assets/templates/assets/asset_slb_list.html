@@ -150,7 +150,7 @@ function initTable() {
                 }
             }},
             {targets: 4, createdCell: function (td, cellData, rowData) {
-                $(td).html(cellData);
+$(td).html(cellData);
             }},
             {targets: 5, createdCell: function (td, cellData, rowData) {
                 $(td).html(cellData);
@@ -506,7 +506,7 @@ $(document).ready(function(){
         }
 
         var data = {
-            'assets': id_list
+            'assetslb': id_list
         };
 
         var success = function () {
@@ -514,7 +514,7 @@ $(document).ready(function(){
         };
 
         APIUpdateAttr({
-            'url': '/api/assets/v1/nodeslb/' + current_node.id + '/assets/remove/',
+            'url': '/api/assets/v1/slbnodes/' + current_node.id + '/assets/remove/',
             'method': 'PUT',
             'body': JSON.stringify(data),
             'success': success
