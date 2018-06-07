@@ -3,8 +3,9 @@ from celery import shared_task, subtask
 
 from common.utils import get_logger, get_object_or_none
 from .models import Task
+from assets.models import Asset
 from .ansible import AdHocRunner, AnsibleError,CommandRunner
-from .inventory import JMSInventory
+from .ansible.inventory import BaseInventory
 from .custom.cost import Bill
 from .custom.aly  import Aliyun
 
@@ -30,17 +31,25 @@ def run_ansible_task(tid, callback=None, **kwargs):
         logger.error("No task found")
 
 @shared_task
-def run_cmd_task(tasks,hostname_list, callback=None, **kwargs):
-    _option = {"timeout": 10, "forks": 10}
-    inventory = JMSInventory(hostname_list)
-    print(inventory)
-    runner = AdHocRunner(inventory, options=_option)
-    try:
-        result = runner.run(tasks=tasks,pattern='all')
-    except AnsibleError as e:
-        logger.warn("Failed run adhoc {}".format(e))
-        pass
-
+def cmd_deploy_run(module,cmd,hostids,callback=None, **kwargs):
+    host_data = []
+    obs = Asset.objects.filter(id__in=hostids)
+    for i in obs:
+        host_data.append(
+            {
+                "hostname":i.hostname,
+                "ip":i.ip,
+                "port":i.port,
+                "username":"easemob",
+                "password":''
+            }
+        )
+    inventory = BaseInventory(host_data)
+    runner = CommandRunner(inventory)
+    res = runner.execute(cmd, 'all')
+    if res:
+        print(res.results_command)
+        print(res.results_raw)
 
 @shared_task
 def run_sync_bill_task(day_from,day_to, callback=None, **kwargs):
@@ -54,5 +63,7 @@ def run_sync_assets_task(asset_category, callback=None, **kwargs):
         r.aly_sync_asset()
     elif asset_category == 'slb':
         r.aly_sync_assetslb()
+    elif asset_category == 'rds':
+        r.aly_sync_assetrds()
 
 
