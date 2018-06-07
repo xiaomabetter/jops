@@ -11,6 +11,7 @@ from aliyunsdkecs.request.v20140526 import DescribeDisksRequest, \
     StopInstanceRequest, RebootInstanceRequest, \
     AllocatePublicIpAddressRequest, JoinSecurityGroupRequest
 from aliyunsdkslb.request.v20140515 import DescribeLoadBalancersRequest
+from aliyunsdkrds.request.v20140815 import DescribeDBInstancesRequest,DescribeDBInstanceAttributeRequest
 from django.forms.models import model_to_dict
 from assets.models import Asset,AssetSlb
 import logging,uuid
@@ -30,7 +31,7 @@ class Aliyun(object):
             request = DescribeInstancesRequest.DescribeInstancesRequest()
             request.set_accept_format('json')
             request.set_query_params(dict(PageNumber=pageNumber, PageSize=pageSize))
-            clt = client.AcsClient(self.AccessKeyId, self.AccessKeySecret, self.RegionId)
+            clt = client.AcsClient(self.AccessKeyId, self.AccessKeySecret, region)
             clt_result = json.loads(clt.do_action_with_exception(request))
             totalCount = clt_result['TotalCount']
 
@@ -81,6 +82,31 @@ class Aliyun(object):
                         'slb_region':Instance['RegionId'],
                         'create_time':Instance['CreateTime']
                     })
+                pageNumber += 1
+        return result
+
+    def get_rds_instances(self, pageSize=100):
+        result = []
+        for region in self.RegionId:
+            pageNumber = 1
+            request = DescribeDBInstancesRequest.DescribeDBInstancesRequest()
+            request.set_accept_format('json')
+            request.set_query_params(dict(PageNumber=pageNumber, PageSize=pageSize))
+            clt = client.AcsClient(self.AccessKeyId, self.AccessKeySecret, region)
+            clt_result = json.loads(clt.do_action_with_exception(request))
+            totalCount = clt_result['PageRecordCount']
+            while totalCount > (pageNumber -1 )* pageSize:
+                request.set_query_params(dict(PageNumber=pageNumber, PageSize=pageSize))
+                clt_result = json.loads(clt.do_action_with_exception(request),encoding='utf-8')
+                for Instance in clt_result['Items']['DBInstance']:
+                    result.append(
+                        {
+                            'id':str(uuid.uuid4()),
+                            'DBInstanceId':Instance['DBInstanceId'],
+                            'RegionId':Instance['RegionId'],
+                            'DBInstanceDescription':Instance['DBInstanceDescription']
+                        }
+                    )
                 pageNumber += 1
         return result
 
