@@ -69,7 +69,6 @@ def get_default_options():
     )
     return options
 
-
 # Jumpserver not use playbook
 class PlayBookRunner:
     """
@@ -187,7 +186,7 @@ class AdHocRunner:
         :return:
         """
         self.check_pattern(pattern)
-        self.results_callback = self.get_result_callback(file_obj)
+        #self.results_callback = self.get_result_callback(file_obj)
         cleaned_tasks = self.clean_tasks(tasks)
 
         play_source = dict(
@@ -237,7 +236,9 @@ class CommandRunner(AdHocRunner):
         tasks = [
             {"action": {"module": module, "args": cmd}}
         ]
+        print(self.inventory)
         hosts = self.inventory.get_hosts(pattern=pattern)
+        print(hosts)
         name = "Run command {} on {}".format(cmd, ", ".join([host.name for host in hosts]))
         return self.run(tasks, pattern, play_name=name)
 

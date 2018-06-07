@@ -12,7 +12,7 @@ from .hands import IsSuperUser
 from .models import Task, AdHoc, AdHocRunHistory, CeleryTask,Deploy
 from .serializers import TaskSerializer, AdHocSerializer, \
     AdHocRunHistorySerializer,DeploySerializer
-from .tasks import run_ansible_task,run_cmd_task
+from .tasks import run_ansible_task,cmd_deploy_run
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
@@ -69,12 +69,13 @@ class DeployTaskApi(generics.RetrieveAPIView):
     permission_classes = (IsSuperUser,)
     queryset = Deploy.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        module = self.request.GET.get('module')
-        cmd  = self.request.GET.get('cmd')
-        hosts = self.request.GET.get('hosts')
-        return Response({"data": ''})
-
+    def retrieve(self, request, *args, **kwargs):
+        module = request.query_params.get("module")
+        cmd = request.query_params.get("cmd")
+        hostids = request.query_params.getlist("hosts")
+        t = cmd_deploy_run.delay(module=module,cmd=cmd,hostids=hostids)
+        print(t.id)
+        return Response({"data": t.id})
 
 class CeleryTaskLogApi(generics.RetrieveAPIView):
     permission_classes = (IsSuperUser,)

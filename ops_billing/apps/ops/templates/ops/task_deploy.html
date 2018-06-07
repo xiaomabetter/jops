@@ -6,7 +6,7 @@
 
 
 {% block form %}
-<form id="deployform1" method="post" class="form-horizontal">
+<form id="deployform" method="post" class="form-horizontal">
     {% csrf_token %}
     {% bootstrap_field form.module layout="horizontal" %}
     {% bootstrap_field form.cmd layout="horizontal" %}
@@ -50,15 +50,15 @@ $(document).ready(function () {
 
 .on('click', '#submit_button', function () {
     var deploy_id = guid()
-    var the_url = '{% url "ops:celery-task-log" pk=DEFAULT_PK %}'.replace("{{ DEFAULT_PK }}", deploy_id);
+    var the_url = '{% url "api-ops:deploy-task-api" pk=DEFAULT_PK %}'.replace("{{ DEFAULT_PK }}", deploy_id);
     var data = $('#deployform').serialize()
     var error = function (data) {
         alert("begin")
     };
+
     var success = function(data) {
-        var task_id = data.task;
-        var url = '{% url "ops:celery-task-log" pk=DEFAULT_PK %}'.replace("{{ DEFAULT_PK }}", task_id);
-        window.open(url, '', 'width=800,height=600')
+        var url = '{% url "ops:celery-task-log" pk=DEFAULT_PK %}'.replace("{{ DEFAULT_PK }}", deploy_id);
+        //window.open(url, '', 'width=800,height=600')
     };
     APIUpdateAttr({
         url: the_url,
@@ -74,7 +74,7 @@ function guid() {
     function S4() {
        return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
     }
-    return (S4()+S4()+S4()+S4()+S4()+S4()+S4()+S4());
+    return (S4()+S4()+S4()+S4()+S4()+S4()+S4()+S4()+S4());
 }
 </script>
 {% endblock %}
