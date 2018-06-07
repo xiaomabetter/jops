@@ -12,7 +12,7 @@ from django.core.cache import cache
 from ..const import ASSET_ADMIN_CONN_CACHE_KEY
 from .user import AdminUser, SystemUser
 
-__all__ = ['Asset','AssetSlb']
+__all__ = ['Asset','AssetSlb','AssetRds']
 logger = logging.getLogger(__name__)
 
 def default_cluster():
@@ -54,6 +54,17 @@ class AssetSlb(models.Model):
     create_time = models.CharField(max_length=128, unique=False)
     nodes = models.ManyToManyField('assets.NodeSlb', default='', null=True,related_name='assetslb')
 
+class AssetRds(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    DBInstanceId = models.CharField(max_length=32, db_index=True)
+    RegionId = models.CharField(max_length=128, unique=False)
+    DBInstanceDescription = models.CharField(max_length=128, unique=False)
+    ConnectionString = models.CharField(max_length=128, unique=False)
+    DBInstanceCPU = models.CharField(max_length=128, unique=False)
+    DBInstanceType = models.CharField(max_length=128, unique=False)
+    is_active = models.BooleanField(default=True, verbose_name=_('Is active'))
+    CreationTime = models.CharField(max_length=128, unique=False)
+    nodes = models.ManyToManyField('assets.NodeRds', default='', null=True,related_name='assetrds')
 
 class Asset(models.Model):
     # Important

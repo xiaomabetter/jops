@@ -15,7 +15,10 @@ urlpatterns = [
     url(r'^asset/(?P<pk>[0-9a-zA-Z\-]{36})/update/$', views.AssetUpdateView.as_view(), name='asset-update'),
     url(r'^asset/(?P<pk>[0-9a-zA-Z\-]{36})/delete/$', views.AssetDeleteView.as_view(), name='asset-delete'),
     url(r'^asset/update/$', views.AssetBulkUpdateView.as_view(), name='asset-bulk-update'),
+    # asset slb
     url(r'^asset/slb/$', views.AssetSlbListView.as_view(), name='assetslb-index'),
+    # asset rds
+    url(r'^asset/rds/$', views.AssetRdsListView.as_view(), name='assetrds-index'),
     # Bill view
     url(r'^bill/$', views.BillSlbListView.as_view(), name='bill-list'),
     url(r'^bill/ecs/$', views.BillEcsListView.as_view(), name='bill-ecs-list'),

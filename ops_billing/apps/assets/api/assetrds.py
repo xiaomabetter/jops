@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 #
-
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework_bulk import BulkModelViewSet
@@ -12,20 +11,20 @@ from django.db.models import Q
 from common.mixins import IDInFilterMixin
 from common.utils import get_logger
 from ..hands import IsSuperUser, IsValidUser, IsSuperUserOrAppUser,NodePermissionUtil
-from ..models import  AssetSlb,NodeSlb
+from ..models import  AssetRds,NodeRds
 from .. import serializers
 
 logger = get_logger(__file__)
 __all__ = [
-    'AssetSlbViewSet'
+    'AssetRdsViewSet'
 ]
 
-class AssetSlbViewSet(BulkModelViewSet):
-    filter_fields = ("slb_name", "slb_addr")
+class AssetRdsViewSet(BulkModelViewSet):
+    filter_fields = ("DBInstanceDescription", "ConnectionString")
     search_fields = filter_fields
-    ordering_fields = ("slb_name", "slb_addr")
-    queryset = AssetSlb.objects.all()
-    serializer_class = serializers.AssetSlbSerializer
+    ordering_fields = ("ConnectionString", "ConnectionString")
+    queryset = AssetRds.objects.all()
+    serializer_class = serializers.AssetRdsSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = (IsSuperUserOrAppUser,)
 
@@ -36,7 +35,7 @@ class AssetSlbViewSet(BulkModelViewSet):
         if tonode:
             queryset = queryset.filter(nodes=None)
         if node_id:
-            node = get_object_or_404(NodeSlb, id=node_id)
+            node = get_object_or_404(NodeRds, id=node_id)
             if not node.is_root():
                 queryset = queryset.filter(
                     nodes__key__regex='{}(:[0-9]+)*$'.format(node.key),

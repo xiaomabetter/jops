@@ -112,7 +112,7 @@ def parse_service(s):
 
 def start_gunicorn():
     print("\n- Start Gunicorn WSGI HTTP Server")
-    prepare()
+    #prepare()
     service = 'gunicorn'
     bind = '{}:{}'.format(HTTP_HOST, HTTP_PORT)
     log_format = '%(h)s %(t)s "%(r)s" %(s)s %(b)s '

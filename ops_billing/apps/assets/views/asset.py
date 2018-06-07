@@ -28,7 +28,7 @@ from common.mixins import JSONResponseMixin
 from common.utils import get_object_or_none, get_logger, is_uuid
 from common.const import create_success_msg, update_success_msg
 from .. import forms
-from ..models import Asset, AdminUser, SystemUser, Label, Node, Domain,NodeSlb
+from ..models import Asset, AdminUser, SystemUser, Label, Node, Domain,NodeSlb,NodeRds
 from ..hands import AdminUserRequiredMixin
 
 
@@ -36,9 +36,23 @@ __all__ = [
     'AssetListView', 'AssetCreateView', 'AssetUpdateView',
     'UserAssetListView', 'AssetBulkUpdateView', 'AssetDetailView',
     'AssetDeleteView', 'AssetExportView', 'BulkImportAssetView',
-    'AssetSlbListView'
+    'AssetSlbListView','AssetRdsListView'
 ]
 logger = get_logger(__file__)
+
+class AssetRdsListView(AdminUserRequiredMixin, TemplateView):
+
+    template_name = 'assets/asset_rds_list.html'
+    def get_context_data(self, **kwargs):
+        NodeSlb.root()
+        context = {
+            'app': _('Assets'),
+            'action': _('Asset list'),
+            'asset_category': 'Rds',
+            'nodes': NodeRds.objects.all().order_by('-key'),
+        }
+        kwargs.update(context)
+        return super().get_context_data(**kwargs)
 
 class AssetSlbListView(AdminUserRequiredMixin, TemplateView):
 

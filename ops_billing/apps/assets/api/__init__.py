@@ -8,3 +8,5 @@ from .bill import *
 from .nodeslb import *
 from .assetslb import *
 from .nodeslb import *
+from .noderds import *
+from .assetrds import *

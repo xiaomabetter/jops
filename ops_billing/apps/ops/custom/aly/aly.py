@@ -13,7 +13,7 @@ from aliyunsdkecs.request.v20140526 import DescribeDisksRequest, \
 from aliyunsdkslb.request.v20140515 import DescribeLoadBalancersRequest
 from aliyunsdkrds.request.v20140815 import DescribeDBInstancesRequest,DescribeDBInstanceAttributeRequest
 from django.forms.models import model_to_dict
-from assets.models import Asset,AssetSlb
+from assets.models import Asset,AssetSlb,AssetRds
 import logging,uuid
 
 __all__ = ['Aliyun']
@@ -87,6 +87,9 @@ class Aliyun(object):
 
     def get_rds_instances(self, pageSize=100):
         result = []
+        attributeRequest = DescribeDBInstanceAttributeRequest.DescribeDBInstanceAttributeRequest()
+        attributeRequest.set_accept_format('json')
+        attributectl = client.AcsClient(self.AccessKeyId, self.AccessKeySecret)
         for region in self.RegionId:
             pageNumber = 1
             request = DescribeDBInstancesRequest.DescribeDBInstancesRequest()
@@ -99,14 +102,20 @@ class Aliyun(object):
                 request.set_query_params(dict(PageNumber=pageNumber, PageSize=pageSize))
                 clt_result = json.loads(clt.do_action_with_exception(request),encoding='utf-8')
                 for Instance in clt_result['Items']['DBInstance']:
-                    result.append(
-                        {
+                    attributeRequest.add_query_param("action_name","DescribeDBInstanceAttribute")
+                    attributeRequest.add_query_param("DBInstanceId", Instance['DBInstanceId'])
+                    r = json.loads(attributectl.do_action_with_exception(attributeRequest))
+                    attr = r['Items']['DBInstanceAttribute'][0]
+                    result.append({
                             'id':str(uuid.uuid4()),
                             'DBInstanceId':Instance['DBInstanceId'],
                             'RegionId':Instance['RegionId'],
-                            'DBInstanceDescription':Instance['DBInstanceDescription']
-                        }
-                    )
+                            'DBInstanceDescription':Instance['DBInstanceDescription'],
+                            'ConnectionString':attr["ConnectionString"],
+                            "DBInstanceCPU": attr["DBInstanceCPU"],
+                            'DBInstanceType': attr['DBInstanceType'],
+                            'CreationTime':attr['CreationTime']
+                        })
                 pageNumber += 1
         return result
 
@@ -118,7 +127,8 @@ class Aliyun(object):
         for instance in instances:
             newids.append(instance['instanceid'])
             if instance['instanceid'] in inids:
-                Asset.objects.filter(instanceid=instance['instanceid']).update(hostname=instance['hostname'])
+                Asset.objects.filter(instanceid=instance['instanceid']).update(
+                    hostname=instance['hostname'])
             else:
                 asset = Asset(**instance)
                 asset.save()
@@ -128,14 +138,15 @@ class Aliyun(object):
                 Asset.objects.filter(instanceid=i).update(is_active=False)
 
     def aly_sync_assetslb(self):
-        instances = self.get_slb_instances()
         ids = AssetSlb.objects.all().values('instanceid')
+        instances = self.get_slb_instances()
         inids = [i['instanceid'] for i in ids]
         newids = []
         for instance in instances:
             newids.append(instance['instanceid'])
             if instance['instanceid'] in inids:
-                AssetSlb.objects.filter(instanceid=instance['instanceid']).update(slb_name=instance['slb_name'])
+                AssetSlb.objects.filter(instanceid=instance['instanceid']).update(
+                    slb_name=instance['slb_name'])
             else:
                 assetslb = AssetSlb(**instance)
                 assetslb.save()
@@ -143,4 +154,23 @@ class Aliyun(object):
         if oids:
             for i in oids:
                 AssetSlb.objects.filter(instanceid=i).update(is_active=False)
+
+    def aly_sync_assetrds(self):
+        ids = AssetRds.objects.all().values('DBInstanceId')
+        instances = self.get_rds_instances()
+        print(instances)
+        inids = [i['DBInstanceId'] for i in ids]
+        newids = []
+        for instance in instances:
+            newids.append(instance['DBInstanceId'])
+            if instance['DBInstanceId'] in inids:
+                AssetRds.objects.filter(DBInstanceId=instance['DBInstanceId']).update(
+                    DBInstanceDescription=instance['DBInstanceDescription'])
+            else:
+                assetrds = AssetRds(**instance)
+                assetrds.save()
+        oids = list(set(inids) - set(newids))
+        if oids:
+            for i in oids:
+                AssetRds.objects.filter(DBInstanceId=i).update(is_active=False)
 

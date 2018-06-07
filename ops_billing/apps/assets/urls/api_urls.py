@@ -5,7 +5,6 @@ from rest_framework_bulk.routes import BulkRouter
 
 app_name = 'assets'
 
-
 router = BulkRouter()
 router.register(r'v1/assets', api.AssetViewSet, 'asset')
 router.register(r'v1/admin-user', api.AdminUserViewSet, 'admin-user')
@@ -13,7 +12,9 @@ router.register(r'v1/system-user', api.SystemUserViewSet, 'system-user')
 router.register(r'v1/labels', api.LabelViewSet, 'label')
 router.register(r'v1/nodes', api.NodeViewSet, 'node')
 router.register(r'v1/nodeslb', api.NodeSlbViewSet, 'nodeslb')
+router.register(r'v1/noderds', api.NodeRdsViewSet, 'noderds')
 router.register(r'v1/assetslb', api.AssetSlbViewSet, 'assetslb')
+router.register(r'v1/assetrds', api.AssetRdsViewSet, 'assetrds')
 router.register(r'v1/domain', api.DomainViewSet, 'domain')
 router.register(r'v1/gateway', api.GatewayViewSet, 'gateway')
 
@@ -60,6 +61,19 @@ urlpatterns = [
         name='nodeslb-replace-assets'),
     url(r'^v1/slbnodes/(?P<pk>[0-9a-zA-Z\-]{36})/assets/remove/$', api.NodeSlbRemoveAssetsApi.as_view(),
         name='nodeslb-remove-assets'),
+    # Asset Rds node api
+    url(r'^v1/rdsnodes/(?P<pk>[0-9a-zA-Z\-]{36})/children/$', api.NodeRdsChildrenApi.as_view(),
+        name='noderds-children'),
+    url(r'^v1/rdsnodes/children/$', api.NodeRdsChildrenApi.as_view(), name='noderds-children-2'),
+    url(r'^v1/rdsnodes/(?P<pk>[0-9a-zA-Z\-]{36})/children/add/$', api.NodeRdsAddChildrenApi.as_view(),
+        name='noderds-add-children'),
+    url(r'^v1/rdsnodes/(?P<pk>[0-9a-zA-Z\-]{36})/assets/$', api.NodeRdsAssetsApi.as_view(), name='noderds-assets'),
+    url(r'^v1/rdsnodes/(?P<pk>[0-9a-zA-Z\-]{36})/assets/add/$', api.NodeRdsAddAssetsApi.as_view(),
+        name='noderds-add-assets'),
+    url(r'^v1/rdsnodes/(?P<pk>[0-9a-zA-Z\-]{36})/assets/replace/$', api.NodeRdsReplaceAssetsApi.as_view(),
+        name='noderds-replace-assets'),
+    url(r'^v1/rdsnodes/(?P<pk>[0-9a-zA-Z\-]{36})/assets/remove/$', api.NodeRdsRemoveAssetsApi.as_view(),
+        name='noderds-remove-assets'),
 
     url(r'^v1/gateway/(?P<pk>[0-9a-zA-Z\-]{36})/test-connective/$', api.GatewayTestConnectionApi.as_view(), name='test-gateway-connective'),
 ]

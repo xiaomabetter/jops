@@ -1,5 +1,4 @@
 # ~*~ coding: utf-8 ~*~
-
 from rest_framework import generics, mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,40 +8,38 @@ from django.shortcuts import get_object_or_404
 
 from common.utils import get_logger, get_object_or_none
 from ..hands import IsSuperUser
-from ..models import NodeSlb
+from ..models import NodeRds
 from .. import serializers
-
 
 logger = get_logger(__file__)
 __all__ = [
-    'NodeSlbViewSet', 'NodeSlbChildrenApi',
-    'NodeSlbAssetsApi', 'NodeSlbWithAssetsApi',
-    'NodeSlbAddAssetsApi', 'NodeSlbRemoveAssetsApi',
-    'NodeSlbReplaceAssetsApi',
-    'NodeSlbAddChildrenApi'
+    'NodeRdsViewSet', 'NodeRdsChildrenApi',
+    'NodeRdsAssetsApi', 'NodeRdsWithAssetsApi',
+    'NodeRdsAddAssetsApi', 'NodeRdsRemoveAssetsApi',
+    'NodeRdsReplaceAssetsApi',
+    'NodeRdsAddChildrenApi'
 ]
 
-
-class NodeSlbViewSet(BulkModelViewSet):
-    queryset = NodeSlb.objects.all()
+class NodeRdsViewSet(BulkModelViewSet):
+    queryset = NodeRds.objects.all()
     permission_classes = (IsSuperUser,)
-    serializer_class = serializers.NodeSlbSerializer
+    serializer_class = serializers.NodeRdsSerializer
 
     def perform_create(self, serializer):
-        child_key = NodeSlb.root().get_next_child_key()
+        child_key = NodeRds.root().get_next_child_key()
         serializer.validated_data["key"] = child_key
         serializer.save()
 
-class NodeSlbWithAssetsApi(generics.ListAPIView):
+class NodeRdsWithAssetsApi(generics.ListAPIView):
     permission_classes = (IsSuperUser,)
-    serializers = serializers.NodeSlbSerializer
+    serializers = serializers.NodeRdsSerializer
 
     def get_node(self):
         pk = self.kwargs.get('pk') or self.request.query_params.get('node')
         if not pk:
-            node = NodeSlb.root()
+            node = NodeRds.root()
         else:
-            node = get_object_or_404(NodeSlb, pk)
+            node = get_object_or_404(NodeRds, pk)
         return node
 
     def get_queryset(self):
@@ -53,7 +50,7 @@ class NodeSlbWithAssetsApi(generics.ListAPIView):
         queryset.extend(list(children))
 
         for asset in assets:
-            node = NodeSlb()
+            node = NodeRds()
             node.id = asset.id
             node.parent = node.id
             node.value = asset.hostname
@@ -61,16 +58,16 @@ class NodeSlbWithAssetsApi(generics.ListAPIView):
         return queryset
 
 
-class NodeSlbChildrenApi(mixins.ListModelMixin, generics.CreateAPIView):
-    queryset = NodeSlb.objects.all()
+class NodeRdsChildrenApi(mixins.ListModelMixin, generics.CreateAPIView):
+    queryset = NodeRds.objects.all()
     permission_classes = (IsSuperUser,)
-    serializer_class = serializers.NodeSlbSerializer
+    serializer_class = serializers.NodeRdsSerializer
     instance = None
 
     def post(self, request, *args, **kwargs):
         if not request.data.get("value"):
             request.data["value"] = _("New node {}").format(
-                NodeSlb.root().get_next_child_key().split(":")[-1]
+                NodeRds.root().get_next_child_key().split(":")[-1]
             )
         return super().post(request, *args, **kwargs)
 
@@ -86,9 +83,9 @@ class NodeSlbChildrenApi(mixins.ListModelMixin, generics.CreateAPIView):
     def get_object(self):
         pk = self.kwargs.get('pk') or self.request.query_params.get('id')
         if not pk:
-            node = NodeSlb.root()
+            node = NodeRds.root()
         else:
-            node = get_object_or_404(NodeSlb, pk=pk)
+            node = get_object_or_404(NodeRds, pk=pk)
         return node
 
     def get_queryset(self):
@@ -96,7 +93,7 @@ class NodeSlbChildrenApi(mixins.ListModelMixin, generics.CreateAPIView):
         query_all = self.request.query_params.get("all")
         query_assets = self.request.query_params.get('assets')
         node = self.get_object()
-        if node == NodeSlb.root():
+        if node == NodeRds.root():
             queryset.append(node)
         if query_all:
             children = node.get_all_children()
@@ -107,7 +104,7 @@ class NodeSlbChildrenApi(mixins.ListModelMixin, generics.CreateAPIView):
         if query_assets:
             assets = node.get_assets()
             for asset in assets:
-                node_fake = NodeSlb()
+                node_fake = NodeRds()
                 node_fake.id = asset.id
                 node_fake.parent = node
                 node_fake.value = asset.hostname
@@ -120,30 +117,30 @@ class NodeSlbChildrenApi(mixins.ListModelMixin, generics.CreateAPIView):
         return super().list(request, *args, **kwargs)
 
 
-class NodeSlbAssetsApi(generics.ListAPIView):
+class NodeRdsAssetsApi(generics.ListAPIView):
     permission_classes = (IsSuperUser,)
     serializer_class = serializers.AssetSerializer
 
     def get_queryset(self):
         node_id = self.kwargs.get('pk')
         query_all = self.request.query_params.get('all')
-        instance = get_object_or_404(NodeSlb, pk=node_id)
+        instance = get_object_or_404(NodeRds, pk=node_id)
         if query_all:
             return instance.get_all_assets()
         else:
             return instance.get_assets()
 
 
-class NodeSlbAddChildrenApi(generics.UpdateAPIView):
-    queryset = NodeSlb.objects.all()
+class NodeRdsAddChildrenApi(generics.UpdateAPIView):
+    queryset = NodeRds.objects.all()
     permission_classes = (IsSuperUser,)
-    serializer_class = serializers.NodeSlbAddChildrenSerializer
+    serializer_class = serializers.NodeRdsAddChildrenSerializer
     instance = None
 
     def put(self, request, *args, **kwargs):
         instance = self.get_object()
         nodes_id = request.data.get("nodes")
-        children = [get_object_or_none(NodeSlb, id=pk) for pk in nodes_id]
+        children = [get_object_or_none(NodeRds, id=pk) for pk in nodes_id]
         for node in children:
             if not node:
                 continue
@@ -152,39 +149,39 @@ class NodeSlbAddChildrenApi(generics.UpdateAPIView):
         return Response("OK")
 
 
-class NodeSlbAddAssetsApi(generics.UpdateAPIView):
-    serializer_class = serializers.NodeSlbAssetsSerializer
-    queryset = NodeSlb.objects.all()
+class NodeRdsAddAssetsApi(generics.UpdateAPIView):
+    serializer_class = serializers.NodeRdsAssetsSerializer
+    queryset = NodeRds.objects.all()
     permission_classes = (IsSuperUser,)
     instance = None
 
     def perform_update(self, serializer):
-        assetslb = serializer.validated_data.get('assetslb')
+        assetrds = serializer.validated_data.get('assetrds')
         instance = self.get_object()
-        instance.assetslb.add(*tuple(assetslb))
+        instance.assetrds.add(*tuple(assetrds))
 
 
-class NodeSlbRemoveAssetsApi(generics.UpdateAPIView):
-    serializer_class = serializers.NodeSlbAssetsSerializer
-    queryset = NodeSlb.objects.all()
+class NodeRdsRemoveAssetsApi(generics.UpdateAPIView):
+    serializer_class = serializers.NodeRdsAssetsSerializer
+    queryset = NodeRds.objects.all()
     permission_classes = (IsSuperUser,)
     instance = None
 
     def perform_update(self, serializer):
-        assets = serializer.validated_data.get('assetslb')
+        assets = serializer.validated_data.get('assetrds')
         instance = self.get_object()
-        if instance != NodeSlb.root():
-            instance.assetslb.remove(*tuple(assets))
+        if instance != NodeRds.root():
+            instance.assetrds.remove(*tuple(assets))
 
 
-class NodeSlbReplaceAssetsApi(generics.UpdateAPIView):
-    serializer_class = serializers.NodeSlbAssetsSerializer
-    queryset = NodeSlb.objects.all()
+class NodeRdsReplaceAssetsApi(generics.UpdateAPIView):
+    serializer_class = serializers.NodeRdsAssetsSerializer
+    queryset = NodeRds.objects.all()
     permission_classes = (IsSuperUser,)
     instance = None
 
     def perform_update(self, serializer):
-        assets = serializer.validated_data.get('assetslb')
+        assets = serializer.validated_data.get('assetrds')
         instance = self.get_object()
         for asset in assets:
             asset.nodes.set([instance])
