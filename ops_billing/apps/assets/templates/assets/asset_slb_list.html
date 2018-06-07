@@ -515,7 +515,7 @@ $(document).ready(function(){
         };
 
         APIUpdateAttr({
-            'url': '/api/assets/v1/slbnodes/' + current_node.id + '/assets/remove/',
+            'url': '/api/assets/v1/rdsnodes/' + current_node.id + '/assets/remove/',
             'method': 'PUT',
             'body': JSON.stringify(data),
             'success': success

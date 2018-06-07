@@ -28,7 +28,7 @@ from common.mixins import JSONResponseMixin
 from common.utils import get_object_or_none, get_logger, is_uuid
 from common.const import create_success_msg, update_success_msg
 from .. import forms
-from ..models import Asset, AdminUser, SystemUser, Label, Node, Domain,NodeSlb,NodeRds
+from ..models import Asset, AdminUser, SystemUser, Label, Node, Domain,NodeSlb,NodeRds,AssetRds
 from ..hands import AdminUserRequiredMixin
 
 
@@ -36,7 +36,7 @@ __all__ = [
     'AssetListView', 'AssetCreateView', 'AssetUpdateView',
     'UserAssetListView', 'AssetBulkUpdateView', 'AssetDetailView',
     'AssetDeleteView', 'AssetExportView', 'BulkImportAssetView',
-    'AssetSlbListView','AssetRdsListView'
+    'AssetSlbListView','AssetRdsListView','AssetRdsDetailView'
 ]
 logger = get_logger(__file__)
 
@@ -50,6 +50,21 @@ class AssetRdsListView(AdminUserRequiredMixin, TemplateView):
             'action': _('Asset list'),
             'asset_category': 'Rds',
             'nodes': NodeRds.objects.all().order_by('-key'),
+        }
+        kwargs.update(context)
+        return super().get_context_data(**kwargs)
+
+class AssetRdsDetailView(DetailView):
+    model = AssetRds
+    context_object_name = 'assetrds'
+    template_name = 'assets/asset_rds_detail.html'
+
+    def get_context_data(self, **kwargs):
+        nodes_remain = NodeRds.objects.exclude(assetrds=self.object)
+        context = {
+            'app': _('Assets'),
+            'action': _('Asset detail'),
+            'nodes_remain': nodes_remain,
         }
         kwargs.update(context)
         return super().get_context_data(**kwargs)

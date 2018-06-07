@@ -82,7 +82,6 @@
                            <th class="text-center">DBInstanceDescription</th>
                            <th class="text-center">is_active</th>
                            <th class="text-center">ConnectionString</th>
-                           <th class="text-center">RegionId</th>
                        </tr>
                    </thead>
                    <tbody>
@@ -133,7 +132,9 @@ function initTable() {
         ele: $('#asset_list_table'),
         columnDefs: [
             {targets: 1, createdCell: function (td, cellData, rowData) {
-                $(td).html(cellData);
+                {% url 'assets:assetrds-detail' pk=DEFAULT_PK as the_url  %}
+                var detail_btn = '<a href="{{ the_url }}">' + cellData + '</a>';
+                $(td).html(detail_btn.replace('{{ DEFAULT_PK }}', rowData.id));
             }},
             {targets: 2, createdCell: function (td, cellData,rowData) {
                 if (!cellData) {
@@ -145,14 +146,10 @@ function initTable() {
             {targets: 3, createdCell: function (td, cellData, rowData) {
                 $(td).html(cellData);
             }},
-            {targets: 4, createdCell: function (td, cellData, rowData) {
-                $(td).html(cellData);
-            }}
         ],
         ajax_url: '{% url "api-assets:assetrds-list" %}',
         columns: [
-            {data: "id"},{data: "DBInstanceDescription" },{data: "is_active" },
-            {data: "ConnectionString"}, {data: "RegionId" }
+            {data: "id"},{data: "DBInstanceDescription" },{data: "is_active" },{data: "ConnectionString"}
             ],
         op_html: $('#actions').html()
     };

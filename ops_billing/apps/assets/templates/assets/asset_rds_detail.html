@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block custom_head_css_js %}
+    <link href='{% static "css/plugins/select2/select2.min.css" %}' rel="stylesheet">
+    <link href='{% static "css/plugins/sweetalert/sweetalert.css" %}' rel="stylesheet">
+    <script src='{% static "js/plugins/select2/select2.full.min.js" %}'></script>
+    <script src='{% static "js/plugins/sweetalert/sweetalert.min.js" %}'></script>
+{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="panel-options">
+                        <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="{% url 'assets:assetrds-detail' pk=assetrds.id %}" class="text-center"><i class="fa fa-laptop"></i> {% trans 'Asset detail' %} </a>
+                            </li>
+                            {% if user.is_superuser %}
+                            <li class="pull-right">
+                                <a class="btn btn-outline btn-danger btn-delete-asset">
+                                    <i class="fa fa-trash-o"></i>{% trans 'Delete' %}
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    <div class="tab-content">
+                        <div class="col-sm-7" style="padding-left: 0">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <span class="label"><b>{{ assetrds.DBInstanceId }}</b></span>
+                                    <div class="ibox-tools">
+                                        <a class="collapse-link">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                            <i class="fa fa-wrench"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-user">
+                                        </ul>
+                                        <a class="close-link">
+                                            <i class="fa fa-times"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    <table class="table">
+                                        <tbody>
+                                        <tr class="no-borders-tr">
+                                            <td width="20%">实例名称:</td>
+                                            <td><b>{{ assetrds.DBInstanceDescription }}</b></td>
+                                        </tr>
+                                        <tr>
+                                            <td>链接地址:</td>
+                                            <td><b>{{ assetrds.ConnectionString }}</b></td>
+                                        </tr>
+                                        <tr>
+                                            <td>区域:</td>
+                                            <td><b>{{ assetrds.RegionId }}</b></td>
+                                        </tr>
+                                        <tr>
+                                            <td>CPU:</td>
+                                            <td><b>{{ assetrds.DBInstanceCPU }}</b></td>
+                                        </tr>
+                                        <tr>
+                                            <td>RDS实例类型:</td>
+                                            <td><b>{{ assetrds.DBInstanceType }}</b></td>
+                                        </tr>
+                                        <tr>
+                                            <td>{% trans 'Is active' %}:</td>
+                                            <td><b>{{ assetrds.is_active|yesno:"Yes,No" }}</b></td>
+                                        </tr>
+                                        <tr>
+                                            <td>创建时间:</td>
+                                            <td><b>{{ assetrds.CreationTime }}</b></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        {% if user.is_superuser %}
+                        <div class="col-sm-5" style="padding-left: 0;padding-right: 0">
+                            <div class="panel panel-info">
+                                <div class="panel-heading">
+                                    <i class="fa fa-info-circle"></i> {% trans 'Nodes' %}
+                                </div>
+                                <div class="panel-body">
+                                    <table class="table group_edit" id="add-asset2group">
+                                        <tbody>
+                                        {% for node in assetrds.nodes.all %}
+                                        <tr>
+                                          <td ><b class="bdg_node" data-gid={{ node.id }}>{{ node.name }}</b></td>
+                                          <td>
+                                              <button class="btn btn-danger pull-right btn-xs btn-leave-node" type="button"><i class="fa fa-minus"></i></button>
+                                          </td>
+                                        </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block custom_foot_js %}
+<script>
+jumpserver.nodes_selected = {};
+function updateAssetNodes(nodes) {
+    var success = function(data) {
+        // remove all the selected groups from select > option and rendered ul element;
+        $('.select2-selection__rendered').empty();
+        $('#groups_selected').val('');
+        $.map(jumpserver.nodes_selected, function(group_name, index) {
+            $('#opt_' + index).remove();
+            // change tr html of user groups.
+            $('#add-asset2group tbody').append(
+                '<tr>' +
+                '<td><b class="bdg_node" data-gid="' + index + '">' + group_name + '</b></td>' +
+                '<td><button class="btn btn-danger btn-xs pull-right btn-leave-node" type="button"><i class="fa fa-minus"></i></button></td>' +
+                '</tr>'
+            )
+        });
+        // clear jumpserver.groups_selected
+        jumpserver.nodes_selected = {};
+    };
+
+    var data = {
+            'assetrds': ['{{ assetrds.id }}']
+    };
+
+    APIUpdateAttr({
+        'url': '/api/assets/v1/rdsnodes/' + nodes + '/assets/remove/',
+        'method': 'PUT',
+        'body': JSON.stringify(data),
+        'success': success
+    })
+}
+
+$(document).ready(function () {
+    $('.select2.groups').select2().on('select2:select', function(evt) {
+        var data = evt.params.data;
+        jumpserver.nodes_selected[data.id] = data.text;
+    }).on('select2:unselect', function(evt) {
+        var data = evt.params.data;
+        delete jumpserver.nodes_selected[data.id]
+    });
+}).on('click', '.btn-leave-node', function() {
+    var $this = $(this);
+    var $tr = $this.closest('tr');
+    var $badge = $tr.find('.bdg_node');
+    var gid = $badge.data('gid');
+    console.log(gid);
+    var group_name = $badge.html() || $badge.text();
+    $('#groups_selected').append(
+        '<option value="' + gid + '" id="opt_' + gid + '">' + group_name + '</option>'
+    );
+    $tr.remove();
+    var groups = $('.bdg_node').map(function () {
+        return $(this).data('gid');
+    }).get();
+    updateAssetNodes(gid)
+}).on('click', '.btn-delete-asset', function () {
+    var $this = $(this);
+    var name = "{{ assetrds.hostname }}";
+    var uid = "{{ assetrds.id }}";
+    var the_url = '{% url "api-assets:assetrds-detail" pk=DEFAULT_PK %}'.replace('{{ DEFAULT_PK }}', uid);
+    var redirect_url = "{% url 'assets:assetrds-index' %}";
+    objectDelete($this, name, the_url, redirect_url);
+})
+
+</script>
+{% endblock %}

@@ -231,11 +231,17 @@ function updateAssetNodes(nodes) {
         // clear jumpserver.groups_selected
         jumpserver.nodes_selected = {};
     };
+
+    var data = {
+            'assets': ['{{ asset.id }}']
+    };
+
     APIUpdateAttr({
-        url: the_url,
-        body: JSON.stringify(body),
-        success: success
-    });
+        'url': '/api/assets/v1/nodes/' + nodes + '/assets/remove/',
+        'method': 'PUT',
+        'body': JSON.stringify(data),
+        'success': success
+    })
 }
 
 function refreshAssetHardware() {
@@ -264,7 +270,6 @@ $(document).ready(function () {
     });
 }).on('click', '#is_active', function () {
     var the_url = '{% url "api-assets:asset-detail" pk=asset.id %}';
-    <con></con>
     var checked = $(this).prop('checked');
     var body = {
         'is_active': checked
@@ -306,7 +311,7 @@ $(document).ready(function () {
     var groups = $('.bdg_node').map(function () {
         return $(this).data('gid');
     }).get();
-    updateAssetNodes(groups)
+    updateAssetNodes(gid)
 }).on('click', '.btn-delete-asset', function () {
     var $this = $(this);
     var name = "{{ asset.hostname }}";

@@ -10,7 +10,7 @@ from aliyunsdkecs.request.v20140526 import DescribeDisksRequest, \
     DescribeInstancesRequest, CreateInstanceRequest, StartInstanceRequest, \
     StopInstanceRequest, RebootInstanceRequest, \
     AllocatePublicIpAddressRequest, JoinSecurityGroupRequest
-from aliyunsdkslb.request.v20140515 import DescribeLoadBalancersRequest
+from aliyunsdkslb.request.v20140515 import DescribeLoadBalancersRequest,DescribeLoadBalancerAttributeRequest
 from aliyunsdkrds.request.v20140815 import DescribeDBInstancesRequest,DescribeDBInstanceAttributeRequest
 from django.forms.models import model_to_dict
 from assets.models import Asset,AssetSlb,AssetRds
@@ -26,10 +26,10 @@ class Aliyun(object):
 
     def get_instances(self,pageSize=100):
         result = []
+        request = DescribeInstancesRequest.DescribeInstancesRequest()
+        request.set_accept_format('json')
         for region in self.RegionId:
             pageNumber = 1
-            request = DescribeInstancesRequest.DescribeInstancesRequest()
-            request.set_accept_format('json')
             request.set_query_params(dict(PageNumber=pageNumber, PageSize=pageSize))
             clt = client.AcsClient(self.AccessKeyId, self.AccessKeySecret, region)
             clt_result = json.loads(clt.do_action_with_exception(request))
@@ -62,11 +62,14 @@ class Aliyun(object):
 
     def get_slb_instances(self, pageSize=100):
         result = []
+        request = DescribeLoadBalancersRequest.DescribeLoadBalancersRequest()
+        request.set_accept_format('json')
+        attributeRequest = DescribeLoadBalancerAttributeRequest.DescribeLoadBalancerAttributeRequest()
+        attributeRequest.set_accept_format('json')
         for region in self.RegionId:
             pageNumber = 1
-            request = DescribeLoadBalancersRequest.DescribeLoadBalancersRequest()
-            request.set_accept_format('json')
             request.set_query_params(dict(PageNumber=pageNumber, PageSize=pageSize))
+            attributectl = client.AcsClient(self.AccessKeyId, self.AccessKeySecret,region_id=region)
             clt = client.AcsClient(self.AccessKeyId, self.AccessKeySecret, region)
             clt_result = json.loads(clt.do_action_with_exception(request))
             totalCount = clt_result['TotalCount']
@@ -74,6 +77,9 @@ class Aliyun(object):
                 request.set_query_params(dict(PageNumber=pageNumber, PageSize=pageSize))
                 clt_result = json.loads(clt.do_action_with_exception(request),encoding='utf-8')
                 for Instance in clt_result['LoadBalancers']['LoadBalancer']:
+                    #attributeRequest.add_query_param("action_name","DescribeLoadBalancerAttribute")
+                    #attributeRequest.add_query_param("LoadBalancerId", Instance['LoadBalancerId'])
+                    #r = json.loads(attributectl.do_action_with_exception(attributeRequest))
                     result.append({
                         'id': str(uuid.uuid4()),
                         'instanceid':Instance['LoadBalancerId'],
@@ -87,13 +93,13 @@ class Aliyun(object):
 
     def get_rds_instances(self, pageSize=100):
         result = []
+        request = DescribeDBInstancesRequest.DescribeDBInstancesRequest()
+        request.set_accept_format('json')
         attributeRequest = DescribeDBInstanceAttributeRequest.DescribeDBInstanceAttributeRequest()
         attributeRequest.set_accept_format('json')
         attributectl = client.AcsClient(self.AccessKeyId, self.AccessKeySecret)
         for region in self.RegionId:
             pageNumber = 1
-            request = DescribeDBInstancesRequest.DescribeDBInstancesRequest()
-            request.set_accept_format('json')
             request.set_query_params(dict(PageNumber=pageNumber, PageSize=pageSize))
             clt = client.AcsClient(self.AccessKeyId, self.AccessKeySecret, region)
             clt_result = json.loads(clt.do_action_with_exception(request))
@@ -120,8 +126,8 @@ class Aliyun(object):
         return result
 
     def aly_sync_asset(self):
-        instances = self.get_instances()
         ids = Asset.objects.all().values('instanceid')
+        instances = self.get_instances()
         inids = [ i['instanceid']  for i in ids ]
         newids = []
         for instance in instances:
