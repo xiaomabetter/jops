@@ -12,7 +12,7 @@ from django.core.cache import cache
 from ..const import ASSET_ADMIN_CONN_CACHE_KEY
 from .user import AdminUser, SystemUser
 
-__all__ = ['Asset','AssetSlb','AssetRds']
+__all__ = ['Asset','AssetSlb','AssetRds','AssetRedis']
 logger = logging.getLogger(__name__)
 
 def default_cluster():
@@ -48,10 +48,10 @@ class AssetSlb(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     instanceid = models.CharField(max_length=32, db_index=True)
     slb_name = models.CharField(max_length=128, unique=False)
-    is_active = models.BooleanField(default=True, verbose_name=_('Is active'))
+    is_active = models.BooleanField(default=True)
     slb_addr = models.GenericIPAddressField(max_length=32, unique=False)
     slb_region = models.CharField(max_length=128, unique=False)
-    create_time = models.CharField(max_length=128, unique=False)
+    create_time = models.DateTimeField(auto_now_add=False, null=True, blank=True)
     nodes = models.ManyToManyField('assets.NodeSlb', default='', null=True,related_name='assetslb')
 
 class AssetRds(models.Model):
@@ -62,9 +62,21 @@ class AssetRds(models.Model):
     ConnectionString = models.CharField(max_length=128, unique=False)
     DBInstanceCPU = models.CharField(max_length=128, unique=False)
     DBInstanceType = models.CharField(max_length=128, unique=False)
-    is_active = models.BooleanField(default=True, verbose_name=_('Is active'))
-    CreationTime = models.CharField(max_length=128, unique=False)
+    is_active = models.BooleanField(default=True)
+    CreationTime = models.DateTimeField(auto_now_add=False, null=True, blank=True)
     nodes = models.ManyToManyField('assets.NodeRds', default='', null=True,related_name='assetrds')
+
+class AssetRedis(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    InstanceId = models.CharField(max_length=32, db_index=True)
+    RegionId = models.CharField(max_length=128, unique=False)
+    UserName = models.CharField(max_length=128, unique=False)
+    ConnectionDomain = models.CharField(max_length=128, unique=False)
+    Capacity = models.CharField(max_length=128, unique=False)
+    InstanceName = models.CharField(max_length=128, unique=False)
+    is_active = models.BooleanField(default=True)
+    CreateTime = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    nodes = models.ManyToManyField('assets.NodeRedis', default='', null=True,related_name='assetredis')
 
 class Asset(models.Model):
     # Important

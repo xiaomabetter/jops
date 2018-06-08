@@ -28,7 +28,8 @@ from common.mixins import JSONResponseMixin
 from common.utils import get_object_or_none, get_logger, is_uuid
 from common.const import create_success_msg, update_success_msg
 from .. import forms
-from ..models import Asset, AdminUser, SystemUser, Label, Node, Domain,NodeSlb,NodeRds,AssetRds
+from ..models import Asset, AdminUser, SystemUser, Label, Node, Domain,\
+    NodeSlb,NodeRds,AssetRds,AssetRedis,NodeRedis
 from ..hands import AdminUserRequiredMixin
 
 
@@ -36,15 +37,30 @@ __all__ = [
     'AssetListView', 'AssetCreateView', 'AssetUpdateView',
     'UserAssetListView', 'AssetBulkUpdateView', 'AssetDetailView',
     'AssetDeleteView', 'AssetExportView', 'BulkImportAssetView',
-    'AssetSlbListView','AssetRdsListView','AssetRdsDetailView'
+    'AssetSlbListView','AssetRdsListView','AssetRdsDetailView',
+    'AssetRedisListView'
 ]
 logger = get_logger(__file__)
+
+class AssetRedisListView(AdminUserRequiredMixin, TemplateView):
+
+    template_name = 'assets/asset_redis_list.html'
+    def get_context_data(self, **kwargs):
+        NodeRedis.root()
+        context = {
+            'app': _('Assets'),
+            'action': _('Asset list'),
+            'asset_category': 'Redis',
+            'nodes': NodeRedis.objects.all().order_by('-key'),
+        }
+        kwargs.update(context)
+        return super().get_context_data(**kwargs)
 
 class AssetRdsListView(AdminUserRequiredMixin, TemplateView):
 
     template_name = 'assets/asset_rds_list.html'
     def get_context_data(self, **kwargs):
-        NodeSlb.root()
+        NodeRds.root()
         context = {
             'app': _('Assets'),
             'action': _('Asset list'),

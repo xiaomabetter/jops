@@ -10,3 +10,4 @@ from .domain import *
 from .bill import *
 from .nodeslb import  *
 from .noderds import *
+from .noderedis import *

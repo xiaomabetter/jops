@@ -8,7 +8,6 @@ from .ansible import AdHocRunner, AnsibleError,CommandRunner
 from .ansible.inventory import BaseInventory
 from .custom.cost import Bill
 from .custom.aly import Aliyun
-from .custom.aly import Aliyun_kv
 
 logger = get_logger(__file__)
 
@@ -60,7 +59,6 @@ def run_sync_bill_task(day_from,day_to, callback=None, **kwargs):
 @shared_task
 def run_sync_assets_task(asset_category, callback=None, **kwargs):
     r = Aliyun()
-    kv = Aliyun_kv()
     if asset_category == 'ecs':
         r.aly_sync_asset()
     elif asset_category == 'slb':
@@ -68,6 +66,6 @@ def run_sync_assets_task(asset_category, callback=None, **kwargs):
     elif asset_category == 'rds':
         r.aly_sync_assetrds()
     elif asset_category == 'redis':
-        kv.get_redis_instances()
+        r.aly_sync_assetredis()
 
 

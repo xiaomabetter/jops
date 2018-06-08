@@ -59,19 +59,9 @@
                   <ul class="dropdown-menu labels">
                     <li><a href="{% url 'assets:assetslb-index' %}">Slb</a></li>
                     <li><a href="{% url 'assets:asset-list' %}">Ecs</a></li>
-                    <li><a href="{% url 'assets:assetrds-index' %}">Rds</a></li>
+                    <li><a href="{% url 'assets:assetredis-index' %}">Rds</a></li>
                     <li><a href="{% url 'assets:assetredis-index' %}">Redis</a></li>
                   </ul>
-               </div>
-               <div class="html5buttons">
-                   <div class="dt-buttons btn-group">
-                       <a class="btn btn-default btn_import" data-toggle="modal" data-target="#asset_import_modal" tabindex="0">
-                           <span>{% trans "Import" %}</span>
-                       </a>
-                       <a class="btn btn-default btn_export" tabindex="0">
-                           <span>{% trans "Export" %}</span>
-                       </a>
-                   </div>
                </div>
                <div class="btn-group" style="float: right">
                     <button class="btn btn-default btn-sm" id="nogroup">点击查看未分组资产</button>
@@ -80,11 +70,10 @@
                    <thead>
                        <tr>
                            <th class="text-center"><input type="checkbox" class="ipt_check_all"></th>
-                           <th class="text-center">slbid</th>
-                           <th class="text-center">slbname</th>
-                           <th class="text-center">slbstatus</th>
-                           <th class="text-center">slbaddr</th>
-                           <th class="text-center">slb_region</th>
+                           <th class="text-center">ConnectionDomain</th>
+                           <th class="text-center">is_active</th>
+                           <th class="text-center">InstanceName</th>
+
                        </tr>
                    </thead>
                    <tbody>
@@ -123,8 +112,7 @@
     </ul>
 </div>
 
-{% include 'assets/_asset_import_modal.html' %}
-{% include 'assets/_slb_list_modal.html' %}
+{% include 'assets/_redis_list_modal.html' %}
 {% endblock %}
 
 {% block custom_foot_js %}
@@ -138,27 +126,20 @@ function initTable() {
             {targets: 1, createdCell: function (td, cellData, rowData) {
                 $(td).html(cellData);
             }},
-            {targets: 2, createdCell: function (td, cellData, rowData) {
-                $(td).html(cellData);
-            }},
-            {targets: 3, createdCell: function (td, cellData,rowData) {
+            {targets: 2, createdCell: function (td, cellData,rowData) {
                 if (!cellData) {
                     $(td).html('<i class="fa fa-times text-danger"></i>')
                 } else {
                     $(td).html('<i class="fa fa-check text-navy"></i>')
                 }
             }},
-            {targets: 4, createdCell: function (td, cellData, rowData) {
-                    $(td).html(cellData);
-            }},
-            {targets: 5, createdCell: function (td, cellData, rowData) {
+            {targets: 3, createdCell: function (td, cellData, rowData) {
                 $(td).html(cellData);
-            }}
+            }},
         ],
-        ajax_url: '{% url "api-assets:assetslb-list" %}',
+        ajax_url: '{% url "api-assets:assetredis-list" %}',
         columns: [
-            {data: "id"},{data: "instanceid"}, {data: "slb_name" },{data: "is_active" },
-            {data: "slb_addr"}, {data: "slb_region" }
+            {data: "id"},{data: "ConnectionDomain"},{data: "is_active" },{data: "InstanceName" }
             ],
         op_html: $('#actions').html()
     };
@@ -172,7 +153,7 @@ function addTreeNode() {
 	if (!parentNode){
 	    return
     }
-    var url = "{% url 'api-assets:nodeslb-children' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", parentNode.id );
+    var url = "{% url 'api-assets:noderedis-children' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", parentNode.id );
     $.post(url,  {}, function (data, status){
         if (status === "success") {
             var newNode = {
@@ -201,7 +182,7 @@ function removeTreeNode() {
 	 } else if (current_node.assets_amount !== 0) {
         toastr.error("{% trans 'Have assets, cancel' %}");
     } else {
-        var url = "{% url 'api-assets:nodeslb-detail' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", current_node.id );
+        var url = "{% url 'api-assets:noderedis-detail' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", current_node.id );
         console.log(url);
 		$.ajax({
             url: url,
@@ -214,7 +195,7 @@ function removeTreeNode() {
 }
 
 function onRename(event, treeId, treeNode, isCancel){
-    var url = "{% url 'api-assets:nodeslb-detail' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", treeNode.id);
+    var url = "{% url 'api-assets:noderedis-detail' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", treeNode.id);
     var data = {"value": treeNode.name};
     if (isCancel){
         return
@@ -251,7 +232,7 @@ function OnRightClick(event, treeId, treeNode) {
 function showRMenu(type, x, y) {
 	$("#rMenu ul").show();
     x -= 220;
-    rMenu.css({"top":y+"px", "left":x+"px", "visibility":"visible"});
+    $('#rMenu').css({"top":y+"px", "left":x+"px", "visibility":"visible"});
 
 	$("body").bind("mousedown", onBodyMouseDown);
 }
@@ -261,7 +242,7 @@ function beforeClick(treeId, treeNode, clickFlag) {
 }
 
 function hideRMenu() {
-	if (rMenu) rMenu.css({"visibility": "hidden"});
+	if (rMenu) $('#rMenu').css({"visibility": "hidden"});
 	$("body").unbind("mousedown", onBodyMouseDown);
 }
 
@@ -324,7 +305,7 @@ function onDrop(event, treeId, treeNodes, targetNode, moveType) {
         treeNodesIds.push(value.id);
     });
 
-    var the_url = "{% url 'api-assets:nodeslb-add-children' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", targetNode.id);
+    var the_url = "{% url 'api-assets:noderedis-add-children' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", targetNode.id);
     var body = {nodes: treeNodesIds};
     APIUpdateAttr({
         url: the_url,
@@ -366,7 +347,7 @@ function initTree() {
     };
 
     var zNodes = [];
-    $.get("{% url 'api-assets:nodeslb-list' %}", function(data, status){
+    $.get("{% url 'api-assets:noderedis-list' %}", function(data, status){
         $.each(data, function (index, value) {
             value["pId"] = value["parent"];
             {#if (value["key"] === "0") {#}
@@ -408,7 +389,7 @@ $(document).ready(function(){
     asset_table.search(val).draw();
  })
  .on('click', '#nogroup', function () {
-    var url = "{% url 'api-assets:assetslb-list' %}";
+    var url = "{% url 'api-assets:assetredis-list' %}";
     var tonode = 'True';
     url = setUrlParam(url, 'tonode',tonode);
     //setCookie('node_selected', treeNode.id);
@@ -425,7 +406,7 @@ $(document).ready(function(){
     if (id_list.length === 0) {
         return false;
     }
-    var the_url = "{% url 'api-assets:assetslb-list' %}";
+    var the_url = "{% url 'api-assets:assetredis-list' %}";
 
     function doDeactive() {
         var data = [];
@@ -478,7 +459,6 @@ $(document).ready(function(){
                 var msg = "{% trans 'Asset Deleting failed.' %}";
                 swal("{% trans 'Asset Delete' %}", msg, "error");
             };
-            console.log(id_list);
             var url_delete = the_url + '?id__in=' + JSON.stringify(id_list);
             APIUpdateAttr({
                 url: url_delete,
@@ -506,7 +486,7 @@ $(document).ready(function(){
         }
 
         var data = {
-            'assetslb': id_list
+            'assetredis': id_list
         };
 
         var success = function () {
@@ -514,7 +494,7 @@ $(document).ready(function(){
         };
 
         APIUpdateAttr({
-            'url': '/api/assets/v1/slbnodes/' + current_node.id + '/assets/remove/',
+            'url': '/api/assets/v1/redisnodes/' + current_node.id + '/assets/remove/',
             'method': 'PUT',
             'body': JSON.stringify(data),
             'success': success
@@ -552,7 +532,7 @@ $(document).ready(function(){
     }
 
     var data = {
-        'assetslb': assets_selected
+        'assetredis': assets_selected
     };
     console.log(data);
     var success = function () {
@@ -563,9 +543,9 @@ $(document).ready(function(){
     var url = '';
     console.log(current_node.id);
     if (update_node_action === "move") {
-        url = "{% url 'api-assets:nodeslb-replace-assets' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", current_node.id);
+        url = "{% url 'api-assets:noderedis-replace-assets' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", current_node.id);
     } else {
-        url = "{% url 'api-assets:nodeslb-add-assets' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", current_node.id);
+        url = "{% url 'api-assets:noderedis-add-assets' pk=DEFAULT_PK %}".replace("{{ DEFAULT_PK }}", current_node.id);
     }
 
     APIUpdateAttr({

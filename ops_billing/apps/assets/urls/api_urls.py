@@ -13,8 +13,10 @@ router.register(r'v1/labels', api.LabelViewSet, 'label')
 router.register(r'v1/nodes', api.NodeViewSet, 'node')
 router.register(r'v1/nodeslb', api.NodeSlbViewSet, 'nodeslb')
 router.register(r'v1/noderds', api.NodeRdsViewSet, 'noderds')
+router.register(r'v1/noderedis', api.NodeRedisViewSet, 'noderedis')
 router.register(r'v1/assetslb', api.AssetSlbViewSet, 'assetslb')
 router.register(r'v1/assetrds', api.AssetRdsViewSet, 'assetrds')
+router.register(r'v1/assetredis', api.AssetRedisViewSet, 'assetredis')
 router.register(r'v1/domain', api.DomainViewSet, 'domain')
 router.register(r'v1/gateway', api.GatewayViewSet, 'gateway')
 
@@ -74,6 +76,19 @@ urlpatterns = [
         name='noderds-replace-assets'),
     url(r'^v1/rdsnodes/(?P<pk>[0-9a-zA-Z\-]{36})/assets/remove/$', api.NodeRdsRemoveAssetsApi.as_view(),
         name='noderds-remove-assets'),
+    # Asset Redis node api
+    url(r'^v1/redisnodes/(?P<pk>[0-9a-zA-Z\-]{36})/children/$', api.NodeRedisChildrenApi.as_view(),
+        name='noderedis-children'),
+    url(r'^v1/redisnodes/children/$', api.NodeRedisChildrenApi.as_view(), name='noderedis-children-2'),
+    url(r'^v1/redisnodes/(?P<pk>[0-9a-zA-Z\-]{36})/children/add/$', api.NodeRedisAddChildrenApi.as_view(),
+        name='noderedis-add-children'),
+    url(r'^v1/redisnodes/(?P<pk>[0-9a-zA-Z\-]{36})/assets/$', api.NodeRedisAssetsApi.as_view(), name='noderedis-assets'),
+    url(r'^v1/redisnodes/(?P<pk>[0-9a-zA-Z\-]{36})/assets/add/$', api.NodeRedisAddAssetsApi.as_view(),
+        name='noderedis-add-assets'),
+    url(r'^v1/redisnodes/(?P<pk>[0-9a-zA-Z\-]{36})/assets/replace/$', api.NodeRedisReplaceAssetsApi.as_view(),
+        name='noderedis-replace-assets'),
+    url(r'^v1/redisnodes/(?P<pk>[0-9a-zA-Z\-]{36})/assets/remove/$', api.NodeRedisRemoveAssetsApi.as_view(),
+        name='noderedis-remove-assets'),
 
     url(r'^v1/gateway/(?P<pk>[0-9a-zA-Z\-]{36})/test-connective/$', api.GatewayTestConnectionApi.as_view(), name='test-gateway-connective'),
 ]

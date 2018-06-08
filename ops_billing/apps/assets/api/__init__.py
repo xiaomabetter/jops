@@ -10,3 +10,5 @@ from .assetslb import *
 from .nodeslb import *
 from .noderds import *
 from .assetrds import *
+from .assetredis import *
+from .noderedis import *

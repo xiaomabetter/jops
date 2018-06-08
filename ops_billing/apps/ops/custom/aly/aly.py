@@ -12,9 +12,11 @@ from aliyunsdkecs.request.v20140526 import DescribeDisksRequest, \
     AllocatePublicIpAddressRequest, JoinSecurityGroupRequest
 from aliyunsdkslb.request.v20140515 import DescribeLoadBalancersRequest,DescribeLoadBalancerAttributeRequest
 from aliyunsdkrds.request.v20140815 import DescribeDBInstancesRequest,DescribeDBInstanceAttributeRequest
+from aliyunsdkr_kvstore.request.v20150101 import DescribeInstanceAttributeRequest as kvAttrRequest
+from aliyunsdkr_kvstore.request.v20150101 import DescribeInstancesRequest as kvRequest
 from django.forms.models import model_to_dict
 from django.db import transaction
-from assets.models import Asset,AssetSlb,AssetRds
+from assets.models import Asset,AssetSlb,AssetRds,AssetRedis
 import logging,uuid
 
 __all__ = ['Aliyun']
@@ -126,6 +128,28 @@ class Aliyun(object):
                 pageNumber += 1
         return result
 
+    def get_redis_instances(self):
+        result = []
+        request = kvRequest.DescribeInstancesRequest()
+        request.set_accept_format('json')
+        for region in self.RegionId:
+            clt = client.AcsClient(self.AccessKeyId, self.AccessKeySecret, region)
+            clt_result = json.loads(clt.do_action_with_exception(request))
+            for Instance in clt_result['Instances']['KVStoreInstance']:
+                result.append(
+                    {
+                        'InstanceId':Instance['InstanceId'],
+                        'UserName':Instance['UserName'],
+                        'ConnectionDomain':Instance['ConnectionDomain'],
+                        'InstanceName':Instance['InstanceName'],
+                        'RegionId': Instance['RegionId'],
+                        'Capacity':Instance['Capacity'],
+                        'CreateTime':Instance['CreateTime']
+                    }
+                )
+        return result
+
+
     @transaction.atomic()
     def aly_sync_asset(self):
         ids = Asset.objects.all().values('instanceid')
@@ -168,7 +192,6 @@ class Aliyun(object):
     def aly_sync_assetrds(self):
         ids = AssetRds.objects.all().values('DBInstanceId')
         instances = self.get_rds_instances()
-        print(instances)
         inids = [i['DBInstanceId'] for i in ids]
         newids = []
         for instance in instances:
@@ -184,3 +207,22 @@ class Aliyun(object):
             for i in oids:
                 AssetRds.objects.filter(DBInstanceId=i).update(is_active=False)
 
+
+    @transaction.atomic()
+    def aly_sync_assetredis(self):
+        ids = AssetRedis.objects.all().values('InstanceId')
+        instances = self.get_redis_instances()
+        inids = [i['InstanceId'] for i in ids]
+        newids = []
+        for instance in instances:
+            newids.append(instance['InstanceId'])
+            if instance['InstanceId'] in inids:
+                AssetRedis.objects.filter(InstanceId=instance['InstanceId']).update(
+                    ConnectionDomain=instance['ConnectionDomain'])
+            else:
+                assetredis = AssetRedis(**instance)
+                assetredis.save()
+        oids = list(set(inids) - set(newids))
+        if oids:
+            for i in oids:
+                AssetRedis.objects.filter(InstanceId=i).update(is_active=False)

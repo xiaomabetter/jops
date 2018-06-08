@@ -4,12 +4,12 @@ from rest_framework import serializers
 from rest_framework_bulk.serializers import BulkListSerializer
 
 from common.mixins import BulkSerializerMixin
-from ..models import Asset, Node,AssetSlb,AssetRds
+from ..models import Asset, Node,AssetSlb,AssetRds,AssetRedis
 from .system_user import AssetSystemUserSerializer
 
 __all__ = [
     'AssetSerializer', 'AssetGrantedSerializer', 'MyAssetGrantedSerializer','AssetSlbSerializer',
-    'AssetRdsSerializer'
+    'AssetRdsSerializer','AssetRedisSerializer'
 ]
 
 class NodeTMPSerializer(serializers.ModelSerializer):
@@ -56,6 +56,18 @@ class AssetRdsSerializer(BulkSerializerMixin, serializers.ModelSerializer):
     def get_field_names(self, declared_fields, info):
         fields = super().get_field_names(declared_fields, info)
         return fields
+
+class AssetRedisSerializer(BulkSerializerMixin, serializers.ModelSerializer):
+    class Meta:
+        model = AssetRedis
+        list_serializer_class = BulkListSerializer
+        fields = '__all__'
+        validators = []  # If not set to [], partial bulk update will be error
+
+    def get_field_names(self, declared_fields, info):
+        fields = super().get_field_names(declared_fields, info)
+        return fields
+
 
 class AssetSerializer(BulkSerializerMixin, serializers.ModelSerializer):
     class Meta:

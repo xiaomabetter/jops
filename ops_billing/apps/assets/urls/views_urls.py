@@ -17,6 +17,8 @@ urlpatterns = [
     url(r'^asset/update/$', views.AssetBulkUpdateView.as_view(), name='asset-bulk-update'),
     # asset slb
     url(r'^asset/slb/$', views.AssetSlbListView.as_view(), name='assetslb-index'),
+    # asset redis
+    url(r'^asset/redis/$', views.AssetRedisListView.as_view(), name='assetredis-index'),
     # asset rds
     url(r'^asset/rds/$', views.AssetRdsListView.as_view(), name='assetrds-index'),
     url(r'^rds/(?P<pk>[0-9a-zA-Z\-]{36})/$', views.AssetRdsDetailView.as_view(), name='assetrds-detail'),
