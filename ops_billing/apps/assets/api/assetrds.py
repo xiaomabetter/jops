@@ -7,12 +7,14 @@ from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView
 from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from rest_framework import status
 
 from common.mixins import IDInFilterMixin
 from common.utils import get_logger
 from ..hands import IsSuperUser, IsValidUser, IsSuperUserOrAppUser,NodePermissionUtil
 from ..models import  AssetRds,NodeRds
 from .. import serializers
+import json
 
 logger = get_logger(__file__)
 __all__ = [
@@ -41,3 +43,15 @@ class AssetRdsViewSet(BulkModelViewSet):
                     nodes__key__regex='{}(:[0-9]+)*$'.format(node.key),
                 ).distinct()
         return queryset
+
+    def bulk_destroy(self, request, *args, **kwargs):
+        del_ids = self.request.query_params.get('id__in')
+        qs = self.get_queryset().filter(id__in=json.loads(del_ids))
+
+        filtered = self.filter_queryset(qs)
+        if not self.allow_bulk_destroy(qs, filtered):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        self.perform_bulk_destroy(filtered)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

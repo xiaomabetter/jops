@@ -119,9 +119,6 @@
         <li class="divider"></li>
         <li id="menu_asset_add" class="btn-add-asset" data-toggle="modal" data-target="#asset_list_modal" tabindex="0"><a><i class="fa fa-copy"></i> {% trans 'Add assets to node' %}</a></li>
         <li id="menu_asset_move" class="btn-move-asset" data-toggle="modal" data-target="#asset_list_modal" tabindex="0"><a><i class="fa fa-cut"></i> {% trans 'Move assets to node' %}</a></li>
-        <li class="divider"></li>
-        <li id="menu_refresh_hardware_info" class="btn-refresh-hardware" tabindex="-1"><a><i class="fa fa-refresh"></i> {% trans 'Refresh node hardware info' %}</a></li>
-        <li id="menu_test_connective" class="btn-test-connective" tabindex="-1"><a><i class="fa fa-chain"></i> {% trans 'Test node connective' %}</a></li>
     </ul>
 </div>
 
@@ -151,7 +148,7 @@ function initTable() {
                 }
             }},
             {targets: 4, createdCell: function (td, cellData, rowData) {
-$(td).html(cellData);
+                    $(td).html(cellData);
             }},
             {targets: 5, createdCell: function (td, cellData, rowData) {
                 $(td).html(cellData);
@@ -480,6 +477,7 @@ $(document).ready(function(){
                 var msg = "{% trans 'Asset Deleting failed.' %}";
                 swal("{% trans 'Asset Delete' %}", msg, "error");
             };
+            console.log(id_list);
             var url_delete = the_url + '?id__in=' + JSON.stringify(id_list);
             APIUpdateAttr({
                 url: url_delete,
@@ -515,7 +513,7 @@ $(document).ready(function(){
         };
 
         APIUpdateAttr({
-            'url': '/api/assets/v1/rdsnodes/' + current_node.id + '/assets/remove/',
+            'url': '/api/assets/v1/slbnodes/' + current_node.id + '/assets/remove/',
             'method': 'PUT',
             'body': JSON.stringify(data),
             'success': success

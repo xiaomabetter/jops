@@ -70,7 +70,6 @@ class AssetRdsDetailView(DetailView):
         return super().get_context_data(**kwargs)
 
 class AssetSlbListView(AdminUserRequiredMixin, TemplateView):
-
     template_name = 'assets/asset_slb_list.html'
     def get_context_data(self, **kwargs):
         NodeSlb.root()

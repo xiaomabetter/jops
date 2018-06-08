@@ -13,6 +13,7 @@ from aliyunsdkecs.request.v20140526 import DescribeDisksRequest, \
 from aliyunsdkslb.request.v20140515 import DescribeLoadBalancersRequest,DescribeLoadBalancerAttributeRequest
 from aliyunsdkrds.request.v20140815 import DescribeDBInstancesRequest,DescribeDBInstanceAttributeRequest
 from django.forms.models import model_to_dict
+from django.db import transaction
 from assets.models import Asset,AssetSlb,AssetRds
 import logging,uuid
 
@@ -125,6 +126,7 @@ class Aliyun(object):
                 pageNumber += 1
         return result
 
+    @transaction.atomic()
     def aly_sync_asset(self):
         ids = Asset.objects.all().values('instanceid')
         instances = self.get_instances()
@@ -143,6 +145,7 @@ class Aliyun(object):
             for i in oids:
                 Asset.objects.filter(instanceid=i).update(is_active=False)
 
+    @transaction.atomic()
     def aly_sync_assetslb(self):
         ids = AssetSlb.objects.all().values('instanceid')
         instances = self.get_slb_instances()
@@ -161,6 +164,7 @@ class Aliyun(object):
             for i in oids:
                 AssetSlb.objects.filter(instanceid=i).update(is_active=False)
 
+    @transaction.atomic()
     def aly_sync_assetrds(self):
         ids = AssetRds.objects.all().values('DBInstanceId')
         instances = self.get_rds_instances()

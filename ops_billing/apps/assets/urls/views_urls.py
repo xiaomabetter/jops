@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^asset/rds/$', views.AssetRdsListView.as_view(), name='assetrds-index'),
     url(r'^rds/(?P<pk>[0-9a-zA-Z\-]{36})/$', views.AssetRdsDetailView.as_view(), name='assetrds-detail'),
     # Bill view
-    url(r'^bill/$', views.BillSlbListView.as_view(), name='bill-list'),
+    url(r'^bill/slb/$', views.BillSlbListView.as_view(), name='bill-slb-list'),
     url(r'^bill/ecs/$', views.BillEcsListView.as_view(), name='bill-ecs-list'),
     url(r'^bill/rds/$', views.BillRdsListView.as_view(), name='bill-rds-list'),
     # User asset view

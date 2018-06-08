@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-
+import json
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework_bulk import BulkModelViewSet
+from rest_framework import status
 from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView
 from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
@@ -33,6 +34,9 @@ class AssetSlbViewSet(BulkModelViewSet):
         queryset = super().get_queryset()
         node_id = self.request.query_params.get("node_id")
         tonode = self.request.query_params.get('tonode')
+        del_ids = self.request.query_params.get('id__in')
+        if del_ids :
+            queryset = queryset.filter(nodes=None)
         if tonode:
             queryset = queryset.filter(nodes=None)
         if node_id:
@@ -42,3 +46,15 @@ class AssetSlbViewSet(BulkModelViewSet):
                     nodes__key__regex='{}(:[0-9]+)*$'.format(node.key),
                 ).distinct()
         return queryset
+
+    def bulk_destroy(self, request, *args, **kwargs):
+        del_ids = self.request.query_params.get('id__in')
+        qs = self.get_queryset().filter(id__in=json.loads(del_ids))
+
+        filtered = self.filter_queryset(qs)
+        if not self.allow_bulk_destroy(qs, filtered):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        self.perform_bulk_destroy(filtered)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

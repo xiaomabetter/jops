@@ -6,7 +6,7 @@ from rest_framework_bulk import ListBulkCreateUpdateDestroyAPIView
 from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
-
+from rest_framework import status
 from common.mixins import IDInFilterMixin
 from common.utils import get_logger
 from ..hands import IsSuperUser, IsValidUser, IsSuperUserOrAppUser, \
@@ -16,6 +16,7 @@ from .. import serializers
 from ..tasks import update_asset_hardware_info_manual, \
     test_asset_connectability_manual
 from ..utils import LabelFilter
+import json
 
 
 logger = get_logger(__file__)
@@ -54,6 +55,17 @@ class AssetViewSet(IDInFilterMixin, LabelFilter, BulkModelViewSet):
                 ).distinct()
         return queryset
 
+    def bulk_destroy(self, request, *args, **kwargs):
+        del_ids = self.request.query_params.get('id__in')
+        qs = self.get_queryset().filter(id__in=json.loads(del_ids))
+
+        filtered = self.filter_queryset(qs)
+        if not self.allow_bulk_destroy(qs, filtered):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        self.perform_bulk_destroy(filtered)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class UserAssetListView(generics.ListAPIView):
     queryset = Asset.objects.all()

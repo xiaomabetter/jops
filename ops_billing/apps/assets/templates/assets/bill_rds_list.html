@@ -1,4 +1,4 @@
-{% extends '_base_list.html' %}
+{% extends '_base_bill_list.html' %}
 {% load i18n %}
 {% load static %}
 
@@ -6,10 +6,10 @@
 <!-- Single button -->
 <div class="btn-group">
   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    分类 <span class="caret"></span>
+    分类 {{asset_category}} <span class="caret"></span>
   </button>
   <ul class="dropdown-menu">
-    <li><a href="{% url 'assets:bill-list' %}">SLB</a></li>
+    <li><a href="{% url 'assets:bill-slb-list' %}">SLB</a></li>
     <li><a href="{% url 'assets:bill-ecs-list' %}">ECS</a></li>
     <li><a href="{% url 'assets:bill-rds-list' %}">RDS</a></li>
   </ul>
@@ -18,19 +18,9 @@
 
 {% block table_search %}
     <form id="search_form" method="get" action="" class="pull-right form-inline">
-        <div class="form-group" id="nodegroup" style="float: left">
-            <div >
-                <select name="nodegroup" class="selectpicker" >
-                    {% for node in nodes %}
-                        {% if node.value ==  nodegroup %}
-                            <option  selected>{{ node.value }}</option>
-                        {% elif node.value != 'ROOT' %}
-                            <option >{{ node.value }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
-       </div>
+        <div class="input-group">
+            <input type="text"  class="form-control input-sm" style="display:none" name="nodeid"  value="">
+        </div>
         <div class="form-group" id="date">
             <div class="input-group input-daterange" id="datepicker">
                 <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
@@ -72,14 +62,12 @@
     {% endfor %}
 {% endblock %}
 {% block content_bottom_left %}
-  <div class="col-lg-8">
     <div class="input-group">
       <span class="input-group-btn">
-        <button class="btn btn-default" type="button">{{ nodegroup }} 总金额 </button>
+        <button class="btn btn-sm" type="button">{{ nodegroup }} 总金额: </button>
       </span>
       <input type="text" class="form-control" value="{{ sumcost }}">
     </div><!-- /input-group -->
-  </div><!-- /.col-lg-6 -->
 {% endblock %}
 
 {% block custom_foot_js %}
@@ -105,8 +93,109 @@ $(document).ready(function() {
         calendarWeeks: true,
         autoclose: true
     });
-
+    initTree();
 })
+
+function initTree() {
+    var setting = {
+        view: {
+            dblClickExpand: false,
+            showLine: true
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        },
+        edit: {
+            enable: true,
+			showRemoveBtn: false,
+			showRenameBtn: false,
+            drag: {
+                isCopy: true,
+                isMove: true
+            }
+        },
+        async: {
+			enable: true,
+			url: "{% url 'api-assets:noderds-children-2' %}?assets=1&all=1",
+			autoParam:["id", "name=n", "level=lv"],
+			dataFilter: filter,
+            type: 'get'
+		},
+        callback: {
+            beforeClick: beforeClick,
+            onSelected: onSelected,
+            beforeAsync: beforeAsync
+        }
+    };
+
+    var zNodes = [];
+    $.get("{% url 'api-assets:noderds-list' %}", function(data, status){
+        $.each(data, function (index, value) {
+            value["pId"] = value["parent"];
+            {#if (value["key"] === "0") {#}
+            value["open"] = true;
+            {# }#}
+            value["name"] = value["value"] + ' (' + value['assets_amount'] + ')';
+            value['value'] = value['value'];
+        });
+        zNodes = data;
+        $.fn.zTree.init($("#assetTree"), setting, zNodes);
+        zTree = $.fn.zTree.getZTreeObj("assetTree");
+		rMenu = $("#rMenu");
+		selectQueryNode();
+    });
+}
+
+function beforeClick(treeId, treeNode, clickFlag) {
+    return true;
+}
+
+function beforeAsync(treeId, treeNode) {
+    return treeNode.is_node
+}
+
+function filter(treeId, parentNode, childNodes) {
+    $.each(childNodes, function (index, value) {
+        value["pId"] = value["parent"];
+        value["name"] = value["value"];
+        value["isParent"] = value["is_node"];
+        value["iconSkin"] = value["is_node"] ? null : 'file';
+    });
+    return childNodes;
+}
+
+function selectQueryNode() {
+    var query_node_id = $.getUrlParam("nodeid");
+    var cookie_node_id = getCookie('node_selected');
+    var node;
+    var node_id;
+
+    if (query_node_id !== null) {
+        node_id = query_node_id
+    } else if (cookie_node_id !== null) {
+        node_id = cookie_node_id;
+    }
+
+    node = zTree.getNodesByParam("id", node_id, null);
+    if (node){
+        zTree.selectNode(node[0]);
+    }
+}
+
+function beforeDrag() {
+    return true
+}
+
+function onSelected(event, treeNode) {
+    //var url = asset_table.ajax.url();
+    //url = setUrlParam(url, "node_id", treeNode.id);
+    //setCookie('node_selected', treeNode.id);
+    //asset_table.ajax.url(url);
+    //asset_table.ajax.reload();
+    $("input[name='nodeid']").val(treeNode.id);
+}
 
 </script>
 {% endblock %}
