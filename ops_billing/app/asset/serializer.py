@@ -82,7 +82,7 @@ class AssetCreateTemplateSerializer(Schema):
     ZoneId = fields.String(required=True)
     ImageId = fields.String(required=True)
     InstanceNetworkType = fields.String(required=True)
-    instance_type = fields.String(validate=lambda s:' ' not in s,error='不能有空格',required=True)
+    instance_type = fields.String(validate=lambda s:' ' not in s,required=True)
     SystemDiskCategory = fields.String(required=True)
     SystemDiskSize = fields.Integer(required=True)
     DataDiskinfo = fields.String(required=True,dump_only=True)
