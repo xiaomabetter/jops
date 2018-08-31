@@ -1,0 +1,157 @@
+{% extends 'base/_base_create_update.html' %}
+{% from "asset/_wtf.html" import render_field,render_field_no_form_group,render_field_nolabel %}
+{% block action %}
+    更新模板
+{% endblock %}
+{% block form %}
+<form  method="post" id="update_template" class="form-horizontal" autocomplete="off" enctype="multipart/form-data" action="" >
+    <h4>基本</h4>
+    {{ render_field(form.name,'required') }}
+    <div class="hr-line-dashed"></div>
+    <div class="form-group">
+        {{ render_field_no_form_group(form.RegionId,'required') }}
+        {{ render_field_no_form_group(form.ZoneId,'required') }}
+        {{ render_field_no_form_group(form.InstanceNetworkType,'required') }}
+        {{ render_field_no_form_group(form.instance_type,'required') }}
+    </div>
+    <div class="hr-line-dashed"></div>
+    <h4>选择镜像/安全组</h4>
+    <div class="form-group" style="margin:1px 0px">
+        {{ render_field(form.ImageId,'required') }}
+        {{ render_field(form.SecurityGroupId,'required') }}
+    </div>
+    <div class="hr-line-dashed" style="margin:1px 0px"></div>
+    <h4>存储</h4>
+    <div class="form-group">
+       <label class="col-md-2 control-label" for="SystemDiskCategory">系统盘</label>
+        <div class="col-md-2 row">
+            <select class="form-control" id="SystemDiskCategory" name="SystemDiskCategory">
+                <option value="cloud_efficiency">高效云盘</option>
+                <option value="cloud_ssd">SSD云盘</option></select>
+        </div>
+        <div class="col-md-2 row">
+            <input class="form-control" id="SystemDiskSize" name="SystemDiskSize" type="number">
+        </div>
+       <label class="col-md-2 control-label" for="DataDisk.1.Category">数据盘</label>
+        <div class="col-md-2 row">
+            <select class="form-control" id="DataDisk.1.Category" name="DataDisk.1.Category">
+                <option value="cloud_efficiency">高效云盘</option>
+                <option value="cloud_ssd">SSD云盘</option></select>
+        </div>
+        <div class="col-md-2 row">
+            <input class="form-control" id="DataDisk.1.Size" name="DataDisk.1.Size" type="number" value=0>
+        </div>
+    </div>
+    <div class="form-group">
+    <div class="col-sm-4 col-sm-offset-2">
+        <button class="btn btn-white" type="reset">重置</button>
+        <button id="submit_button" class="btn btn-primary" type="button">更新</button>
+    </div>
+    </div>
+
+</form>
+{% include 'asset/_asset_image_modal.html' %}
+{% include 'asset/_asset_secgroup_modal.html' %}
+{% include 'asset/_progress_modal.html' %}
+{% endblock %}
+{% block custom_foot_js %}
+<script src="{{ url_for('static', filename='js/plugins/select2/select2.full.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<script>
+var zonesdata = {{Zones|tojson}};
+var templatedata = {{templatedata|tojson}};
+console.log(templatedata);
+var templateid = "{{templateid}}"
+function AppendZoneid() {
+    $("#ZoneId").empty();
+    var regionid = $('#RegionId').val()
+    $.each(zonesdata[regionid], function (key, value) {
+        option = '<option value=' + value.ZoneId + '>' + value.LocalName + '</option>';
+        $('#ZoneId').append(option);
+    })
+}
+$(document).ready(function () {
+    $('.select2').select2();
+    /*
+    $.get("{{ url_for('assets-api.images_api') }}",{}, function(result){
+        $.each(result['data'], function (key, value) {
+            option = '<option value=' + value['ImageId'] + '>' + value['ImageName'] + '</option>';
+            $('#ImageId').append(option);
+        });
+    });
+    */
+    $("#ImageId").parent().find(".select2").on('click', function (e) {
+        $("#image_list_modal").modal();
+    });
+    $("#SecurityGroupId").parent().find(".select2").on('click', function (e) {
+        $("#securitygroup_list_modal").modal();
+    })
+    $.each(zonesdata, function (key, value) {
+            option = '<option value=' + key + '>' + key + '</option>';
+            $('#RegionId').append(option);
+            $('#RegionId_select').append(option);
+            $('#SecRegionId_select').append(option);
+    });
+    if ( templatedata['RegionId'] ) {
+         $.each(zonesdata[templatedata['RegionId']], function (key, value) {
+            option = '<option value=' + value.ZoneId + '>' + value.LocalName + '</option>';
+            $('#ZoneId').append(option);
+        })
+    }
+    $.each(templatedata, function (key, value) {
+        $("#"+key).val(value)
+        $("input[name='PK']".replace('PK',key)).val(value)
+    });
+}).on('change', '#RegionId', function () {
+    AppendZoneid();
+}).on('click', '#btn_securitygroup_modal_confirm', function () {
+    var $data_table = $('#securitygroups_list_table').DataTable();
+    var id_list = [];
+    $data_table.rows({selected: true}).every(function(){
+        id_list.push(this.data().SecurityGroupId);
+    });
+    if ( id_list.length === 0  ) {
+        toastr.error("至少选择一个安全组!");
+        return
+    }
+    $.each(id_list, function (id, data) {
+        $('#SecurityGroupId').val(id_list).trigger('change');
+    });
+    $("#securitygroup_list_modal").modal('hide');
+}).on('click', '#btn_image_modal_confirm', function () {
+    var $data_table = $('#images_list_table').DataTable();
+    var id_list = [];
+    $data_table.rows({selected: true}).every(function(){
+        id_list.push(this.data().ImageId);
+    });
+    if ( id_list.length !== 1  ) {
+        toastr.error("请选择镜像,并选择一个!");
+        return
+    }
+    $.each(id_list, function (id, data) {
+        $('#ImageId').val(id_list).trigger('change');
+    });
+    $("#image_list_modal").modal('hide');
+}).on("click",'#submit_button',function(){
+   $('#update_template').ajaxSubmit({
+        url: "{{ url_for('assets-api.template_api',templateid='PK') }}".replace('PK',templateid),
+        type: 'put',
+        dataType: 'json',
+        success: function (data) {
+            if (data['status']) {
+                toastr.success(data['msg'])
+            } else {
+                toastr.error(data['msg']);
+            }
+        },
+        error:function (XmlHttpRequest, textStatus, errorThrown) {
+            error_msg = JSON.stringify(XmlHttpRequest.responseJSON.message);
+            toastr.error(error_msg);
+        },
+        clearForm: false,
+        resetForm: false
+    })
+});
+
+</script>
+{% endblock %}

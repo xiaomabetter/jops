@@ -1,0 +1,64 @@
+{% extends 'perm/_system_user.html' %}
+{% block action %}
+<h3>
+    更新系统用户
+</h3>
+{% endblock %}
+{% block custom_foot_js %}
+<script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<script>
+var auto_generate_key = '#'+'auto_generate_key';
+var protocol_id = '#' + 'protocol';
+var password_id = '#' + 'password';
+var private_key_id = '#' + 'private_key';
+var sudo_id = '#' + 'sudo';
+var shell_id = '#' + 'shell';
+var need_change_field = [auto_generate_key, private_key_id, sudo_id, shell_id] ;
+
+function authFieldsDisplay() {
+    if ($(auto_generate_key).prop('checked')) {
+        $('.auth-fields').addClass('hidden');
+    } else {
+        $('.auth-fields').removeClass('hidden');
+    }
+}
+
+function protocolChange() {
+    if ($(protocol_id).attr('value') === 'rdp') {
+        $.each(need_change_field, function (index, value) {
+            $(value).addClass('hidden')
+        });
+        $(password_id).removeClass('hidden')
+    } else {
+        $.each(need_change_field, function (index, value) {
+            $(value).removeClass('hidden')
+        });
+    }
+}
+$(document).ready(function () {
+    $('.select2').select2();
+    authFieldsDisplay();
+    protocolChange();
+    $(auto_generate_key).change(function () {
+        authFieldsDisplay();
+    });
+})
+$("#submit_button").on("click",function(){
+   $('#system_user').ajaxSubmit(
+        {
+            url: "{{ url_for('perm-api.systemuser_api',sysuserid=sysuserid) }}",
+            type: 'put',
+            dataType: 'json',
+            success: function (data) {
+                if (data['status']) {
+                    toastr.success(data['msg']);
+                } else {
+                    toastr.error(data['msg']);
+                }
+            },
+            clearForm: false,
+            resetForm: false
+        })
+});
+</script>
+{% endblock %}

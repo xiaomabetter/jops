@@ -1,0 +1,157 @@
+{% extends 'base/base.html' %}
+{% block content %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="panel-options">
+                    <ul class="nav nav-tabs">
+                        <li class="pull-right">
+                                <!--
+                                <span class="label pull-right">
+                                    <a class="btn btn btn-info">
+                                        <i id="CopyAsset">复制资产</i>
+                                    </a>
+                                </span>
+                                 -->
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content">
+                    <div class="col-sm-7" style="padding-left: 0">
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                <span class="label"><b>{{ asset.InstanceName }}</b></span>
+                            </div>
+                            <div class="ibox-content" style="height:420px;overflow-y:scroll">
+                                <table class="table table-condensed table-hover">
+                                    <tbody id="Detail">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-5" style="padding-left: 0;padding-right: 0">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <i class="fa fa-info-circle">快速修改</i>
+                            </div>
+                            <div class="panel-body">
+                                <table class="table">
+                                    <tbody>
+                                    {% if asset.is_ecs %}
+                                    <tr>
+                                        <td>刷新硬件信息:</td>
+                                        <td>
+                                            <span class="pull-right">
+                                                <button type="button" class="btn btn-primary btn-xs" id="btn_refresh_asset" style="width: 54px">刷新</button>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>测试连接状态:</td>
+                                        <td>
+                                            <span class="pull-right">
+                                                <button type="button" class="btn btn-primary btn-xs" id="btn-test-is-alive" style="width: 54px">测试</button>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>关闭实例:</td>
+                                        <td>
+                                            <span class="pull-right">
+                                                <button type="button" class="btn btn-primary btn-xs" id="btn-test-is-stop" style="width: 54px">关闭</button>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>修改主机名称:</td>
+                                        <td>
+                                            <span>
+                                                <input type="text" class="hidden" id="new_instance_name" style="width: 200px;height:25px">
+                                            </span>
+                                            <span class="pull-right">
+                                                <button type="button" class="btn btn-primary btn-xs" id="btn-change-name" style="width: 54px">修改</button>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <i class="fa fa-info-circle"></i>节点信息
+                            </div>
+                            <div class="panel-body">
+                                <table class="table group_edit" id="add-asset2group">
+                                    <tbody>
+                                    {% for node in nodes %}
+                                    <tr>
+                                      <td ><b class="bdg_node" data-gid={{ node.id }}>{{ node.value }}</b></td>
+                                      <td>
+                                          <button class="btn btn-danger pull-right btn-xs btn-leave-node" type="button"><i class="fa fa-minus"></i></button>
+                                      </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <i class="fa fa-info-circle">服务信息</i>
+                            </div>
+                            <div class="panel-body">
+                                <table class="table group_edit" id="">
+                                    <tbody>
+                                    {% for service in services %}
+                                    <tr>
+                                      <td ><b class="bdg_node" data-gid={{ service.id }}>{{ service.servicename }}</b></td>
+                                      <td>
+                                          <button class="btn btn-danger pull-right btn-xs btn-leave-node" type="button"><i class="fa fa-minus"></i></button>
+                                      </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block custom_foot_js %}
+<script>
+$(document).ready(function () {
+    var success = function success(data) {
+        if (data['msg'] ) {
+            toastr.error(data['msg']);
+        }
+        var ht = ''
+        $.each(data['data'], function (key, value) {
+            ht = ht + '<tr><td>'+key + '</td><td><b>' + JSON.stringify(value).replace(/\"/g,"") + '</b></td></tr>'
+        });
+        $('#Detail').html(ht.replace('"',''));
+    }
+    APIUpdateAttr({
+        'url': "{{ url_for('assets-api.asset_api',assetid=asset.id) }}",
+        'method': 'GET',
+        'success': success
+    })
+}).on("click",'#btn-change-name',function(){
+    newname = $('#new_instance_name').val()
+    if (newname) {
+        console.log(newname);
+    } else {
+        $('#new_instance_name').removeClass('hidden');
+        $('#btn-change-name').text('确定');
+    }
+});
+</script>
+{% endblock %}

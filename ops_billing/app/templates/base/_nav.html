@@ -1,0 +1,57 @@
+<li id="User">
+    <a>
+        <i class="fa fa-inbox" style="width: 14px"></i> <span class="nav-label">用户管理</span><span class="fa arrow"></span>
+    </a>
+    <ul class="nav nav-second-level">
+        <li id="users_list"><a href="{{ url_for('user.users_list') }}">用户列表</a></li>
+        <li id="groups_list"><a href="{{ url_for('user.groups_list') }}">组列表</a></li>
+        <li id="user_login_log"><a href="{{ url_for('user.userlogin_log_list') }}">登录日志</a></li>
+    </ul>
+</li>
+<li id="Asset">
+    <a>
+        <i class="fa fa-inbox" style="width: 14px"></i> <span class="nav-label">资产管理</span><span class="fa arrow"></span>
+    </a>
+    <ul class="nav nav-second-level">
+        <li id="asset_list"><a href="{{ url_for('asset.asset_list',asset_type='ecs') }}">资产列表</a></li>
+        <li id="asset_create"><a href="{{ url_for('asset.asset_create') }}">创建资产</a></li>
+        <li id="service_list"><a href="{{ url_for('asset.service_list') }}">服务列表</a></li>
+        <li id="bill_list"><a href="{{ url_for('asset.bill_list') }}">费用列表</a></li>
+    </ul>
+</li>
+<li id="Perm">
+    <a>
+        <i class="fa fa-inbox" style="width: 14px"></i> <span class="nav-label">授权管理</span><span class="fa arrow"></span>
+    </a>
+    <ul class="nav nav-second-level">
+        <li id="asset_permission_list"><a href="{{ url_for('perm.asset_permission_list') }}">资产授权</a></li>
+        <li id="systemuser_list"><a href="{{ url_for('perm.system_user_list') }}">系统用户</a></li>
+    </ul>
+</li>
+<li id="Task">
+    <a>
+        <i class="fa fa-inbox" style="width: 14px"></i> <span class="nav-label">任务中心</span><span class="fa arrow"></span>
+    </a>
+    <ul class="nav nav-second-level">
+        <li id="ansible_run"><a href="{{ url_for('task.ansible_run') }}">Ansible任务</a></li>
+    </ul>
+    <ul class="nav nav-second-level">
+        <li id="tasks_list"><a href="{{ url_for('task.task_list') }}">普通任务</a></li>
+    </ul>
+</li>
+<!--
+<li id="Terminal">
+    <a>
+        <i class="fa fa-inbox" style="width: 14px"></i> <span class="nav-label">连接管理</span><span class="fa arrow"></span>
+    </a>
+    <ul class="nav nav-second-level">
+        <li id="terminal_list"><a href="{{ url_for('terminal.terminal_list') }}">终端管理</a></li>
+    </ul>
+    <ul class="nav nav-second-level">
+        <li id="session_history_list"><a href="{{ url_for('terminal.session_list',type='history') }}">历史回话</a></li>
+    </ul>
+    <ul class="nav nav-second-level">
+        <li id="session_online_list"><a href="{{ url_for('terminal.session_list',type='online') }}">在线回话</a></li>
+    </ul>
+</li>
+--!>

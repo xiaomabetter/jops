@@ -1,0 +1,31 @@
+{% extends 'base/_modal.html' %}
+{% from "perm/_wtf.html" import render_field %}
+{% block modal_id %}modal_terminal_accept{% endblock %}
+{% block modal_class %}modal-lg{% endblock %}
+{% block modal_title%}接收终端注册{% endblock %}
+{% block modal_body %}
+<form action="" method="post" class="form-horizontal" id="form_terminal_accept" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+    <p class="alert alert-danger" id="modal-error" style="display: none"></p>
+    <h3>信息</h3>
+        {{ render_field(form.name,'required') }}
+        {{ render_field(form.remote_addr,'required') }}
+        <div class="form-group">
+            {{ form.command_storage.label(class="col-md-2 control-label") }}
+            <div class="col-md-8">
+                {{ form.command_storage }}
+            </div>
+        </div>
+        <div class="form-group">
+            {{ form.replay_storage.label(class="col-md-2 control-label") }}
+            <div class="col-md-8">
+                {{ form.replay_storage }}
+            </div>
+        </div>
+    <div class="hr-line-dashed"></div>
+    <h3>其他</h3>
+        {{ render_field(form.comment) }}
+</form>
+
+{% endblock %}
+{% block modal_confirm_id %}btn-confirm{% endblock %}

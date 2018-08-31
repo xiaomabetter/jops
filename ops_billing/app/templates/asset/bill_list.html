@@ -1,0 +1,218 @@
+{% extends 'base/_base_bill_list.html' %}
+{% block content_left_head %}
+<!-- Single button -->
+{% endblock %}
+
+{% block table_search %}
+    <form id="search_form" method="get" action=""  autocomplete="off" enctype="multipart/form-data" class="form-inline">
+        <div class="input-group uc pull-left m-r-5">
+            <select class="selectpicker" name="asset_type">
+                {% for astp in ['ECS','SLB','RDS','OSS','ALL'] %}
+                    {% if astp == asset_type %}
+                        <option selected>{{ astp }}</option>
+                    {% else %}
+                        <option>{{ astp }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="input-group">
+            <input type="text"  class="form-control input-sm" style="display:none" name="nodeid"  value="">
+        </div>
+        <div class="input-group pull-right">
+            <div class="input-group-btn">
+                <button id='search_btn' style="height:34px" type="submit" class="btn btn-sm btn-primary">
+                    搜索
+                </button>
+            </div>
+        </div>
+        <div class="input-group pull-right">
+            <input type="text"  class="form-control input-sm" style="height:34px" name="keyword" placeholder="搜索" value="">
+        </div>
+        <div class="form-group pull-right" id="date">
+            <div class="input-group input-daterange" id="datepicker">
+                <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                <input type="text" class="input-sm form-control" style="width: 100px;height:34px" name="date_from" value="{{date_from}}">
+                <span class="input-group-addon">to</span>
+                <input type="text" class="input-sm form-control" style="width: 100px;height:34px" name="date_to" value="{{date_to}}">
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+{% block table_head %}
+    <th class="text-center">实例名称</th>
+    <th class="text-center">实例类型</th>
+    <th class="text-center">时间</th>
+    <th class="text-center">费用</th>
+{% endblock %}
+
+{% block table_body %}
+    {% for object in bill_list %}
+        <tr class="gradeX">
+            <td class="text-center">{{ object.instance_name }}</td>
+            <td class="text-center">{{ object.instance_type }}</td>
+            <td class="text-center">{{ object.day }}</td>
+            <td class="text-center">{{ object.cost }}</td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+{% block content_bottom_left %}
+    <div class="input-group">
+      <span class="input-group-btn">
+        <button class="btn btn-sm" type="button">{{ nodegroup }} 总金额: </button>
+      </span>
+      <input type="text" class="form-control" value="{{ sumcost }}">
+    </div><!-- /input-group -->
+{% endblock %}
+
+{% block custom_foot_js %}
+<script src="{{ url_for('static', filename='js/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/plugins/honeySwitch/bootstrap-select.min.js') }}"></script>
+<script>
+$(document).ready(function() {
+    $('table').DataTable({
+        "searching": false,
+        "paging": false,
+        "bInfo" : false,
+        "order": []
+    });
+   $('.select2').select2({
+        dropdownAutoWidth : true,
+        width: 'auto'
+    });
+    $('#date .input-daterange').datepicker({
+        format: "yyyy-mm-dd",
+        todayBtn: "linked",
+        keyboardNavigation: false,
+        forceParse: false,
+        calendarWeeks: true,
+        autoclose: true
+    });
+    initTree();
+})
+
+function initTree() {
+    var setting = {
+        view: {
+            dblClickExpand: false,
+            showLine: true
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        },
+        edit: {
+            enable: true,
+			showRemoveBtn: false,
+			showRenameBtn: false,
+            drag: {
+                isCopy: true,
+                isMove: true
+            }
+        },
+        callback: {
+            onRightClick: OnRightClick,
+            beforeClick: beforeClick,
+            onSelected: onSelected,
+            beforeDrag: beforeDrag,
+            onDrag: onDrag
+        }
+    };
+
+    var zNodes = [];
+    var data = {'asset_type':'ecs'};
+    $.get("{{ url_for('assets-api.nodes_api') }}",data,function(data, status){
+        var result = data['data'];
+        $.each(result, function (index, value) {
+            value["pId"] = value["parent"];
+            value["open"] = value["open"];
+            value["isParent"] = value["is_node"];
+            value["name"] = value["value"] + ' (' + value['assets_amount'] + ')';
+        });
+
+        zNodes = result;
+        {#$.fn.zTree.init($("#assetTree"), setting);#}
+        $.fn.zTree.init($("#assetTree"), setting, zNodes);
+        zTree = $.fn.zTree.getZTreeObj("assetTree");
+        selectQueryNode();
+    });
+}
+
+function beforeClick(treeId, treeNode, clickFlag) {
+    return true;
+}
+
+function onDrag(event, treeId, treeNodes) {
+}
+
+function OnRightClick(event, treeId, treeNode) {
+    if (!treeNode && event.target.tagName.toLowerCase() !== "button" && $(event.target).parents("a").length === 0) {
+		zTree.cancelSelectedNode();
+		showRMenu("root", event.clientX, event.clientY);
+	} else if (treeNode && !treeNode.noR) {
+		zTree.selectNode(treeNode);
+		showRMenu("node", event.clientX, event.clientY);
+	}
+}
+
+function showRMenu(type, x, y) {
+	$("#rMenu ul").show();
+    x -= 220;
+    $('#rMenu').css({"top":y+"px", "left":x+"px", "visibility":"visible"});
+
+	$("body").bind("mousedown", onBodyMouseDown);
+}
+
+function onBodyMouseDown(event){
+	if (!(event.target.id === "rMenu" || $(event.target).parents("#rMenu").length>0)) {
+		$('#rMenu').css({"visibility" : "hidden"});
+	}
+}
+
+function filter(treeId, parentNode, childNodes) {
+    $.each(childNodes, function (index, value) {
+        value["pId"] = value["parent"];
+        value["name"] = value["value"];
+        value["isParent"] = value["is_node"];
+        value["iconSkin"] = value["is_node"] ? null : 'file';
+    });
+    return childNodes;
+}
+
+function selectQueryNode() {
+    var query_node_id = $.getUrlParam("nodeid");
+    var cookie_node_id = getCookie('node_selected');
+    var node;
+    var node_id;
+
+    if (query_node_id !== null) {
+        node_id = query_node_id
+    } else if (cookie_node_id !== null) {
+        node_id = cookie_node_id;
+    }
+
+    node = zTree.getNodesByParam("id", node_id, null);
+    if (node){
+        zTree.selectNode(node[0]);
+    }
+}
+
+function beforeDrag() {
+    return true
+}
+
+function onSelected(event, treeNode) {
+    //var url = asset_table.ajax.url();
+    //url = setUrlParam(url, "node_id", treeNode.id);
+    //setCookie('node_selected', treeNode.id);
+    //asset_table.ajax.url(url);
+    //asset_table.ajax.reload();
+    $("input[name='nodeid']").val(treeNode.id);
+
+}
+
+</script>
+{% endblock %}
+

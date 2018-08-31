@@ -1,0 +1,562 @@
+{% extends 'base/base.html' %}
+{% block custom_head_css_js %}
+<link href="{{ url_for('static', filename='css/plugins/ztree/awesomeStyle/awesome.css') }}" rel="stylesheet">
+<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/ztree/jquery.ztree.all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<style type="text/css">
+    div#rMenu {
+        position:absolute;
+        visibility:hidden;
+        text-align: left;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        float: left;
+        padding: 5px 0;
+        margin: 2px 0 0;
+        list-style: none;
+        background-clip: padding-box;
+    }
+    div#rMenu li{
+        margin: 1px 0;
+        cursor: pointer;
+        {#list-style: none outside none;#}
+    }
+    .dropdown a:hover {
+        background-color: #f1f1f1
+    }
+    .twoLine {
+        max-width:400px;
+        display:block;
+        text-overflow:ellipsis;
+        overflow:hidden;
+        white-space:nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper wrapper-content">
+   <div class="row">
+       <div class="col-lg-3" id="split-left" style="padding-left: 3px">
+           <div class="ibox float-e-margins">
+               <div class="ibox-content mailbox-content" style="padding-top: 0;padding-left: 1px">
+                   <div class="file-manager ">
+                       <div id="assetTree" class="ztree">
+                       </div>
+                       <div class="clearfix"></div>
+                   </div>
+               </div>
+           </div>
+       </div>
+       <div class="col-lg-9 animated fadeInRight" id="split-right">
+           <div class="tree-toggle">
+               <div class="btn btn-sm btn-primary tree-toggle-btn" onclick="toggle()">
+                   <i class="fa fa-angle-left fa-x" id="toggle-icon"></i>
+               </div>
+           </div>
+           <div class="mail-box-header">
+               <div class="btn-group uc pull-left m-r-5" >
+                  <button data-toggle="dropdown" class="btn btn-default btn-sm dropdown-toggle"> 资产类型: {{asset_type}}<span class="caret"></span></button>
+                  <ul class="dropdown-menu labels">
+                        <li><a href="{{ url_for('asset.asset_list',asset_type='slb') }}">Slb</a></li>
+                        <li><a href="{{ url_for('asset.asset_list',asset_type='ecs') }}">Ecs</a></li>
+                        <li><a href="{{ url_for('asset.asset_list',asset_type='rds') }}">Rds</a></li>
+                        <li><a href="{{ url_for('asset.asset_list',asset_type='redis') }}">Redis</a></li>
+                        <li><a href="{{ url_for('asset.asset_list',asset_type='oss') }}">Oss</a></li>
+                  </ul>
+               </div>
+               <div class="btn-group" style="float: right">
+                    <button class="btn btn-default btn-sm" id="asset_notin_node">点击查看未分组资产</button>
+               </div>
+               <table class="table table-striped table-bordered table-hover " id="asset_list_table" style="width: 100%">
+                   <thead>
+                       <tr>
+                           <th class="text-center"><input type="checkbox" class="ipt_check_all"></th>
+                           <th class="text-center">实例名称</th>
+                           <th class="text-center">实例地址</th>
+                           <th class="text-center">所在区域</th>
+                           <th class="text-center">状态</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                   </tbody>
+               </table>
+               <div id="actions" class="hide">
+                   <div class="input-group">
+                       <select class="form-control m-b" style="width: auto" id="slct_bulk_update">
+                           <option value="moveout">从此节点移除</option>
+                           <option value="moveto">移除到其他节点</option>
+                           <option value="deleteasset">删除资产</option>
+                       </select>
+                       <div class="input-group-btn pull-left" style="padding-left: 5px;">
+                           <button id='btn_bulk_update' style="height: 32px;"  class="btn btn-sm btn-primary">
+                            提交
+                           </button>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+</div>
+
+<div id="rMenu">
+    <ul class="dropdown-menu">
+        <li class="divider"></li>
+        <li id="m_create" tabindex="-1" onclick="addTreeNode();"><a><i class="fa fa-plus-square-o"></i>添加节点</a></li>
+        <li id="m_rename" tabindex="-1" onclick="editTreeNode();"><a><i class="fa fa-pencil-square-o"></i>重命名节点</a></li>
+        <li id="m_del" tabindex="-1" onclick="deleteTreeNode();"><a><i class="fa fa-minus-square"></i>删除节点</a></li>
+        <li class="divider"></li>
+        <li id="menu_asset_add" class="btn-add-asset" data-toggle="modal" tabindex="0"><a><i class="fa fa-copy"></i>添加资产到节点</a></li>
+    </ul>
+</div>
+{% include 'asset/_asset_list_modal.html' %}
+{% include 'asset/_node_list_modal.html' %}
+
+{% endblock %}
+{% block custom_foot_js %}
+<script src="{{ url_for('static', filename='js/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/plugins/honeySwitch/bootstrap-select.min.js') }}"></script>
+<script>
+var zTree,zTree3, rMenu, asset_table, show = 0,asset_type="{{asset_type}}";
+var init_table_url = "{{ url_for('assets-api.assets_api') }}";
+function initTable() {
+    var current_node_id = getselectQueryNodeid()
+    if (current_node_id) {
+        current_table_url = setUrlParam(init_table_url, "node_id", current_node_id);
+    } else {
+        current_table_url = init_table_url
+    }
+    var options = {
+        ele: $('#asset_list_table'),
+        columnDefs:[
+           { "width": "25%", "targets": 2 },
+           { "width": "8%", "targets": 4 },
+           { "width": "12%", "targets": 3 },
+           {targets: 1, createdCell: function (td, cellData,rowData) {
+                if (rowData['AssetType'] !== 'oss') {
+                    var detail_btn = '<a href="{{ url_for('asset.asset_detail',assetid='PK')}}">' + cellData + '</a>';
+                    $(td).html(detail_btn.replace("PK", rowData.id));
+                } else {
+                    $(td).html(cellData);
+                }
+           }},
+           {targets: 2, createdCell: function (td, cellData,rowData) {
+                $(td).addClass("twoLine");
+                $(td).html(cellData);
+           }},
+           {targets: 4, createdCell: function (td, cellData) {
+                $(td).html(cellData);
+           }}
+        ],
+        ajax_url: current_table_url,
+        columns: [
+            {data: "id"}, {data: "InstanceName" },{data: "Address" },
+            {data: "RegionId" },{data: "Status"}
+            ],
+        op_html: $('#actions').html()
+    };
+    asset_table = jumpserver.initServerSideDataTable(options);
+    return asset_table
+}
+
+function initTree() {
+    var setting = {
+        view: {
+            dblClickExpand: false,
+            showLine: true
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        },
+        edit: {
+            enable: true,
+			showRemoveBtn: false,
+			showRenameBtn: false,
+            drag: {
+                isCopy: true,
+                isMove: true
+            }
+        },
+        callback: {
+            onRightClick: OnRightClick,
+            beforeClick: beforeClick,
+            onRename: onRename,
+            onSelected: onSelected,
+            beforeDrag: beforeDrag,
+            onDrag: onDrag,
+            beforeDrop: beforeDrop,
+            onDrop: onDrop
+        }
+    };
+    node_id = getselectQueryNodeid()
+    var zNodes = [];
+    var data = {'asset_type': '{{asset_type}}' };
+    $.get("{{ url_for('assets-api.nodes_api') }}",data,function(data, status){
+        var result = data['data'];
+        $.each(result, function (index, value) {
+            value["pId"] = value["parent"];
+            value["open"] = value["open"];
+            value["isParent"] = value["is_node"];
+            value["name"] = value["value"] + ' (' + value['assets_amount'] + ')';
+        });
+
+        zNodes = result;
+        $.fn.zTree.init($("#assetTree"), setting, zNodes);
+        zTree = $.fn.zTree.getZTreeObj("assetTree");
+
+        $.fn.zTree.init($("#assetTree3"), setting, zNodes);
+        zTree3 = $.fn.zTree.getZTreeObj("assetTree3");
+
+        selectQueryNode();
+    });
+}
+
+function hideRMenu() {
+	if (rMenu) rMenu.css({"visibility": "hidden"});
+	$("body").unbind("mousedown", onBodyMouseDown);
+}
+
+function onBodyMouseDown(event){
+	if (!(event.target.id === "rMenu" || $(event.target).parents("#rMenu").length>0)) {
+		$('#rMenu').css({"visibility" : "hidden"});
+	}
+}
+
+function editTreeNode() {
+    hideRMenu();
+	var current_node = zTree.getSelectedNodes()[0];
+	if (!current_node){
+	    return
+    }
+    if (current_node.value) {
+        current_node.name = current_node.value;
+    }
+    zTree.editName(current_node);
+}
+
+function OnRightClick(event, treeId, treeNode) {
+    if (!treeNode && event.target.tagName.toLowerCase() !== "button" && $(event.target).parents("a").length === 0) {
+		zTree.cancelSelectedNode();
+		showRMenu("root", event.clientX, event.clientY);
+	} else if (treeNode && !treeNode.noR) {
+		zTree.selectNode(treeNode);
+		showRMenu("node", event.clientX, event.clientY);
+	}
+}
+
+function onRename(event, treeId, treeNode, isCancel){
+    var url = "{{ url_for('assets-api.node_api',nodeid='PK') }}".replace('PK',treeNode.id);
+    var data = {"value": treeNode.name};
+    if (isCancel){
+        return
+    }
+    APIUpdateAttr({
+        url: url,
+        body: JSON.stringify(data),
+        method: "PATCH",
+        success:$('#rMenu').css({"visibility": "hidden"})
+    })
+}
+
+function onDrop(event, treeId, treeNodes, targetNode, moveType) {
+    var treeNodesIds = [];
+    $.each(treeNodes, function (index, value) {
+        treeNodesIds.push(value.id);
+    });
+    var nodeid = treeNodesIds.toString();
+    var the_url = "{{ url_for('assets-api.node_api',nodeid='PK') }}".replace('PK',nodeid);
+    var body = {targetid:targetNode.id};
+    APIUpdateAttr({
+        url: the_url,
+        method: "PUT",
+        body: JSON.stringify(body)
+    })
+}
+
+function showRMenu(type, x, y) {
+	$("#rMenu ul").show();
+    x -= 220;
+    $('#rMenu').css({"top":y+"px", "left":x+"px", "visibility":"visible"});
+
+	$("body").bind("mousedown", onBodyMouseDown);
+}
+
+function beforeClick(treeId, treeNode, clickFlag) {
+    return true;
+}
+
+function hideRMenu() {
+	if (rMenu) $('#rMenu').css({"visibility": "hidden"});
+	$("body").unbind("mousedown", onBodyMouseDown);
+}
+
+function onBodyMouseDown(event){
+	if (!(event.target.id === "rMenu" || $(event.target).parents("#rMenu").length>0)) {
+		$('#rMenu').css({"visibility" : "hidden"});
+	}
+}
+
+function onSelected(event, treeNode,no_reload) {
+    var url = asset_table.ajax.url();
+    url = setUrlParam(url, "node_id", treeNode.id);
+    setCookie('node_selected', treeNode.id);
+    if (typeof(no_reload) == "undefined") {
+        asset_table.ajax.url(url);
+        asset_table.ajax.reload();
+    }
+}
+
+function getselectQueryNodeid() {
+    var query_node_id = $.getUrlParam("node");
+    var cookie_node_id = getCookie('node_selected');
+    if (query_node_id !== null) {
+        node_id = query_node_id
+    } else if (cookie_node_id !== null) {
+        node_id = cookie_node_id;
+    } else {
+        node_id = false
+    }
+    return node_id
+}
+
+function selectQueryNode() {
+    node_id = getselectQueryNodeid()
+    if (node_id) {
+        node = zTree.getNodesByParam("id", node_id, null);
+        if (node){
+            zTree.selectNode(node[0],no_reload=true);
+        }
+    }
+}
+
+function beforeDrag() {
+    return true
+}
+
+function beforeDrop(treeId, treeNodes, targetNode, moveType) {
+    var treeNodesNames = [];
+    $.each(treeNodes, function (index, value) {
+        treeNodesNames.push(value.value);
+    });
+
+    var msg = "你想移动节点: `" + treeNodesNames.join(",") + "` 到 `" + targetNode.value + "` 下吗?";
+    if (confirm(msg)){
+        return true
+    } else {
+        return false
+    }
+}
+
+function onDrag(event, treeId, treeNodes) {}
+
+function addTreeNode() {
+	var parentNode = zTree.getSelectedNodes()[0];
+	if (!parentNode){return}
+    function success(data) {
+        $('#rMenu').css({"visibility" : "hidden"});
+        if (data['status']) {
+            var newnode = data['data'];
+            var newNode = {
+                name: newnode["value"] + ' (' + 0 + ')',
+                id: newnode["id"],
+                pId: parentNode.id,
+                assets_amount:0
+            };
+            newNode.checked = zTree.getSelectedNodes()[0].checked;
+            zTree.addNodes(parentNode, 0, newNode);
+            toastr.success("创建节点成功");
+        } else {
+            toastr.error("创建节点失败");
+        }
+    }
+    APIUpdateAttr({
+        url: "{{ url_for('assets-api.node_api',nodeid='PK') }}".replace('PK',parentNode.id),
+        method: "POST",
+        body:JSON.stringify({'value':''}),
+        success:success
+    })
+}
+
+function deleteTreeNode() {
+	hideRMenu();
+	var current_node = zTree.getSelectedNodes()[0];
+	if (!current_node){
+	    return
+    }
+	if (current_node.children && current_node.children.length > 0) {
+		toastr.error("该节点有子节点，不能删除");
+	 } else if (current_node.assets_amount != 0) {
+        toastr.error("该节点有资产，不能删除");
+    } else {
+        var url = "{{ url_for('assets-api.node_api',nodeid='PK') }}".replace('PK',current_node.id);
+		$.ajax({
+            url: url,
+            method: "DELETE",
+            success: function () {
+                zTree.removeNode(current_node);
+                $('#rMenu').css({"visibility": "hidden"});
+                toastr.success("删除节点成功");
+            }
+        });
+	}
+}
+
+function toggle() {
+    if (show === 0) {
+        $("#split-left").hide(100, function () {
+            $("#split-right").attr("class", "col-lg-12");
+            $("#toggle-icon").attr("class", "fa fa-angle-right fa-x");
+            show = 1;
+        });
+    } else {
+        $("#split-right").attr("class", "col-lg-9");
+        $("#toggle-icon").attr("class", "fa fa-angle-left fa-x");
+        $("#split-left").show(100);
+        show = 0;
+    }
+}
+$(document).ready(function(){
+    initTable();
+    initTree();
+})
+
+.on('click', '#btn_bulk_update', function () {
+    var action = $('#slct_bulk_update').val();
+    var $data_table = $('#asset_list_table').DataTable();
+    var id_list = [];
+    $data_table.rows({selected: true}).every(function(){
+        id_list.push(this.data().id);
+    });
+    if (id_list.length === 0) {
+        toastr.error("请选择资产!");
+        return false;
+    }
+    function doRemoveto() {
+        $('#node_list_modal').modal('show');
+    }
+    function doRemoveout() {
+        var current_node;
+        var nodes = zTree.getSelectedNodes();
+        if (nodes && nodes.length === 1) {
+            current_node = nodes[0]
+        } else {
+            return
+        }
+        var success = function () {
+            asset_table.ajax.reload()
+        };
+        APIUpdateAttr({
+            'url': "{{ url_for('assets-api.node_asset_api',nodeid='PK') }}".replace('PK',current_node.id),
+            'method': 'DELETE',
+            'body': JSON.stringify({'assetids': id_list}),
+            'success': success
+        })
+    }
+
+    function doDelete() {
+        var success = function () {
+            asset_table.ajax.reload()
+        };
+        APIUpdateAttr({
+            'url': "{{ url_for('assets-api.assets_api') }}",
+            'method': 'DELETE',
+            'body': JSON.stringify({'id_list': id_list}),
+            'success': success
+        })
+    }
+
+    switch(action) {
+        case 'moveto':
+            doRemoveto();
+            break;
+        case 'moveout':
+            doRemoveout();
+            break;
+        case 'deleteasset':
+            doDelete();
+            break;
+        default:
+            break;
+    }
+    $(".ipt_check_all").prop("checked", false)
+})
+
+.on('click', '#btn_asset_modal_confirm', function () {
+    var assets_selected = asset_table2.selected;
+    var current_node;
+    var nodes = zTree.getSelectedNodes();
+    if (nodes && nodes.length === 1) {
+        current_node = nodes[0]
+    } else {
+        return
+    }
+    var success = function () {
+        asset_table2.selected = [];
+        asset_table2.ajax.reload()
+    };
+    if ( assets_selected.length == 0  ) {
+        toastr.error("请选择资产!");
+        return
+    }
+    var url = "{{ url_for('assets-api.node_asset_api',nodeid='PK') }}".replace('PK',current_node.id);
+    APIUpdateAttr({
+        'url': url,
+        'method': 'POST',
+        'body': JSON.stringify({'assetids': assets_selected}),
+        'success': success
+    })
+}).on('click', '#btn_asset_moveto_confirm', function () {
+    var assets_selected = asset_table.selected;
+    var current_node;
+    var old_nodes = zTree.getSelectedNodes();
+    old_node = old_nodes[0]
+    var nodes = zTree3.getSelectedNodes();
+    if (nodes && nodes.length === 1) {
+        current_node = nodes[0]
+    } else {
+        toastr.error("请选择节点!");
+        return
+    }
+    var success = function () {
+        $('#node_list_modal').modal('hide');
+        asset_table.selected = [];
+        asset_table.ajax.reload()
+    };
+    if ( assets_selected.length == 0  ) {
+        toastr.error("请选择资产!");
+        return
+    }
+    var del_url = "{{ url_for('assets-api.node_asset_api',nodeid='PK') }}".replace('PK',old_node.id);
+    var add_url = "{{ url_for('assets-api.node_asset_api',nodeid='PK') }}".replace('PK',current_node.id);
+    var data = {'assetids': assets_selected};
+    APIUpdateAttr({
+        'url': del_url,
+        'method': 'DELETE',
+        'body': JSON.stringify(data),
+        'success': success
+    });
+    APIUpdateAttr({
+        'url': add_url,
+        'method': 'POST',
+        'body': JSON.stringify(data),
+        'success': success
+    })
+}).on('click', '#menu_asset_add', function () {
+    $('#asset_list_modal').modal('show');
+    initTable2();
+    initTree2();
+}).on('hidden.bs.modal', '#asset_list_modal', function () {
+    window.location.reload();
+}).on('click', '#asset_notin_node', function () {
+    url = setUrlParam(init_table_url, 'un_node','True');
+    asset_table.ajax.url(url);
+    asset_table.ajax.reload();
+})
+
+</script>
+
+{% endblock %}

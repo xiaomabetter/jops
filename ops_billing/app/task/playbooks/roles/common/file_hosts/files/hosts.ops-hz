@@ -1,0 +1,24 @@
+127.0.0.1 localhost
+
+# ops
+10.252.210.22 vip1-ali-hangzhou-console
+10.168.207.14 sdb-ali-hangzhou-support
+10.252.215.140 vip1-ali-hangzhou-log
+10.252.218.185 vip1-ali-hangzhou-opc1
+10.160.22.199   hz-ali-ops-yum
+10.252.113.102  vip1-ali-hangzhou-ops1
+10.252.211.133 ops-ali-hangzhou-zk1
+10.252.222.237 ops-ali-hangzhou-zk2
+10.252.125.35  ops-ali-hangzhou-zk3
+10.252.126.222 ops-ali-hangzhou-kafka1
+10.252.116.166 ops-ali-hangzhou-kafka2
+10.252.123.48  ops-ali-hangzhou-kafka3
+10.252.117.74  ops-ali-hangzhou-ela1
+10.252.112.227 ops-ali-hangzhou-ela2
+10.252.120.77  ops-ali-hangzhou-ela3
+10.252.251.166 ops-ali-hangzhou-logindex
+10.168.184.109 ops-ali-hangzhou-logindexShipper
+10.116.206.221 ops-ali-hangzhou-yum
+
+# QQ SMTP
+163.177.65.157 smtp.exmail.qq.com

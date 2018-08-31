@@ -1,0 +1,24 @@
+<div class="row border-bottom">
+    <nav class="navbar navbar-static-top white-bg" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#"><i class="fa fa-bars"></i> </a>
+        </div>
+        <ul class="nav navbar-top-links navbar-right">
+            <li class="dropdown">
+                <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                    <span class="m-r-sm text-muted welcome-message">
+                        <span style="font-size: 13px;font-weight: 400">{{g.user.username}}
+                            <b class="caret"></b>
+                        </span>
+                    </span>
+                </a>
+                <ul class="dropdown-menu animated fadeInRight m-t-xs profile-dropdown">
+                    <li><a href="/user/info"><i class="fa fa-cogs"> </i><span>用户详情</span></a></li>
+                    <li><a id="switch_admin"><i class="fa fa-exchange"></i><span>管理页面</span></a></li>
+                    <li><a id="switch_user"><i class="fa fa-exchange"></i><span>用户页面</span></a></li>
+                    <li><a href="/user/logout"><i class="fa fa-sign-out"></i>退出登录</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</div>

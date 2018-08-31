@@ -1,0 +1,72 @@
+---
+- name: set cluster
+  set_fact: cluster_name={{nodenum.split(',')[0]}}
+
+
+- name: Ensure machinbasicid
+  set_fact: machine_id={{nodenum.split(',')[1]|int + 100 }}
+  when: cluster_name == 'ebs'
+
+- name: Ensure machinbasicid
+  set_fact: machine_id={{nodenum.split(',')[1]|int + 800}}
+  when: cluster_name == 'vip6'
+
+- name: Ensure directory exists
+  file: path={{ item }} state=directory owner=easemob group=easemob
+  with_items:
+    - /data/apps/config/ejabberd/
+    - /data/apps/data/ejabberd/
+    - /data/apps/log/ejabberd/
+    - /data/apps/opt/ejabberd/
+    - /data/apps/var/ejabberd/
+
+- name: update ejabberd
+  #synchronize: src=/data/updatebs/ejabberd dest=/data/apps/opt/ copy_links=yes delete=no recursive=yes rsync_opts="-avz --exclude log/* --exclude ejabberd.yml --exclude message_store.config --exclude inetrc --exclude ejabberdctl.cfg"
+  synchronize: src=/data/updatebs/ci/{{ ejabberd_version }}/ejabberd dest=/data/apps/opt/ copy_links=yes delete=no recursive=yes rsync_opts="-avz --exclude log/* --exclude ejabberd.yml --exclude message_store.config --exclude inetrc --exclude ejabberdctl.cfg"
+  
+#- name: ejabberd version
+#  shell: ls -Ft /data/apps/opt/ejabberd/releases/ |grep '/$'|head -n 1 | cut -d'/' -f1
+#  register: ejabberd_version
+
+- name: Ensure ejabberd version directory exists
+  file: path={{ item }} state=directory owner=easemob group=easemob
+  with_items:
+    - /data/apps/opt/ejabberd/etc/ejabberd/{{ ejabberd_version }}
+
+- name: Put on sys.config inetrc ejabberdctl.cfg
+  template: src={{item.src}} dest={{item.dest}} owner=easemob group=easemob mode={{item.mode}}
+  with_items:
+  - { src: "/data/github_ci/easemob-ops/ops-repo/roles/applications/ejabberd/templates/sys.config_{{ cluster_name }}", dest: "/data/apps/opt/ejabberd/releases/{{ ejabberd_version }}/sys.config", mode: 644 }
+  - { src: "/data/github_ci/easemob-ops/ops-repo/roles/applications/ejabberd/templates/sys.config_{{ cluster_name }}", dest: "/data/apps/opt/ejabberd/etc/ejabberd/{{ ejabberd_version }}/sys.config", mode: 644 }
+  - { src: "inetrc.{{ cluster_name }}", dest: "/data/apps/opt/ejabberd/releases/{{ ejabberd_version }}/inetrc", mode: 644 }
+  - { src: "inetrc.{{ cluster_name }}", dest: "/data/apps/opt/ejabberd/etc/ejabberd/inetrc", mode: 644 }
+  - { src: "ejabberdctl.cfg.{{ cluster_name }}", dest: "/data/apps/opt/ejabberd/releases/{{ ejabberd_version }}/ejabberdctl.cfg", mode: 644 }
+  - { src: "ejabberdctl.cfg.{{ cluster_name }}", dest: "/data/apps/opt/ejabberd/etc/ejabberd/ejabberdctl.cfg", mode: 644 }
+
+- name: put nodetool inetrc ejabberdctl.cfg ejabberdctl.boot .erlang
+  copy: src={{item.src}} dest={{item.dest}} owner=easemob group=easemob mode={{item.mode}}
+  with_items:
+  - { src: '.erlang.cookie.{{ cluster_name}}', dest: "/data/apps/opt/ejabberd/var/lib/ejabberd/.erlang.cookie", mode: 400 }
+  - { src: '.erlang.cookie.{{ cluster_name}}', dest: "/data/apps/opt/ejabberd/.erlang.cookie", mode: 400 }
+  - { src: '/data/ejabberd_config/nodetool', dest: "/data/apps/opt/ejabberd/etc/nodetool", mode: 644 }
+  - { src: '/data/updatebs/ci/{{ ejabberd_version }}/ejabberd/releases/{{ ejabberd_version }}/ejabberd.boot', dest: "/data/apps/opt/ejabberd/releases/{{ ejabberd_version }}/start.boot", mode: 644 }
+
+    
+
+- name: fix ejabberdctl user issue
+  lineinfile: dest=/data/apps/opt/ejabberd/bin/ejabberdctl regexp='^INSTALLUSER=' line='INSTALLUSER=easemob'
+
+- name: Ensure directory permission right
+  file: path=/data/apps/opt/ejabberd/ state=directory owner=easemob group=easemob recurse=yes
+
+
+- name: delete /data/apps/opt/ejabberd/var/lib/ejabberd/*
+  shell: rm -f /data/apps/opt/ejabberd/var/lib/ejabberd/*
+
+
+- name: ejabberd monit config file
+  copy: src=ejabberd.mc dest=/data/apps/config/monit/ejabberd.mc owner=easemob group=easemob mode=644
+
+
+- name: restart with monit
+  service: name=monit state=restarted
