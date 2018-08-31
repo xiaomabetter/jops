@@ -58,9 +58,8 @@
 <script src="{{ url_for('static', filename='js/plugins/select2/select2.full.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
 <script>
-var zonesdata = {{Zones|tojson}};
+var zonesdata = JSON.parse({{Zones|tojson}});
 var templatedata = {{templatedata|tojson}};
-console.log(templatedata);
 var templateid = "{{templateid}}"
 function AppendZoneid() {
     $("#ZoneId").empty();

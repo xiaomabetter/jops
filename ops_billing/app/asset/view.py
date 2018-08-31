@@ -33,21 +33,21 @@ def asset_detail(assetid):
 @login_required
 def asset_create():
     form = Aly_Instance_Form()
-    Zones = OpsRedis.get('aly_zones')
+    Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create.html',**locals())
 
 @asset.route('/asset/create/template',methods=['GET'])
 @login_required
 def asset_create_template():
     form = Aly_Instance_Template()
-    Zones = OpsRedis.get('aly_zones')
+    Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template.html',**locals())
 
 @asset.route('/asset/create/template/list',methods=['GET'])
 @login_required
 def asset_create_template_list():
     form = Aly_Instance_Template()
-    Zones = OpsRedis.get('aly_zones')
+    Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template_list.html',**locals())
 
 @asset.route('/asset/create/template/update/<templateid>',methods=['GET'])
@@ -61,7 +61,7 @@ def asset_create_template_update(templateid):
             data = dict(data,**dataDisk)
     templatedata = data
     form = Aly_Instance_Template()
-    Zones = json.loads(OpsRedis.get('aly_zones').decode())
+    Zones = OpsRedis.get('aly_zones').decode()
     form.ImageId.data = [data['ImageId']]
     form.SecurityGroupId.data = data['SecurityGroupId'][0].split(',')
     return render_template('asset/asset_create_template_update.html',**locals())

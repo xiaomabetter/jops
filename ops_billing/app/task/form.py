@@ -26,7 +26,7 @@ class Task_Ansible_Form(FlaskForm):
                          render_kw={"class": "form-control select2"})
     run_as = SelectField(u'系统用户', choices=systemusers_choices, validators=[DataRequired()],
                                        render_kw={"class": "form-control select2"})
-    run_as_sudo = BooleanField(u'sudo执行', widget=CheckboxInput(),render_kw={"class":"form-control"})
+    run_as_sudo = BooleanField(u'sudo执行', widget=CheckboxInput(),render_kw={"class":"form-control",'checked':'true'})
 
 class Task_Create_Form(FlaskForm):
     taskname = StringField(u'任务名称', [DataRequired(message=u'任务名称')],widget=TextInput(),
