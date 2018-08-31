@@ -69,6 +69,12 @@ $(document).ready(function () {
     $(PublicIpAddress).change(function () {
         bandwidthFieldsDisplay();
     });
+    $.get("{{ url_for('assets-api.templates_api') }}",{}, function(result){
+        $.each(result['data'], function (key, value) {
+            option = '<option value=' + value['id'] + '>' + value['name'] + '</option>';
+            $('#InstanceTemplate').append(option);
+        });
+    });
     $("#InstanceTemplate").parent().find(".select2").on('click', function (e) {
         $("#template_list_modal").modal();
     })

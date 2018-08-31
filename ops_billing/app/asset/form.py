@@ -16,8 +16,7 @@ class Service_Form(FlaskForm):
 class Aly_Instance_Form(FlaskForm):
     InstanceChargeTypes = [('PrePaid',u'预付费'),('PostPaid',u'按量付费')]
     InternetChargeTypes = [('PayByTraffic',u'按使用流量付费'),('PayByBandwidth',u'按固定带宽付费')]
-    templateChoices = [(tp.id.hex,tp.name) for tp in Asset_Create_Template.select()]
-    InstanceTemplate = SelectMultipleField(u'实例模板',choices=templateChoices,
+    InstanceTemplate = SelectMultipleField(u'实例模板',choices=[],
                         render_kw={"class":"form-control select2",
                                             "data-placeholder":"选择创建实例模板"})
     InstanceChargeType = SelectField(u'选择计费方式',choices=InstanceChargeTypes,
@@ -33,31 +32,19 @@ class Aly_Instance_Form(FlaskForm):
                                 render_kw={"class":"form-control","placeholder": u"带宽大小,单位M"})
 
 class Aly_Instance_Template(FlaskForm):
-    # vCPUs = [(n,f'{n} vCPU') for n in (1,2,4,8,12,16,24,32)]
-    # vMEMs = [(n, f'{n} GiB') for n in (1, 2, 4, 8, 12, 16, 24, 32,48,64)]
     image_categorys = [('self',u'自有镜像'),('system',u'系统镜像')]
     disk_categorys = [('cloud_efficiency',u'高效云盘'),('cloud_ssd',u'SSD云盘')]
-    if  OpsRedis.exists('aly_images'):
-        ImageIds = [(i['ImageId'],i['ImageName']) for i in json.loads(OpsRedis.get('aly_images').decode())]
-    else:ImageIds = list()
-    if OpsRedis.exists('aly_security_groups'):
-        SecurityGroupIds = [(i['SecurityGroupId'],i['SecurityGroupName']) for i in
-                            json.loads(OpsRedis.get('aly_security_groups').decode())]
-    else:SecurityGroupIds = list()
     InstanceNetworkTypes = [('classic', u'经典网络'), ('vpc', u'专有网络')]
     name = StringField(u'实例模板名称',render_kw={"class":"form-control","placeholder":"实例模板名称"})
     RegionId = SelectField(u'选择区域',choices=[],render_kw={"class":"form-control"})
     ZoneId = SelectField(u'选择可用区',choices=[],render_kw={"class":"form-control"})
-    # cpu = SelectField(u'实例vCpu',choices=vCPUs,render_kw={"class":"form-control",})
-    # memory = SelectField(u'实例内存',choices=vMEMs,
-    #                      render_kw={"class":"form-control","placeholder": u"实例内存"})
     InstanceNetworkType = SelectField(u'网络类型',choices=InstanceNetworkTypes,
                                       render_kw={"class":"form-control"})
     instance_type = StringField(u'实例规格',render_kw={"class":"form-control","placeholder": u"实例规格"})
     image_category = SelectField(u'镜像类型',choices=image_categorys,render_kw={"class":"form-control"})
-    ImageId = SelectMultipleField(u'镜像',choices=list(set(ImageIds)),render_kw={"class":"form-control select2",
+    ImageId = SelectMultipleField(u'镜像',choices=[],render_kw={"class":"form-control select2",
                                                             "data-placeholder":"选择镜像"})
-    SecurityGroupId = SelectMultipleField(u'安全组',choices=SecurityGroupIds,render_kw={"class":"form-control select2",
+    SecurityGroupId = SelectMultipleField(u'安全组',choices=[],render_kw={"class":"form-control select2",
                                                             "data-placeholder":"选择安全组"})
     disk_category = SelectField(u'硬盘类型', choices=disk_categorys, render_kw={"class": "form-control"})
     System_disk = StringField(u'系统盘',render_kw={"class":"form-control"})

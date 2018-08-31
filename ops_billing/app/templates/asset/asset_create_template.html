@@ -69,14 +69,18 @@ function AppendZoneid() {
 }
 $(document).ready(function () {
     $('.select2').select2();
-    /*
     $.get("{{ url_for('assets-api.images_api') }}",{}, function(result){
         $.each(result['data'], function (key, value) {
             option = '<option value=' + value['ImageId'] + '>' + value['ImageName'] + '</option>';
             $('#ImageId').append(option);
         });
     });
-    */
+    $.get("{{ url_for('assets-api.securitygroups_api') }}",{}, function(result){
+        $.each(result['data'], function (key, value) {
+            option = '<option value=' + value['SecurityGroupId'] + '>' + value['SecurityGroupName'] + '</option>';
+            $('#SecurityGroupId').append(option);
+        });
+    });
     $("#ImageId").parent().find(".select2").on('click', function (e) {
         $("#image_list_modal").modal();
     });
