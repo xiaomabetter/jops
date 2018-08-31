@@ -80,7 +80,7 @@ function get_task_result(taskid) {
                 $('#stdout_result').html(json_data);
             } else {
                 setTimeout(function () {
-                    get_ansible_module_result(taskid);
+                    get_task_result(taskid);
                 }, 2000);
             }
         }
