@@ -1,6 +1,35 @@
-peewee==3.5.0
-pymysql==0.8.0
-flask==1.0.2
-flask_restful==0.3.6
-flask_security==3.00
-pyjwt==1.6.4
+peewee              ==3.5.0
+flask               ==1.0.2
+flask_restful       ==0.3.6
+pyjwt               ==1.6.4
+celery              ==3.1.26.post2
+redis               ==2.10.6
+Crypto              ==1.4.1
+aliyunsdkcore       ==1.0.2
+ansible             == 2.6.1
+asn1crypto          ==0.24.0
+attrs               ==17.4.0
+cryptography        ==2.1.4
+Flask               ==1.0.2
+Flask-Login         ==0.4.1
+Flask-Mail          ==0.9.1
+flask-paginate      ==0.5.1
+flask-peewee        ==3.0.0
+flask-rest-api      ==0.5.0
+Flask-RESTful       ==0.3.6
+Flask-Script        ==2.0.6
+Flask-WTF           ==0.14.2
+itsdangerous        ==0.24
+marshmallow         ==2.15.3
+oss2                ==2.4.0
+paramiko            ==2.4.0
+Pillow              ==4.3.0
+pycrypto            ==2.6.1
+pycryptodome        ==3.6.1
+PyJWT               ==1.6.4
+PyMySQL             ==0.8.0
+redis               ==2.10.6
+sshpubkeys          ==2.2.0
+wtf-peewee          ==3.0.0
+WTForms             ==2.1
+aliyun-python-sdk-r-kvstore==2.0.3

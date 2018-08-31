@@ -196,6 +196,8 @@ class TemplatesApi(Resource):
         data,errors = AssetCreateTemplateSerializer().load(args)
         if errors:return jsonify(falseReturn(msg=str(errors)))
         try:
+            if OpsRedis.exists('aly_InstanceTypes') :
+                return jsonify(falseReturn(msg='先执行同步aly_InstanceTypes任务'))
             instancetypes = json.loads(OpsRedis.get('aly_InstanceTypes').decode())
             if args.get('instance_type') in instancetypes:
                 data['cpu'] = instancetypes[args.get('instance_type')]['CpuCoreCount']
@@ -233,6 +235,8 @@ class TemplateApi(Resource):
         data,errors = AssetCreateTemplateSerializer().load(args)
         if errors:
             return jsonify(falseReturn(msg=str(errors)))
+        if OpsRedis.exists('aly_InstanceTypes'):
+            return jsonify(falseReturn(msg='先执行同步aly_InstanceTypes任务'))
         instancetypes = json.loads(OpsRedis.get('aly_InstanceTypes').decode())
         if args.get('instance_type') in instancetypes:
             data['cpu'] = instancetypes[args.get('instance_type')]['CpuCoreCount']
@@ -262,6 +266,8 @@ class ImagesApi(Resource):
         args = reqparse.RequestParser()\
             .add_argument('image_category',type=str,location='args')\
             .add_argument('RegionId',type=str,location='args').parse_args()
+        if OpsRedis.exists('aly_images'):
+            return jsonify(falseReturn(msg='先执行同步aly_images任务'))
         result = json.loads(OpsRedis.get('aly_images').decode())
         if args.get('image_category') and args.get('RegionId'):
             data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
@@ -283,6 +289,8 @@ class SecurityGroupsApi(Resource):
     def get(self):
         args = reqparse.RequestParser()\
             .add_argument('RegionId',type=str,location='args').parse_args()
+        if OpsRedis.exists('aly_security_groups'):
+            return jsonify(falseReturn(msg='先执行同步aly_security_groups任务'))
         result = json.loads(OpsRedis.get('aly_security_groups').decode())
         if args.get('RegionId') :
             data = [dict(SecurityGroupId=r['SecurityGroupId'],SecurityGroupName=r['SecurityGroupName'],RegionId=r['RegionId'],
