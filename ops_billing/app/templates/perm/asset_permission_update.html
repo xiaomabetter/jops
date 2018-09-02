@@ -8,6 +8,7 @@
 <script src="{{ url_for('static', filename='js/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
 <script>
+var perm_data = ({{perm_data|tojson}});
 $(document).ready(function () {
     $('.select2').select2({
         closeOnSelect: false
@@ -23,7 +24,7 @@ $(document).ready(function () {
     $("#assets").parent().find(".select2").on('click', function (e) {
         $("#asset_list_modal").modal();
     })
-
+    asset_ids = [],node_ids = [],system_users_ids = [],user_ids = [],group_ids = [];
     $.get("{{ url_for('assets-api.assets_api') }}",{'asset_type':'ecs'}, function(result){
         $.each(result['data'], function (key, value) {
             option = '<option value="ID">"InstanceName"</option>';
@@ -31,7 +32,22 @@ $(document).ready(function () {
             option = option.replace('InstanceName',value['InstanceName']);
             $('#assets').append(option);
         });
+        $.each(perm_data['assets'], function (id,data) {  asset_ids.push(data['id'])  });
+        $('#assets').val(asset_ids).trigger('change');
     });
+
+    $.each(perm_data['nodes'], function (id,data) {  node_ids.push(data['id']) });
+    $.each(perm_data['system_users'], function (id,data) {
+        system_users_ids.push(data['id'])
+    });
+    $.each(perm_data['users'], function (id,data) { user_ids.push(data['id']) });
+    $.each(perm_data['groups'], function (id,data) { group_ids.push(data['id']) });
+    $('#nodes').val(node_ids).trigger('change');
+    $('#system_users').val(system_users_ids).trigger('change');
+    $('#users').val(user_ids).trigger('change');
+    $('#groups').val(group_ids).trigger('change');
+    $('#comment').val(perm_data['comment']);
+    $('#name').val(perm_data['name']);
 
     initTable2();
     initTree2();

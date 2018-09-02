@@ -76,12 +76,14 @@ $(document).ready(function () {
             option = '<option value=' + value['ImageId'] + '>' + value['ImageName'] + '</option>';
             $('#ImageId').append(option);
         });
+        $("#ImageId").val(templatedata['ImageId']).trigger('change');
     });
     $.get("{{ url_for('assets-api.securitygroups_api') }}",{}, function(result){
         $.each(result['data'], function (key, value) {
             option = '<option value=' + value['SecurityGroupId'] + '>' + value['SecurityGroupName'] + '</option>';
             $('#SecurityGroupId').append(option);
         });
+        $("#SecurityGroupId").val(templatedata['SecurityGroupId']).trigger('change');
     });
     $("#ImageId").parent().find(".select2").on('click', function (e) {
         $("#image_list_modal").modal();
@@ -102,8 +104,9 @@ $(document).ready(function () {
         })
     }
     $.each(templatedata, function (key, value) {
-        $("#"+key).val(value)
-        $("input[name='PK']".replace('PK',key)).val(value)
+        if (key !== 'SecurityGroupId' || key !== 'ImageId' ){
+            $("input[name='PK']".replace('PK',key)).val(value)
+        }
     });
 }).on('change', '#RegionId', function () {
     AppendZoneid();

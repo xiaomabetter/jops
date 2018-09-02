@@ -4,13 +4,13 @@ from celery.signals import worker_process_init
 
 logger = get_logger(__name__)
 
-@worker_process_init.connect
-def fix_multiprocessing(**kwargs):
-    from multiprocessing import current_process
-    try:
-        current_process()._config
-    except AttributeError:
-        current_process()._config = {'semprefix': '/mp'}
+# @worker_process_init.connect
+# def fix_multiprocessing(**kwargs):
+#     from multiprocessing import current_process
+#     try:
+#         current_process()._config
+#     except AttributeError:
+#         current_process()._config = {'semprefix': '/mp'}
 
 @celery.task
 def run_ansible_module(run_as,hostname_list,tasks,run_as_sudo=False):

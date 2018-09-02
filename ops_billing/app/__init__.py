@@ -1,7 +1,7 @@
 from flask import Flask
 from conf.config import config,Config
 from conf import celery_config
-from celery import Celery
+from celery import Celery,platforms
 from flask_login import LoginManager
 from logging.config import fileConfig
 import logging
@@ -15,6 +15,7 @@ app = Flask(__name__)
 
 celery = Celery('worker', broker=celery_config.CELERY_BROKER_URL,backend=celery_config.CELERY_RESULT_BACKEND)
 celery.config_from_object('conf.celery_config')
+platforms.C_FORCE_ROOT = True
 
 def get_logger(name):
     return logging.getLogger(name)

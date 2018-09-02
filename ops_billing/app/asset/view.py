@@ -62,8 +62,6 @@ def asset_create_template_update(templateid):
     templatedata = data
     form = Aly_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
-    form.ImageId.data = [data['ImageId']]
-    form.SecurityGroupId.data = data['SecurityGroupId'][0].split(',')
     return render_template('asset/asset_create_template_update.html',**locals())
 
 @asset.route('/asset/service/list',methods=['GET'])

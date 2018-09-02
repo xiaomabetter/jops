@@ -3,8 +3,10 @@ from flask import render_template,request,flash
 from app.utils import model_to_form
 from app.models import SystemUser,AssetPermission
 from .form import Perm_Create_Form,Systemuser_Create_Form
+from .serializer import AssetPermissionSerializer
 from . import perm
 from app.auth import login_required
+import json
 
 logger = get_logger(__name__)
 cfg = get_config()
@@ -48,10 +50,6 @@ def asset_permission_create():
 def asset_permission_update(permissionid):
     template_name = 'perm/asset_permission_update.html'
     form = Perm_Create_Form(request.form)
-    perm_model = AssetPermission.select().where(AssetPermission.id == permissionid)
-    asset_perm = perm_model.get()
-    model_to_form(perm_model,form)
-    for property_  in ['assets','nodes','system_users','users','groups'] :
-        getattr(form,property_).data = [item.id.hex for item in
-                                        getattr(asset_perm,property_).objects()]
-    return render_template(template_name, form=form,permissionid=permissionid)
+    asset_perm = AssetPermission.select().where(AssetPermission.id == permissionid).get()
+    perm_data = json.loads(AssetPermissionSerializer().dumps(asset_perm).data)
+    return render_template(template_name, **locals())

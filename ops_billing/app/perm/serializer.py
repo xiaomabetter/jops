@@ -18,8 +18,8 @@ class AssetPermissionSerializer(Schema):
     is_active = fields.Boolean()
     assets = fields.Nested(AssetSerializer,exclude=('node','account'),many=True)
     nodes = fields.Nested(NodeSerializer,many=True)
-    system_users = fields.Nested(SystemUserSerializer,many=True,only=['username','name'])
-    users = fields.Nested(UserSerializer,many=True,only=['username','phone','wechat','ding','email'])
+    system_users = fields.Nested(SystemUserSerializer,many=True,only=['id','username','name'])
+    users = fields.Nested(UserSerializer,many=True,only=['id','username','phone','wechat','ding','email'])
     groups = fields.Nested(GroupSerializer,many=True)
 
     class Meta:
