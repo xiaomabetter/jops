@@ -235,8 +235,6 @@ class SyncAliAssets(object):
     def pop_duplicate(self,asset_list):
         new_asset_list = []
         for i,item in enumerate(asset_list):
-            if item['InstanceId'] not in new_asset_list:
-                new_asset_list.append(item['InstanceId'])
-            else:
-                asset_list.pop(i)
-        return asset_list
+            if item['InstanceId'] not in [asset['InstanceId'] for asset in new_asset_list]:
+                new_asset_list.append(item)
+        return new_asset_list
