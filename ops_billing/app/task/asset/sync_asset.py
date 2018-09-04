@@ -10,6 +10,7 @@ from aliyunsdkr_kvstore.request.v20150101 import DescribeInstancesRequest as kvI
 from aliyunsdkr_kvstore.request.v20150101 import  DescribeInstanceAttributeRequest
 from .sync_node_amount import NodeAmount
 from app.models import Asset,db,OpsRedis
+from conf.aliyun_conf import AliConfig
 
 __all__ = ['SyncAliAssets']
 
@@ -17,9 +18,8 @@ class SyncAliAssets(object):
     def __init__(self,AccessKeyId,AccessKeySecret):
         self.AccessKeyId = AccessKeyId
         self.AccessKeySecret = AccessKeySecret
-        self.RegionId = ['cn-hangzhou','cn-beijing','us-west-1','cn-hongkong']
         self.clt_conn_list = [AcsClient(self.AccessKeyId, self.AccessKeySecret, r)
-                              for r in self.RegionId]
+                              for r in AliConfig.RegionId]
 
     def get_ecs_result(self,result):
         insert_result = []
@@ -237,4 +237,3 @@ class SyncAliAssets(object):
         for i,item in enumerate(asset_list):
             if item['InstanceId'] not in [asset['InstanceId'] for asset in new_asset_list]:
                 new_asset_list.append(item)
-        return new_asset_list

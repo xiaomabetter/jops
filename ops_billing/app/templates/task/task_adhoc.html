@@ -90,7 +90,9 @@ $(document).ready(function () {
         if (result.data.ismodule) {
             get_ansible_module_result(result.data.taskid)
         } else {
-            get_ansible_playbook_result(result.data.taskid,length=0)
+            $.each(result.data.taskid, function (key, task_id) {
+                get_ansible_playbook_result(result.data.task_id,length=0)
+            });
         }
     };
     var fail = function(data) {

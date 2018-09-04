@@ -9,6 +9,8 @@ from .serializer import TasksSerializer
 from .tasks.asset import run_sync_bill,run_sync_asset,run_sync_securitygroup,\
     run_sync_zones,run_sync_images,run_sync_instancetypes
 from .tasks.ansibe import run_ansible_module,run_ansible_playbook
+from .init_inventory import InitInventory
+from conf.aliyun_conf import AliConfig
 from app.auth import Auth
 import json
 
@@ -116,23 +118,34 @@ class TaskAnsRunApi(Resource):
         args = parse.add_argument('assets', type=str, action='append', location='form', required=True) \
             .add_argument('ismodule', type=bool, location='form')\
             .add_argument('run_as_sudo', type=bool,location='form').parse_args()
+
+        inventory = InitInventory(hostname_list=args.get('assets'),
+                              run_as_sudo=args.get('run_as'),
+                              run_as=args.get('run_as'))
+        host_list = inventory.get_hostlist()
+        regin_host_list = {}
+        task_ids = []
+        for host in host_list:
+            if not isinstance(regin_host_list.get(host.get('regionid')),list):
+                regin_host_list[host.get('regionid')] = []
+            regin_host_list[host.get('regionid')].append(host)
+
         if args.get('ismodule') :
             if not args.get('command')  and not args.get('module') :
                 return jsonify(falseReturn(msg=u'缺少参数,选择执行模块及命令'))
             else:
                 tasks = [{"action": {"module": args.get('module'), "args":
                     args.get('command')}, "name": args.get('name')}]
-                r = run_ansible_module.delay(args.get('run_as'), args.get('assets'),tasks,
-                                             run_as_sudo=args.get('run_as_sudo'))
-                data = dict(taskid=r.id,ismodule=True)
-                return jsonify(trueReturn(data))
+                for region,host_list in regin_host_list.items():
+                    r = run_ansible_module.apply_async([host_list,tasks],queue=region)
+                    task_ids.append(r.id)
+                return jsonify(trueReturn(dict(taskid=task_ids,ismodule=True)))
         else:
             if not args.get('playbook') :
                 return jsonify(falseReturn(msg='需选择执行的playbook'))
-            r = run_ansible_playbook.delay(args.get('run_as'),args.get('assets'),args.get('playbook'),
-                                           run_as_sudo=args.get('run_as_sudo'))
-            data = dict(taskid=r.id, ismodule=False)
-            return jsonify(trueReturn(data))
-
+            for region, host_list in regin_host_list.items():
+                r = run_ansible_module.apply_async([host_list, args.get('playbook')], queue=region)
+                task_ids.append(r.id)
+            return jsonify(trueReturn(dict(taskid=r.id, ismodule=False)))
 
 

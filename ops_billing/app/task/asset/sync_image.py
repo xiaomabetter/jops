@@ -3,6 +3,7 @@ import sys,json
 from aliyunsdkcore import client
 from app.models.base import OpsRedis
 from aliyunsdkecs.request.v20140526 import DescribeImagesRequest
+from conf.aliyun_conf import AliConfig
 
 __all__ = ['AliSyncImages']
 
@@ -10,9 +11,8 @@ class AliSyncImages(object):
     def __init__(self,AccessKeyId,AccessKeySecret):
         self.AccessKeyId = AccessKeyId
         self.AccessKeySecret = AccessKeySecret
-        self.RegionId = ['cn-hangzhou','cn-beijing','us-west-1','cn-hongkong']
         self.clt_conn_list = [client.AcsClient(self.AccessKeyId, self.AccessKeySecret, r)
-                              for r in self.RegionId]
+                              for r in AliConfig.RegionId]
 
     def sync_images(self,pageSize=100):
         results = []

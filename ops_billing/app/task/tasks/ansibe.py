@@ -1,6 +1,8 @@
 from app import celery,get_logger,get_basedir
 from app.task.ansible import AdHocRunner,PlayBookRunner,Inventory,AnsibleError
+from conf.config import Config
 from celery.signals import worker_process_init
+
 
 logger = get_logger(__name__)
 
@@ -13,10 +15,8 @@ logger = get_logger(__name__)
 #         current_process()._config = {'semprefix': '/mp'}
 
 @celery.task
-def run_ansible_module(run_as,hostname_list,tasks,run_as_sudo=False):
-    inventory = Inventory(
-        hostname_list=hostname_list, run_as_sudo=run_as_sudo,run_as=run_as
-    )
+def run_ansible_module(host_list,tasks):
+    inventory = Inventory(host_list=host_list)
     runner = AdHocRunner(inventory)
     try:
         result = runner.run(tasks,'all')
@@ -27,12 +27,10 @@ def run_ansible_module(run_as,hostname_list,tasks,run_as_sudo=False):
         pass
 
 @celery.task(bind=True)
-def run_ansible_playbook(self,run_as,hostname_list,playbook,run_as_sudo=False):
+def run_ansible_playbook(self,host_list,playbook):
     taskid = self.request.id
-    inventory = Inventory(
-        hostname_list=hostname_list, run_as_sudo=run_as_sudo,run_as=run_as
-    )
-    playbook_file = get_basedir() + '/task/playbooks/' + playbook
+    inventory = Inventory(host_list=host_list)
+    playbook_file = Config.Ansible_Base_Dir + '/' + playbook
     runner = PlayBookRunner(playbook_file=playbook_file,inventory=inventory,taskid=taskid)
     result = runner.run()
     return result

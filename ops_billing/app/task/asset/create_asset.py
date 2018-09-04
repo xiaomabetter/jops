@@ -4,6 +4,7 @@ from aliyunsdkecs.request.v20140526 import DescribeInstancesRequest,RunInstances
                             JoinSecurityGroupRequest
 from app.models.base import OpsRedis
 from app.models.asset import Asset
+from .sync_asset import SyncAliAssets
 from .sync_node_amount import NodeAmount
 
 class Aly_Create_Asset(object):
@@ -70,7 +71,7 @@ class Aly_Create_Asset(object):
                 if len(self.template_data['SecurityGroupId'][0].split(',')) > 1:
                     for sgid in self.template_data['SecurityGroupId'][0].split(','):
                         self.set_securitygroup(sgid, instance_detail.get('InstanceId'))
-                NodeAmount.sync_root_assets()
+            NodeAmount.sync_root_assets()
             return "ecs instance %s is running" % instance_ids
 
     def check_instance_running(self,instance_ids):

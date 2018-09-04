@@ -1,4 +1,4 @@
-from app import get_logger, get_config
+from app import get_logger, get_config,celery
 from flask import jsonify,request
 from flask_restful import Resource,reqparse
 from app.auth import login_required,adminuser_required,get_login_user
@@ -23,6 +23,7 @@ __all__ = ['AssetsApi','AssetInstanceApi','AssetInstanceUserApi','AssetCreateApi
            'AssetInstanceAccountInstanceApi','NodesApi','NodeInstanceApi','NodeInstanceAssetApi',
            'ServicesApi','ServiceInstanceApi','ServiceInstanceAssetInstanceApi'
            ]
+
 
 class AssetsApi(Resource):
     @login_required

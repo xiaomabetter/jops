@@ -4,6 +4,7 @@ from aliyunsdkcore import client
 from app.models.base import OpsRedis
 from aliyunsdkecs.request.v20140526 import DescribeInstanceTypesRequest,\
                             DescribeInstanceTypeFamiliesRequest
+from conf.aliyun_conf import AliConfig
 
 __all__ = ['AliSyncInstanceTypes']
 
@@ -11,9 +12,8 @@ class AliSyncInstanceTypes(object):
     def __init__(self,AccessKeyId,AccessKeySecret):
         self.AccessKeyId = AccessKeyId
         self.AccessKeySecret = AccessKeySecret
-        self.RegionId = ['cn-hangzhou','cn-beijing','us-west-1','cn-hongkong']
         self.clt_conn_list = [client.AcsClient(self.AccessKeyId, self.AccessKeySecret, r)
-                              for r in self.RegionId]
+                              for r in AliConfig.RegionId]
 
     def sync_instancetype(self):
         results = {}
