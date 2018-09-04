@@ -5,9 +5,9 @@ from conf import celery_config
 import os,uuid,datetime,json
 from redis import ConnectionPool,Redis
 
-pool0 = ConnectionPool(host=Config.REDIS_HOST, port=Config.REDIS_PORT,db=Config.REDIS_DB)
-pool1 = ConnectionPool(host=celery_config.REDIS_HOST,
-                                port=celery_config.REDIS_PORT,db=celery_config.REDIS_DB)
+pool0 = ConnectionPool(host=Config.REDIS_HOST, port=Config.REDIS_PORT,db=Config.REDIS_DEFAULT_DB)
+pool1 = ConnectionPool(host=Config.REDIS_HOST, port=Config.REDIS_PORT,db=Config.REDIS_CELERY_DB)
+
 OpsRedis = Redis(connection_pool=pool0)
 OpsCeleryRedis = Redis(connection_pool=pool1)
 
