@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from peewee import MySQLDatabase, Model
 from conf.config import Config
-from conf import celery_config
 import os,uuid,datetime,json
 from redis import ConnectionPool,Redis
 
-pool0 = ConnectionPool(host=Config.REDIS_HOST, port=Config.REDIS_PORT,db=Config.REDIS_DEFAULT_DB)
-pool1 = ConnectionPool(host=Config.REDIS_HOST, port=Config.REDIS_PORT,db=Config.REDIS_CELERY_DB)
+pool0 = ConnectionPool(host=Config.REDIS_HOST, port=Config.REDIS_PORT,db=Config.REDIS_DEFAULT_DB,
+                       password=Config.REDIS_PASS)
+pool1 = ConnectionPool(host=Config.REDIS_HOST, port=Config.REDIS_PORT,db=Config.REDIS_CELERY_DB,
+                        password = Config.REDIS_PASS)
 
 OpsRedis = Redis(connection_pool=pool0)
 OpsCeleryRedis = Redis(connection_pool=pool1)
