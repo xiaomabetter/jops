@@ -195,7 +195,7 @@ class SyncAliAssets(object):
                 })
         return result
 
-    def aly_sync_asset(self,asset_type):
+    def aly_sync_asset(self,asset_type,update=True):
         insert_many = []
         new_InstanceIds = []
         query_set = Asset.filter(Asset.AssetType==asset_type)
@@ -216,7 +216,7 @@ class SyncAliAssets(object):
 
         for instance in instances:
             new_InstanceIds.append(instance['InstanceId'])
-            if instance['InstanceId'] in InstanceIds:
+            if instance['InstanceId'] in InstanceIds and update:
                 with db.atomic():
                     Asset.update(**instance).where(Asset.InstanceId ==
                                                    instance['InstanceId']).execute()
@@ -227,7 +227,16 @@ class SyncAliAssets(object):
             with db.atomic():
                 Asset.update(Status = 'Destroy').where(Asset.InstanceId.in_(ids)).execute()
         if insert_many :
+            insert_many = self.pop_duplicate(insert_many)
             with db.atomic():
                 Asset.insert_many(insert_many).execute()
         NodeAmount.sync_root_assets()
 
+    def pop_duplicate(self,asset_list):
+        new_asset_list = []
+        for i,item in enumerate(asset_list):
+            if item['InstanceId'] not in new_asset_list:
+                new_asset_list.append(item['InstanceId'])
+            else:
+                asset_list.pop(i)
+        return asset_list
