@@ -1,5 +1,5 @@
 from flask import Flask
-from conf.config import config,Config
+from conf.config import config
 from conf import celery_config
 from celery import Celery,platforms
 from flask_login import LoginManager

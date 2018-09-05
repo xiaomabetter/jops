@@ -88,7 +88,7 @@ class AlySyncApi(Resource):
         if task_name == 'syncasset':
             if not args.get('asset_type'):
                 return jsonify(falseReturn(msg=u'确少参数'))
-            r = run_sync_asset.delay([args.get('asset_type')],queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_asset.apply_async([args.get('asset_type')],queue=celery_config.CELERY_DEFAULT_QUEUE)
         elif task_name == 'syncbill':
             if not args.get('day_from') or not args.get('day_to'):
                 return jsonify(falseReturn(msg=u'确少参数'))
@@ -96,16 +96,16 @@ class AlySyncApi(Resource):
             payload = Auth.decode_auth_token(user_token)
             user = User.filter(User.id == payload['data']['id']).get()
             username = user.username
-            r = run_sync_bill.delay([username, args.get('day_from'), args.get('day_to')],
+            r = run_sync_bill.apply_async([username, args.get('day_from'), args.get('day_to')],
                                     queue=celery_config.CELERY_DEFAULT_QUEUE)
         elif task_name == 'sync_instance_types':
-            r = run_sync_instancetypes.delay(queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_instancetypes.apply_async(queue=celery_config.CELERY_DEFAULT_QUEUE)
         elif task_name == 'sync_instance_securitygroup':
-            r = run_sync_securitygroup.delay(queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_securitygroup.apply_async(queue=celery_config.CELERY_DEFAULT_QUEUE)
         elif task_name == 'sync_instance_zones':
-            r = run_sync_zones.delay(queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_zones.apply_async(queue=celery_config.CELERY_DEFAULT_QUEUE)
         elif task_name == 'sync_instance_images':
-            r = run_sync_images.delay(queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_images.apply_async(queue=celery_config.CELERY_DEFAULT_QUEUE)
         return jsonify(trueReturn(r.id,msg='任务提交成功'))
 
 class TaskAnsRunApi(Resource):
@@ -145,7 +145,7 @@ class TaskAnsRunApi(Resource):
             if not args.get('playbook') :
                 return jsonify(falseReturn(msg='需选择执行的playbook'))
             for region, host_list in regin_host_list.items():
-                r = run_ansible_module.apply_async([host_list, args.get('playbook')], queue=region)
+                r = run_ansible_playbook.apply_async([host_list, args.get('playbook')], queue=region)
                 task_ids.append(r.id)
             return jsonify(trueReturn(dict(taskid=r.id, ismodule=False)))
 

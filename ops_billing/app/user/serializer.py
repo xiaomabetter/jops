@@ -26,14 +26,3 @@ class UserSerializer(Schema):
     class Meta:
         fields = ("id","username", "email","public_key","role",
                   "phone","wechat","ding","is_active","group","comment")
-
-class UserModelSerializer(Schema):
-    id = fields.Method("get_user_id")
-    def get_user_id(self,obj):
-        if isinstance(obj,dict):
-            if obj.get('id') :
-                return obj['id']
-            else:
-                return None
-        else:
-            return str(obj.id)

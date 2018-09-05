@@ -3,7 +3,6 @@ from app.task.ansible import AdHocRunner,PlayBookRunner,Inventory,AnsibleError
 from conf.config import Config
 from celery.signals import worker_process_init
 
-
 logger = get_logger(__name__)
 
 # @worker_process_init.connect
@@ -14,7 +13,7 @@ logger = get_logger(__name__)
 #     except AttributeError:
 #         current_process()._config = {'semprefix': '/mp'}
 
-@celery.task
+@celery.task(name='run_ansible_module')
 def run_ansible_module(host_list,tasks):
     inventory = Inventory(host_list=host_list)
     runner = AdHocRunner(inventory)
@@ -26,7 +25,7 @@ def run_ansible_module(host_list,tasks):
         logger.warn("Failed run adhoc {}, {}".format('', e))
         pass
 
-@celery.task(bind=True)
+@celery.task(bind=True,name='run_ansible_playbook')
 def run_ansible_playbook(self,host_list,playbook):
     taskid = self.request.id
     inventory = Inventory(host_list=host_list)

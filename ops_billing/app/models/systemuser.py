@@ -45,7 +45,6 @@ class SystemUser(BaseModel):
             'name': self.name,
             'username': self.username,
             'password': self.password,
-            'public_key': self.public_key,
             'private_key': self.private_key,
         })
 

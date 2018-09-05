@@ -4,7 +4,7 @@ from flask_restful import Api,Resource,reqparse
 from app.models import User,Groups,User_Group,AssetPerm_Users
 from app.auth import Auth,login_required,adminuser_required
 from app.utils import  trueReturn,falseReturn
-from .serializer import UserModelSerializer,UserSerializer,GroupSerializer
+from .serializer import UserSerializer,GroupSerializer
 from app.utils.encrypt import encryption_md5
 import json,time,uuid
 
@@ -141,26 +141,5 @@ class AuthToken(Resource):
             return jsonify(trueReturn({"token": token}))
         else:
             return falseReturn(msg='username or password is invalid!')
-
-class UserAuth(Resource):
-    def post(self):
-        data = json.loads(request.data)
-        user = User.filter(User.username==data['username']).get()
-        if user is None:
-            return jsonify(falseReturn('', '找不到用户'))
-        else:
-            if data.get('password'):
-                if not user.verify_password(data['password']):
-                    return jsonify(falseReturn({'user':{},'token':''}, u'密码不正确'))
-            elif data.get('public_key') :
-                if not user.verify_public_key(data['public_key']):
-                    return jsonify(falseReturn({'user':{},'token':''}, u'秘钥不正确'))
-            login_time = int(time.time())
-            user.login_time = login_time
-            user.save()
-            ser = UserModelSerializer()
-            userinfo = ser.dump(user).data
-            token = Auth.encode_auth_token(str(user.id), login_time)
-            return jsonify(trueReturn({'user':userinfo,'token':token}, '登录成功'))
 
 
