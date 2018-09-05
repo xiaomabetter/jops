@@ -71,7 +71,7 @@ $(document).ready(function () {
     $('.select2').select2();
     $.get("{{ url_for('assets-api.images_api') }}",{}, function(result){
         $.each(result['data'], function (key, value) {
-            option = '<option value=' + value['ImageId'] + '>' + value['ImageName'] + '</option>';
+            option = '<option value=' + value['image_id'] + '>' + value['ImageName'] + '</option>';
             $('#ImageId').append(option);
         });
     });
@@ -100,8 +100,9 @@ $(document).ready(function () {
     var $data_table = $('#images_list_table').DataTable();
     var id_list = [];
     $data_table.rows({selected: true}).every(function(){
-        id_list.push(this.data().ImageId);
+        id_list.push(this.data().image_id);
     });
+    console.log(id_list);
     if ( id_list.length !== 1  ) {
         toastr.error("请选择镜像,并选择一个!");
         return

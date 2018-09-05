@@ -1,5 +1,5 @@
 # ~*~ coding: utf-8 ~*~
-import sys,json
+import sys,json,uuid
 from aliyunsdkcore import client
 from app.models.base import OpsRedis
 from aliyunsdkecs.request.v20140526 import DescribeImagesRequest
@@ -31,7 +31,9 @@ class AliSyncImages(object):
                 clt_result = json.loads(clt.do_action_with_exception(request))
                 result += clt_result['Images']['Image']
             for index,value in enumerate(result):
+                image_id = uuid.uuid4().hex
                 value['RegionId'] = clt.get_region_id()
+                value['image_id'] = image_id
                 result[index] = value
             results += result
         OpsRedis.set('aly_images',json.dumps(results))

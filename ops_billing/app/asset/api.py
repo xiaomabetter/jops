@@ -270,18 +270,18 @@ class ImagesApi(Resource):
             return jsonify(falseReturn(msg='先执行同步aly_images任务'))
         result = json.loads(OpsRedis.get('aly_images').decode())
         if args.get('image_category') and args.get('RegionId'):
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
-                    for r in result if r['RegionId'] == args.get('RegionId')
+            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'],
+                         image_id=r['image_id'])  for r in result if r['RegionId'] == args.get('RegionId')
                     and r['ImageOwnerAlias'] == args.get('image_category') ]
         elif args.get('image_category') :
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
-                    for r in result if r['ImageOwnerAlias'] == args.get('image_category') ]
+            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'],
+                         image_id=r['image_id']) for r in result if r['ImageOwnerAlias'] == args.get('image_category') ]
         elif args.get('RegionId') :
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
-                    for r in result if r['RegionId'] == args.get('RegionId')  ]
+            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'],
+                         image_id=r['image_id']) for r in result if r['RegionId'] == args.get('RegionId')  ]
         else:
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
-                    for r in result ]
+            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'],
+                         image_id=r['image_id']) for r in result ]
         return jsonify(trueReturn(data))
 
 class SecurityGroupsApi(Resource):
