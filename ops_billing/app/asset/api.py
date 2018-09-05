@@ -24,9 +24,6 @@ __all__ = ['AssetsApi','AssetInstanceApi','AssetInstanceUserApi','AssetCreateApi
            'ServicesApi','ServiceInstanceApi','ServiceInstanceAssetInstanceApi'
            ]
 
-
-print(celery.app)
-
 class AssetsApi(Resource):
     @login_required
     def get(self):
