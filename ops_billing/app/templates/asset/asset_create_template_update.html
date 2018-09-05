@@ -105,6 +105,7 @@ $(document).ready(function () {
     }
     $.each(templatedata, function (key, value) {
         if (key !== 'SecurityGroupId' || key !== 'ImageId' ){
+            $('#' + key).val(value)
             $("input[name='PK']".replace('PK',key)).val(value)
         }
     });
