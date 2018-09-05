@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from app import create_app
+
 from app.asset.api import *
 from app.perm.api import *
 from app.user.api import *
@@ -49,7 +50,6 @@ api.add_resource(UsersApi,'/api/user/v1/users',endpoint = 'user-api.users_api')
 api.add_resource(UserApi,'/api/user/v1/user/<userid>',endpoint = 'user-api.user_api')
 api.add_resource(GroupsApi,'/api/v1/group/groups',endpoint = 'user-api.groups_api')
 api.add_resource(GroupApi,'/api/v1/group/<groupid>',endpoint = 'user-api.group_api')
-api.add_resource(UserAuth,'/api/user/v1/auth',endpoint = 'user-api.user-auth')
 api.add_resource(AuthToken,'/api/user/v1/token',endpoint = 'user-api.auth-token')
 #task
 api.add_resource(TasksApi,'/api/task/v1/tasks',endpoint = 'task-api.tasks_api')
