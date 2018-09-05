@@ -4,7 +4,7 @@ from flask_restful import Resource,reqparse
 from app.auth import login_required,adminuser_required,get_login_user
 from app.utils import trueReturn,falseReturn
 from app.models import Asset,Node,Service,Account,Asset_Account,AssetPermission,\
-                AssetPerm_Nodes,Asset_Service,Asset_Create_Template,Asset_Node,Asset_Service
+                AssetPerm_Nodes,Asset_Create_Template,Asset_Node,Asset_Service
 from .serializer import AssetSerializer,NodeSerializer,ServiceSerializer,\
                                     AssetCreateTemplateSerializer,AccountSerializer
 from app.perm.serializer import AssetPermissionSerializer

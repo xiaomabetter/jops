@@ -131,11 +131,13 @@ class AuthToken(Resource):
             .parse_args()
         try:
             user = User.select().where((User.email == args.get('username')) |
-                                       (User.username == args.get('username'))).get()
+                                                    (User.username == args.get('username'))).get()
         except Exception as e:
             return falseReturn(msg=str('e'))
         if user and user.verify_password(args['password']):
             token = Auth.encode_auth_token(user.id.hex,int(time.time()))
+            if isinstance(token,bytes):
+                token = token.decode()
             return jsonify(trueReturn({"token": token}))
         else:
             return falseReturn(msg='username or password is invalid!')

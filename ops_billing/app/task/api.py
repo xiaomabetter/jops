@@ -10,7 +10,7 @@ from .tasks.asset import run_sync_bill,run_sync_asset,run_sync_securitygroup,\
     run_sync_zones,run_sync_images,run_sync_instancetypes
 from .tasks.ansibe import run_ansible_module,run_ansible_playbook
 from .init_inventory import InitInventory
-from conf.aliyun_conf import AliConfig
+from conf import celery_config
 from app.auth import Auth
 import json
 
@@ -88,7 +88,7 @@ class AlySyncApi(Resource):
         if task_name == 'syncasset':
             if not args.get('asset_type'):
                 return jsonify(falseReturn(msg=u'确少参数'))
-            r = run_sync_asset.delay(args.get('asset_type'))
+            r = run_sync_asset.delay([args.get('asset_type')],queue=celery_config.CELERY_DEFAULT_QUEUE)
         elif task_name == 'syncbill':
             if not args.get('day_from') or not args.get('day_to'):
                 return jsonify(falseReturn(msg=u'确少参数'))
@@ -96,15 +96,16 @@ class AlySyncApi(Resource):
             payload = Auth.decode_auth_token(user_token)
             user = User.filter(User.id == payload['data']['id']).get()
             username = user.username
-            r = run_sync_bill.delay(username, args.get('day_from'), args.get('day_to'))
+            r = run_sync_bill.delay([username, args.get('day_from'), args.get('day_to')],
+                                    queue=celery_config.CELERY_DEFAULT_QUEUE)
         elif task_name == 'sync_instance_types':
-            r = run_sync_instancetypes.delay()
+            r = run_sync_instancetypes.delay(queue=celery_config.CELERY_DEFAULT_QUEUE)
         elif task_name == 'sync_instance_securitygroup':
-            r = run_sync_securitygroup.delay()
+            r = run_sync_securitygroup.delay(queue=celery_config.CELERY_DEFAULT_QUEUE)
         elif task_name == 'sync_instance_zones':
-            r = run_sync_zones.delay()
+            r = run_sync_zones.delay(queue=celery_config.CELERY_DEFAULT_QUEUE)
         elif task_name == 'sync_instance_images':
-            r = run_sync_images.delay()
+            r = run_sync_images.delay(queue=celery_config.CELERY_DEFAULT_QUEUE)
         return jsonify(trueReturn(r.id,msg='任务提交成功'))
 
 class TaskAnsRunApi(Resource):
