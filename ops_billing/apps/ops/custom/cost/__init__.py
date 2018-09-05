@@ -1,1 +1,0 @@
-from .billsync import Bill
