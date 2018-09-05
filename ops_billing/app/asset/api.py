@@ -195,6 +195,7 @@ class TemplatesApi(Resource):
             .parse_args()
         data,errors = AssetCreateTemplateSerializer().load(args)
         if errors:return jsonify(falseReturn(msg=str(errors)))
+        data['ImageId'] = data['ImageId'].split('-join-')[0]
         try:
             if not OpsRedis.exists('aly_InstanceTypes') :
                 return jsonify(falseReturn(msg='先执行同步aly_InstanceTypes任务'))
@@ -233,8 +234,8 @@ class TemplateApi(Resource):
         args = parse.add_argument('SecurityGroupId', type=str, action='append', location=['form', 'json'])\
             .parse_args()
         data,errors = AssetCreateTemplateSerializer().load(args)
-        if errors:
-            return jsonify(falseReturn(msg=str(errors)))
+        if errors:return jsonify(falseReturn(msg=str(errors)))
+        data['ImageId'] = data['ImageId'].split('-join-')[0]
         if not OpsRedis.exists('aly_InstanceTypes'):
             return jsonify(falseReturn(msg='先执行同步aly_InstanceTypes任务'))
         instancetypes = json.loads(OpsRedis.get('aly_InstanceTypes').decode())
@@ -270,18 +271,18 @@ class ImagesApi(Resource):
             return jsonify(falseReturn(msg='先执行同步aly_images任务'))
         result = json.loads(OpsRedis.get('aly_images').decode())
         if args.get('image_category') and args.get('RegionId'):
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'],
-                         image_id=r['image_id'])  for r in result if r['RegionId'] == args.get('RegionId')
+            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
+                    for r in result if r['RegionId'] == args.get('RegionId')
                     and r['ImageOwnerAlias'] == args.get('image_category') ]
         elif args.get('image_category') :
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'],
-                         image_id=r['image_id']) for r in result if r['ImageOwnerAlias'] == args.get('image_category') ]
+            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
+            for r in result if r['ImageOwnerAlias'] == args.get('image_category') ]
         elif args.get('RegionId') :
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'],
-                         image_id=r['image_id']) for r in result if r['RegionId'] == args.get('RegionId')  ]
+            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
+                    for r in result if r['RegionId'] == args.get('RegionId')  ]
         else:
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'],
-                         image_id=r['image_id']) for r in result ]
+            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
+                    for r in result ]
         return jsonify(trueReturn(data))
 
 class SecurityGroupsApi(Resource):

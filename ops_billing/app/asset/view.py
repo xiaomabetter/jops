@@ -55,6 +55,7 @@ def asset_create_template_list():
 def asset_create_template_update(templateid):
     template = Asset_Create_Template.select().where(Asset_Create_Template.id == templateid)
     data = dict(json.loads(AssetCreateTemplateSerializer(many=True).dumps(template).data)[0])
+    print(data)
     if data['DataDiskinfo']:
         DataDiskinfo = list(json.loads(data['DataDiskinfo']))
         for dataDisk in DataDiskinfo:
