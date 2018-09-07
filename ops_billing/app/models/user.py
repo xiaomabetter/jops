@@ -7,11 +7,58 @@ from .base import BaseModel
 
 class Groups(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
-    groupname = CharField(unique=True)
+    key = CharField(unique=True, max_length=64)
+    value = CharField(max_length=255,unique=True,null=False)
+    child_mark = IntegerField(default=0)
     description = TextField(null=True)
+    is_node = True
 
     def __str__(self):
-        return '{0.groupname}'.format(self)
+        return self.value
+
+    @property
+    def name(self):
+        return self.value
+
+    @property
+    def parent(self):
+        if self.key == "0":
+            return self.__class__.root()
+        elif not self.key.startswith("0"):
+            return self.__class__.root()
+
+        parent_key = ":".join(self.key.split(":")[:-1])
+        try:
+            parent = self.__class__.get(key=parent_key)
+        except Groups.DoesNotExist:
+            return self.__class__.root()
+        else:
+            return parent
+
+    def is_root(self):
+        return self.key == '0'
+
+    @parent.setter
+    def parent(self, parent):
+        self.key = parent.get_next_child_key()
+
+    def get_next_child_key(self):
+        mark = self.child_mark
+        self.child_mark += 1
+        self.save()
+        return "{}:{}".format(self.key, mark)
+
+    def create_child(self, value):
+        child_key = self.get_next_child_key()
+        child = self.__class__.create(key=child_key, value=value)
+        return child
+
+    @classmethod
+    def root(cls):
+        obj, created = cls.get_or_create(
+            key='0', defaults={"key": '0', 'value': "ROOT"}
+        )
+        return obj
 
 class User(BaseModel):
     ROLE_CHOICES = (
@@ -24,11 +71,12 @@ class User(BaseModel):
     password = CharField(max_length=128)
     public_key = TextField(null=True)
     group = ManyToManyField(Groups,backref='user')
-    role = CharField(max_length=128, choices=ROLE_CHOICES)
+    role = CharField(max_length=128, default='user',choices=ROLE_CHOICES)
     phone = CharField(max_length=128)
     wechat = CharField(max_length=128)
     ding = CharField(max_length=128)
-    is_active = BooleanField(default=True)
+    is_ldap_user = BooleanField(default=False,null=False)
+    is_active = BooleanField(default=True,null=False)
     last_login_at = DateTimeField(null=True)
     current_login_at = DateTimeField(null=True)
     last_login_ip = CharField(max_length=128,null=True)
@@ -58,10 +106,10 @@ class User(BaseModel):
             'username': self.username,
             'email': self.email,
             'role': self.role,
-            'groups': [group.id.hex for group in self.group.objects()],
             'wechat': self.wechat,
             'phone': self.phone,
-            'comment': self.comment
+            'is_active':self.is_active,
+            'is_ldap_user':self.is_ldap_user
         })
 
 User_Group = User.group.get_through_model()

@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-from flask_wtf import FlaskForm
+from flask_wtf import FlaskForm,csrf
 from wtforms import StringField,TextAreaField,SelectField,IntegerField,SelectMultipleField,BooleanField
-from wtforms.widgets import CheckboxInput,TextInput
+from wtforms.widgets import CheckboxInput,TextInput,SubmitInput
 from wtforms.validators import DataRequired
-from app.models.asset import Asset_Create_Template
-from app.models.base import OpsRedis
-import json
 
 class Service_Form(FlaskForm):
     servicename = StringField(u'服务名称', [DataRequired(message=u'必须填写服务名称')],

@@ -107,11 +107,8 @@ class Node(BaseModel):
                     where(Asset_Node.node_id.in_(nodeids))
         return assets
 
-    def has_assets(self):
-        return self.get_all_assets()
-
     def get_all_valid_assets(self):
-        return self.get_all_assets().valid()
+        return self.get_all_assets('ecs').valid()
 
     def is_root(self):
         return self.key == '0'

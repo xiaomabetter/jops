@@ -1,42 +1,65 @@
 from flask import render_template, redirect,request,make_response,url_for
-from app.models import User,User_Group,Groups
+from app.models import User,User_Group,Groups,OpsRedis,ldap_conn
 from . import user
 from app.auth import Auth
 from .form import User_Update_Form,Groups_Form
-from app.utils import dict_to_form,model_to_form
-from conf.config import Config
+from app.utils import dict_to_form,model_to_form,encryption_md5
 from app.auth import login_required
-import time
+from app import config
+import time,ldap,json
 
 @user.route('/user/login',methods=['GET','POST'])
 def auth_login():
     if request.method == 'GET':
         return render_template('user/login_user.html')
     elif request.method == 'POST':
-        response = make_response(redirect(Config.SECURITY_LOGIN_URL))
+        response = make_response(redirect(config.get('DEFAULT','SECURITY_LOGIN_URL')))
         username = request.form.get('username',False)
         password = request.form.get('password',False)
-        if username and password:
-            try:
-                user = User.select().where((User.email == username) |
-                                           (User.username == username)).get()
-            except Exception as e:
-                print(e)
-                return response
-            if user and user.verify_password(password) and user.is_active==1:
-                success = make_response(redirect(url_for('asset.asset_list',asset_type='ecs')))
-                token = Auth.encode_auth_token(user.id.hex,int(time.time()))
-                success.set_cookie('access_token',token)
-                return success
+        is_ldap_login = request.form.get('is_ldap_login',False)
+        success = make_response(redirect(url_for('asset.asset_list', asset_type='ecs')))
+        if is_ldap_login:
+            ldapuser = ldap_conn.search_s(config.get('LDAP','BASE_DN'), ldap.SCOPE_SUBTREE, f'(uid={username})')
+            if len(ldapuser) == 1 :
+                mail = ldapuser[0][1]['mail'][0];userpass = ldapuser[0][1]['userPassword'][0]
+                phone = ldapuser[0][1]['telephoneNumber'][0]
+                userinfo = {
+                    'username':username,
+                    'mail':mail.decode() if isinstance(mail,bytes) else mail,
+                    'group':ldapuser[0][0].split(',')[1].split('=')[1],
+                    'is_ldap_user':True,
+                    'phone':phone.decode() if isinstance(phone,bytes) else phone
+                }
+                if isinstance(userpass,bytes): userpass = userpass.decode()
+                if userpass == password:
+                    user = User.select().where(User.username == username).first()
+                    userinfo['password'] = encryption_md5(userpass)
+                    if not user :
+                        user = User.create(**userinfo)
+                    OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
+                    token = Auth.encode_auth_token(user.id.hex,int(time.time()))
+                    if isinstance(token, bytes):  token.decode()
+                    success.set_cookie('access_token', token)
+                    return success
+                else:
+                    return response
             else:
                 return response
         else:
-            return response
+            user = User.select().where((User.email == username) | (User.username == username)).first()
+            if user and user.verify_password(password):
+                OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
+                token = Auth.encode_auth_token(user.id.hex,int(time.time()))
+                success.set_cookie('access_token', token)
+                if  isinstance(token,bytes) : token.decode()
+                return success
+            else:
+                return response
 
 @user.route('/user/logout',methods=['GET','POST'])
 @login_required
 def auth_logout():
-    response = make_response(redirect(Config.SECURITY_LOGIN_URL))
+    response = make_response(redirect(config.get('DEFAULT','SECURITY_TOKEN_MAX_AGE')))
     r = response.delete_cookie("access_token")
     return response
 

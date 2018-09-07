@@ -73,7 +73,7 @@ class AssetSerializer(Schema):
 
     class Meta:
         fields = ("id","InstanceName", "InstanceId", "AssetType", "InnerAddress","PublicIpAddress",
-                  "Address","RegionId","sshport","account","node","Status"
+                  "Address","RegionId","sshport","account","Status"
                   )
 
 class AssetCreateTemplateSerializer(Schema):

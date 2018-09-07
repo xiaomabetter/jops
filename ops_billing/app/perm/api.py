@@ -1,8 +1,8 @@
-from app import get_logger, get_config
-from flask import request,jsonify
+from app import get_logger
+from flask import jsonify
 from werkzeug.datastructures import FileStorage
 from flask_restful import Resource,reqparse
-from app.auth import login_required,terminal_auth_token
+from app.auth import login_required
 from app.models import SystemUser,AssetPermission,AssetPerm_Users,AssetPerm_Groups,\
                     AssetPerm_SystemUser,AssetPerm_Nodes,AssetPerm_Assets
 from app.utils import trueReturn,falseReturn
@@ -12,7 +12,6 @@ from app.auth import get_login_user
 import json
 
 logger = get_logger(__name__)
-cfg = get_config()
 
 __all__ = ['SystemUsersApi','SystemUserApi','AssetPermissionsApi','AssetPermissionApi',
            'UserGrantAssets','UserGrantNodes']
@@ -187,7 +186,7 @@ class AssetPermissionApi(Resource):
             return jsonify(falseReturn(msg='删除失败'))
 
 class UserGrantAssets(Resource):
-    @terminal_auth_token
+    @login_required
     def get(self,uid):
         results = []
         node_result = []
@@ -215,7 +214,7 @@ class UserGrantAssets(Resource):
         return jsonify({'data':results})
 
 class UserGrantNodes(Resource):
-    @terminal_auth_token
+    @login_required
     def get(self,uid):
         results = []
         assetpermissions = AssetPermission.select().join(AssetPerm_Users).\

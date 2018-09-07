@@ -1,4 +1,4 @@
-from app import get_logger, get_config,celery
+from app import get_logger
 from flask import jsonify,request
 from flask_restful import Resource,reqparse
 from app.auth import login_required,adminuser_required,get_login_user
@@ -10,18 +10,16 @@ from .serializer import AssetSerializer,NodeSerializer,ServiceSerializer,\
 from app.perm.serializer import AssetPermissionSerializer
 from app.task import run_sync_asset_amount,create_asset,run_sync_asset
 from app.utils.encrypt import ChaEncrypt
-from conf.config import Config
-from conf.aliyun_conf import AliConfig
+from app import config
 from app.models.base import OpsRedis
 import json
 
 logger = get_logger(__name__)
-cfg = get_config()
 
-__all__ = ['AssetsApi','AssetInstanceApi','AssetInstanceUserApi','AssetCreateApi',
-           'TemplatesApi','TemplateApi','ImagesApi','SecurityGroupsApi','AssetInstanceAccountApi',
-           'AssetInstanceAccountInstanceApi','NodesApi','NodeInstanceApi','NodeInstanceAssetApi',
-           'ServicesApi','ServiceInstanceApi','ServiceInstanceAssetInstanceApi'
+__all__ = ['AssetsApi','AssetApi','AssetUserApi','AssetCreateApi',
+           'TemplatesApi','TemplateApi','ImagesApi','SecurityGroupsApi','AssetAccountsApi',
+           'AssetAccountApi','NodesApi','NodeApi','NodeAssetApi',
+           'ServicesApi','ServiceApi','ServiceAssetApi'
            ]
 
 class AssetsApi(Resource):
@@ -34,6 +32,7 @@ class AssetsApi(Resource):
             .add_argument('un_node', type=bool, location='args')\
             .add_argument('hostnames', type = str,action='append',location='args') \
             .add_argument('iplist', type=str, action='append',location='args').parse_args()
+        print(args)
         if args.get('hostnames'):
             page_query_set = Asset.select().where(Asset.InstanceName.in_(args.get('hostnames')))
         elif args.get('iplist'):
@@ -88,7 +87,7 @@ class AssetsApi(Resource):
         run_sync_asset_amount.delay()
         return jsonify(trueReturn())
 
-class AssetInstanceApi(Resource):
+class AssetApi(Resource):
     @login_required
     def get(self,assetid):
         asset = Asset.select().where(Asset.id == assetid).get()
@@ -99,7 +98,7 @@ class AssetInstanceApi(Resource):
             try:
                 json_data = json.loads(OpsRedis.get(asset.InstanceId).decode())
                 for k,v in json_data.items():
-                    if k in getattr(AliConfig,f"Instance_{asset.AssetType}_Detail_Attributes"):
+                    if k in config.get('Aliyun',f"Instance_{asset.AssetType}_Detail_Attributes"):
                         data[k] = v
                 return jsonify(trueReturn(data))
             except Exception as e:
@@ -108,7 +107,7 @@ class AssetInstanceApi(Resource):
             run_sync_asset.delay(asset.AssetType)
             return jsonify(trueReturn(data,msg='redis详细信息不存在,即将同步'))
 
-class AssetInstanceUserApi(Resource):
+class AssetUserApi(Resource):
     @login_required
     @adminuser_required
     def get(self,assetid):
@@ -137,6 +136,118 @@ class AssetInstanceUserApi(Resource):
                     if user not in related_users:related_users.append(user)
         return jsonify(trueReturn(related_users))
 
+class NodesApi(Resource):
+    @login_required
+    def get(self):
+        args = reqparse.RequestParser()\
+            .add_argument('asset_type',type=str,choices=Asset.asset_type(),location='args',required=True)\
+            .add_argument('simple', type=bool,location='args').parse_args()
+        asset_type = args.get('asset_type')
+        Node.asset_type  = asset_type
+        data = json.loads(NodeSerializer(many=True,exclude=['full_value']).dumps(Node.select()).data)
+        if args.get('simple'):
+            for index, item in enumerate(data):
+                data[index]['assets_amount'] = 0
+            return jsonify(trueReturn(data))
+        node_redis_keys = ['{}_{}'.format(asset_type,node['value'])  for node in data]
+        assets_amounts = OpsRedis.mget(node_redis_keys)
+        for index,item in enumerate(data):
+            key = '{}_{}'.format(asset_type, item['value'])
+            if key in node_redis_keys:
+                amounts = assets_amounts[node_redis_keys.index(key)]
+                if amounts:
+                    data[index]['assets_amount'] = amounts.decode()
+                else:
+                    node = Node.select().where(Node.id == item['id']).get()
+                    amounts = node.get_all_assets(asset_type).count()
+                    OpsRedis.set(key,amounts)
+                    data[index]['assets_amount'] = amounts
+        return jsonify(trueReturn(data))
+
+class NodeApi(Resource):
+    @login_required
+    def get(self,nodeid):
+        args = reqparse.RequestParser() \
+            .add_argument('asset_type', type=str,choices=Asset.asset_type(),required=True, location='args')\
+            .parse_args()
+        node = Node.select().where(Node.id == nodeid)
+        if not node:
+            return jsonify(falseReturn(msg='nodeid不存在!'))
+        assets = node.get().get_all_assets(args.get('asset_type'))
+        data = json.loads(AssetSerializer(many=True,
+            only=['id','InstanceName','InstanceId','Address','is_active']).dumps(assets).data)
+        return jsonify(trueReturn(data))
+
+    @login_required
+    def post(self,nodeid):
+        args = reqparse.RequestParser() \
+            .add_argument('value', location='json').parse_args()
+        instance = Node.filter(Node.id == nodeid).first()
+        nodename = args.get('value')  or "新节点"
+        value = "{} {}".format(nodename,Node.root().get_next_child_key().split(":")[-1])
+        node = instance.create_child(value=value)
+        data = json.loads(NodeSerializer().dumps(node).data)
+        return jsonify(trueReturn(data))
+
+    @login_required
+    def patch(self,nodeid):
+        args = reqparse.RequestParser() \
+            .add_argument('value',type=str,location='json',required=True).parse_args()
+        try:
+            query = Node.update(value=args.get('value')).where(Node.id ==nodeid).execute()
+            run_sync_asset_amount.delay(query.id.hex)
+            return jsonify(trueReturn(msg=u'重命名为{0}成功'.format(args.get('value'))))
+        except Exception as e:
+            return jsonify(falseReturn(msg=u'重命名为{0}失败'.format(args.get('value'))))
+
+    @login_required
+    def delete(self, nodeid):
+        try:
+            Node.delete().where(Node.id == nodeid).query.execute()
+            return jsonify(trueReturn(msg='删除成功'))
+        except Exception as e:
+            return jsonify(falseReturn(msg=f'删除失败{e}'))
+
+    @login_required
+    def put(self,nodeid):
+        args = reqparse.RequestParser() \
+            .add_argument('targetid', type=str,required=True,location='json').parse_args()
+        instance = Node.filter(Node.id == args.get('targetid')).first()
+        children = [Node.get_or_none(Node.id==pk) for pk in nodeid.split(',')]
+        for node in children:
+            if node:node.parent = instance  ; node.save()
+        run_sync_asset_amount.delay(instance.id.hex)
+        return jsonify(trueReturn())
+
+class NodeAssetApi(Resource):
+    @login_required
+    def post(self,nodeid):
+        args = reqparse.RequestParser() \
+            .add_argument('assetids',action='append',location='json',required=True)\
+            .parse_args()
+        node = Node.filter(Node.id == nodeid).get()
+        try:
+            for assetid in args.get('assetids') :
+                node.asset.add(assetid)
+            r = run_sync_asset_amount.delay(nodeid)
+            return jsonify(trueReturn())
+        except Exception as e:
+            return jsonify(falseReturn(msg=str(e)))
+
+    @login_required
+    def delete(self,nodeid):
+        args = reqparse.RequestParser()\
+            .add_argument('assetids',location='json',action='append',required=True)\
+            .parse_args()
+        node = Node.filter(Node.id == nodeid).get()
+        try:
+            for assetid in args.get('assetids') :
+                node.asset.remove(assetid)
+            run_sync_asset_amount.delay(node.id.hex)
+            return jsonify(trueReturn())
+        except Exception as e:
+            return jsonify(falseReturn(msg=str(e)))
+
 class AssetCreateApi(Resource):
     @login_required
     @adminuser_required
@@ -153,7 +264,7 @@ class AssetCreateApi(Resource):
         templatedata = dict(json.loads(AssetCreateTemplateSerializer(many=True).dumps(template).data)[0])
         templatedata['InstanceChargeType'] = args.get('InstanceChargeType') or 'PrePaid'
         templatedata['IoOptimized'] = 'optimized' if templatedata['instance_type'].split('.')[1] \
-                                                     in AliConfig.isIoOptimize else None
+                                                     in config.get('Aliyun','isIoOptimize') else None
         amount = args.get('amount') or 1
         for key in ['InstanceName','Description','HostName'] :
             templatedata[key] = args.get('InstanceName')
@@ -301,7 +412,7 @@ class SecurityGroupsApi(Resource):
                 RegionId=r['RegionId'],CreationTime=r['CreationTime']) for r in result ]
         return jsonify(trueReturn(data))
 
-class AssetInstanceAccountApi(Resource):
+class AssetAccountsApi(Resource):
     @login_required
     @adminuser_required
     def get(self,assetid):
@@ -339,7 +450,7 @@ class AssetInstanceAccountApi(Resource):
         except Exception as e:
             return jsonify(falseReturn(msg=str(e)))
 
-class AssetInstanceAccountInstanceApi(Resource):
+class AssetAccountApi(Resource):
     @login_required
     def put(self,assetid,accountid):
         args = dict()
@@ -350,7 +461,7 @@ class AssetInstanceAccountInstanceApi(Resource):
         if errors:
             return jsonify(falseReturn(msg=errors))
         if args.get('password'):
-            pt = ChaEncrypt(Config.EncryptSecret)
+            pt = ChaEncrypt(config.get('DEFAULT','EncryptSecret'))
             encrypt = pt.encrypt(args.get('password'))
             data = dict(data,password=encrypt)
         try:
@@ -367,118 +478,6 @@ class AssetInstanceAccountInstanceApi(Resource):
             return trueReturn(data=accountid, msg='success')
         except Exception as e:
             return trueReturn(msg=str(e))
-
-class NodesApi(Resource):
-    @login_required
-    def get(self):
-        args = reqparse.RequestParser()\
-            .add_argument('asset_type',type=str,choices=Asset.asset_type(),location='args',required=True)\
-            .add_argument('simple', type=bool,location='args').parse_args()
-        asset_type = args.get('asset_type')
-        Node.asset_type  = asset_type
-        data = json.loads(NodeSerializer(many=True,exclude=['full_value']).dumps(Node.select()).data)
-        if args.get('simple'):
-            for index, item in enumerate(data):
-                data[index]['assets_amount'] = 0
-            return jsonify(trueReturn(data))
-        node_redis_keys = ['{}_{}'.format(asset_type,node['value'])  for node in data]
-        assets_amounts = OpsRedis.mget(node_redis_keys)
-        for index,item in enumerate(data):
-            key = '{}_{}'.format(asset_type, item['value'])
-            if key in node_redis_keys:
-                amounts = assets_amounts[node_redis_keys.index(key)]
-                if amounts:
-                    data[index]['assets_amount'] = amounts.decode()
-                else:
-                    node = Node.select().where(Node.id == item['id']).get()
-                    amounts = node.get_all_assets(asset_type).count()
-                    OpsRedis.set(key,amounts)
-                    data[index]['assets_amount'] = amounts
-        return jsonify(trueReturn(data))
-
-class NodeInstanceApi(Resource):
-    @login_required
-    def get(self,nodeid):
-        args = reqparse.RequestParser() \
-            .add_argument('asset_type', type=str,choices=Asset.asset_type(),required=True, location='args')\
-            .parse_args()
-        node = Node.select().where(Node.id == nodeid)
-        if not node:
-            return jsonify(falseReturn(msg='nodeid不存在!'))
-        assets = node.get().get_all_assets(args.get('asset_type'))
-        data = json.loads(AssetSerializer(many=True,
-            only=['id','InstanceName','InstanceId','Address','is_active']).dumps(assets).data)
-        return jsonify(trueReturn(data))
-
-    @login_required
-    def post(self,nodeid):
-        args = reqparse.RequestParser() \
-            .add_argument('value', location='json').parse_args()
-        instance = Node.filter(Node.id == nodeid).first()
-        nodename = args.get('value')  or "新节点"
-        value = "{} {}".format(nodename,Node.root().get_next_child_key().split(":")[-1])
-        node = instance.create_child(value=value)
-        data = json.loads(NodeSerializer().dumps(node).data)
-        return jsonify(trueReturn(data))
-
-    @login_required
-    def patch(self,nodeid):
-        args = reqparse.RequestParser() \
-            .add_argument('value',type=str,location='json',required=True).parse_args()
-        try:
-            query = Node.update(value=args.get('value')).where(Node.id ==nodeid).execute()
-            run_sync_asset_amount.delay(query.id.hex)
-            return jsonify(trueReturn(msg=u'重命名为{0}成功'.format(args.get('value'))))
-        except Exception as e:
-            return jsonify(falseReturn(msg=u'重命名为{0}失败'.format(args.get('value'))))
-
-    @login_required
-    def delete(self, nodeid):
-        try:
-            Node.delete().where(Node.id == nodeid).query.execute()
-            return jsonify(trueReturn(msg='删除成功'))
-        except Exception as e:
-            return jsonify(falseReturn(msg=f'删除失败{e}'))
-
-    @login_required
-    def put(self,nodeid):
-        args = reqparse.RequestParser() \
-            .add_argument('targetid', type=str,required=True,location='json').parse_args()
-        instance = Node.filter(Node.id == args.get('targetid')).first()
-        children = [Node.get_or_none(Node.id==pk) for pk in nodeid.split(',')]
-        for node in children:
-            if node:node.parent = instance  ; node.save()
-        run_sync_asset_amount.delay(instance.id.hex)
-        return jsonify(trueReturn())
-
-class NodeInstanceAssetApi(Resource):
-    @login_required
-    def post(self,nodeid):
-        args = reqparse.RequestParser() \
-            .add_argument('assetids',action='append',location='json',required=True)\
-            .parse_args()
-        node = Node.filter(Node.id == nodeid).get()
-        try:
-            for assetid in args.get('assetids') :
-                node.asset.add(assetid)
-            r = run_sync_asset_amount.delay(nodeid)
-            return jsonify(trueReturn())
-        except Exception as e:
-            return jsonify(falseReturn(msg=str(e)))
-
-    @login_required
-    def delete(self,nodeid):
-        args = reqparse.RequestParser()\
-            .add_argument('assetids',location='json',action='append',required=True)\
-            .parse_args()
-        node = Node.filter(Node.id == nodeid).get()
-        try:
-            for assetid in args.get('assetids') :
-                node.asset.remove(assetid)
-            run_sync_asset_amount.delay(node.id.hex)
-            return jsonify(trueReturn())
-        except Exception as e:
-            return jsonify(falseReturn(msg=str(e)))
 
 class ServicesApi(Resource):
     @login_required
@@ -517,7 +516,7 @@ class ServicesApi(Resource):
         except Exception as e:
             return falseReturn(msg=str(e))
 
-class ServiceInstanceApi(Resource):
+class ServiceApi(Resource):
     @login_required
     def get(self,serviceid):
         service = Service.select().where(Service.id == serviceid).get()
@@ -551,7 +550,7 @@ class ServiceInstanceApi(Resource):
         except Exception as e:
             return jsonify(falseReturn(msg='删除失败%s' % str(e)))
 
-class ServiceInstanceAssetInstanceApi(Resource):
+class ServiceAssetApi(Resource):
     @login_required
     def post(self,serviceid,assetid):
         try:

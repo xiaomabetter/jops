@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField,SelectMultipleField,SelectField,\
                 BooleanField,TextAreaField
 from wtforms.widgets import CheckboxInput,TextInput,FileInput
-from wtforms.validators import Length, Email, Regexp, DataRequired
+from wtforms.validators import DataRequired
 from app.models import SystemUser
 
 class Task_Ansible_Form(FlaskForm):

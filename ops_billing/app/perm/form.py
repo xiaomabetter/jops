@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 from flask_wtf import FlaskForm
-from flask_wtf import csrf
 from wtforms import StringField, TextAreaField, BooleanField, SelectField,\
-    SubmitField, PasswordField,DateTimeField,IntegerField,FileField,SelectMultipleField
+    PasswordField,DateTimeField,IntegerField,FileField,SelectMultipleField
 from wtforms.widgets import CheckboxInput,TextInput,FileInput
-from wtforms.validators import Length, Email, Regexp, DataRequired
-from conf.config import Config
+from wtforms.validators import DataRequired
 from app.models import SystemUser
 from app.models import User,Groups
-from app.models import Asset,Node
+from app.models import Node
 from datetime import datetime
 
 class Perm_Base_Form(FlaskForm):
@@ -24,7 +22,7 @@ class Perm_Create_Form(Perm_Base_Form):
     nodes_choices = [(node.id.hex,node.full_value) for node in Node.select()]
     systemusers_choices = [(sysuser.id.hex,sysuser.username) for sysuser in SystemUser.select()]
     users_choices = [(user.id.hex,user.email) for user in User.select()]
-    groups_choices = [(group.id.hex, group.groupname) for group in Groups.select()]
+    groups_choices = [(group.id.hex, group.value) for group in Groups.select()]
     users = SelectMultipleField(u'用户',choices=users_choices,render_kw={"class":"form-control select2","multiple":"multiple",
                                            "data-placeholder":"选择用户"})
     groups = SelectMultipleField(u'用户组',choices=groups_choices,render_kw={"class":"form-control select2","multiple":"multiple",

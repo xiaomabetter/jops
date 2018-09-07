@@ -66,8 +66,11 @@
                         <li><a href="{{ url_for('asset.asset_list',asset_type='oss') }}">Oss</a></li>
                   </ul>
                </div>
-               <div class="btn-group" style="float: right">
+               <div class="btn-group pull-right m-r-5">
                     <button class="btn btn-default btn-sm" id="asset_notin_node">点击查看未分组资产</button>
+               </div>
+               <div class="btn-group pull-left m-r-5">
+                    <button class="btn btn-default btn-sm" id="sync_aly_asset">同步阿里云资产</button>
                </div>
                <table class="table table-striped table-bordered table-hover " id="asset_list_table" style="width: 100%">
                    <thead>
@@ -113,11 +116,12 @@
 </div>
 {% include 'asset/_asset_list_modal.html' %}
 {% include 'asset/_node_list_modal.html' %}
-
+{% include 'asset/_sync_asset_modal.html' %}
 {% endblock %}
 {% block custom_foot_js %}
 <script src="{{ url_for('static', filename='js/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
 <script src="{{ url_for('static', filename='js/plugins/honeySwitch/bootstrap-select.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
 <script>
 var zTree,zTree3, rMenu, asset_table, show = 0,asset_type="{{asset_type}}";
 var init_table_url = "{{ url_for('assets-api.assets_api') }}";
@@ -450,7 +454,7 @@ $(document).ready(function(){
             asset_table.ajax.reload()
         };
         APIUpdateAttr({
-            'url': "{{ url_for('assets-api.node_asset_api',nodeid='PK') }}".replace('PK',current_node.id),
+            'url': "{{ url_for('assets-api.node_assets_api',nodeid='PK') }}".replace('PK',current_node.id),
             'method': 'DELETE',
             'body': JSON.stringify({'assetids': id_list}),
             'success': success
@@ -502,7 +506,7 @@ $(document).ready(function(){
         toastr.error("请选择资产!");
         return
     }
-    var url = "{{ url_for('assets-api.node_asset_api',nodeid='PK') }}".replace('PK',current_node.id);
+    var url = "{{ url_for('assets-api.node_assets_api',nodeid='PK') }}".replace('PK',current_node.id);
     APIUpdateAttr({
         'url': url,
         'method': 'POST',
@@ -530,8 +534,8 @@ $(document).ready(function(){
         toastr.error("请选择资产!");
         return
     }
-    var del_url = "{{ url_for('assets-api.node_asset_api',nodeid='PK') }}".replace('PK',old_node.id);
-    var add_url = "{{ url_for('assets-api.node_asset_api',nodeid='PK') }}".replace('PK',current_node.id);
+    var del_url = "{{ url_for('assets-api.node_assets_api',nodeid='PK') }}".replace('PK',old_node.id);
+    var add_url = "{{ url_for('assets-api.node_assets_api',nodeid='PK') }}".replace('PK',current_node.id);
     var data = {'assetids': assets_selected};
     APIUpdateAttr({
         'url': del_url,
@@ -556,7 +560,28 @@ $(document).ready(function(){
     asset_table.ajax.url(url);
     asset_table.ajax.reload();
 })
+$("#sync_aly_asset").on("click",function(){
+    $('#sync-asset-modal').modal();
+})
 
+$("#submit_button").on("click",function(){
+   $('#run_task').ajaxSubmit(
+        {
+            url: "{{ url_for('task-api.aly-sync-task') }}",
+            type: 'post',
+            dataType: 'json',
+            success: function (result) {
+                if (result['status']) {
+                    $('#stdout_result').empty();
+                    $('#stdout_result').text('等待....');
+                } else {
+                    toastr.error(result['msg']);
+                }
+            },
+            clearForm: false,
+            resetForm: false
+        })
+});
 </script>
 
 {% endblock %}

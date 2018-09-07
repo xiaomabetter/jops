@@ -1,7 +1,9 @@
-from app import celery,get_logger,get_basedir
+from app import get_logger,config
 from app.task.ansible import AdHocRunner,PlayBookRunner,Inventory,AnsibleError
-from conf.config import Config
 from celery.signals import worker_process_init
+from app.models.base import initcelery
+
+celery = initcelery()
 
 logger = get_logger(__name__)
 
@@ -29,7 +31,7 @@ def run_ansible_module(host_list,tasks):
 def run_ansible_playbook(self,host_list,playbook):
     taskid = self.request.id
     inventory = Inventory(host_list=host_list)
-    playbook_file = Config.Ansible_Base_Dir + '/' + playbook
+    playbook_file = config.get('DEFAULT','Ansible_Base_Dir') + '/' + playbook
     runner = PlayBookRunner(playbook_file=playbook_file,inventory=inventory,taskid=taskid)
     result = runner.run()
     return result

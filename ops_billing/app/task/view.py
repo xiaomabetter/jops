@@ -1,4 +1,4 @@
-from app import get_logger, get_config
+from app import get_logger
 from flask import render_template
 from wtforms import StringField
 from wtforms.widgets import CheckboxInput
@@ -11,7 +11,6 @@ from . import task
 import os
 
 logger = get_logger(__name__)
-cfg = get_config()
 
 @task.route('/task/tasks/list',methods=['GET'])
 @login_required

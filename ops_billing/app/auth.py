@@ -1,10 +1,11 @@
-from flask import request,make_response,redirect,flash,g
+from flask import request,make_response,redirect,g
 from functools import wraps
-import jwt, datetime, time
+import jwt, datetime
 from flask import jsonify
-from app.models import User,Terminal
-from conf.config import Config
+from app.models import User,OpsRedis
 from app.utils import trueReturn,falseReturn
+from app import config
+import json
 
 def get_login_user():
     token = request.cookies.get('access_token') or request.headers.get('Authorization')
@@ -28,55 +29,35 @@ def adminuser_required(func):
 def login_required(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
+        response = make_response(redirect(config.get('DEFAULT','SECURITY_LOGIN_URL')))
+        token = request.cookies.get('access_token') or request.headers.get('Authorization')
         if 'access_token' in  request.cookies:
-            token = request.cookies.get('access_token')
-            response = make_response(redirect(Config.SECURITY_LOGIN_URL))
             data = Auth.decode_auth_token(token)
             if data['status']:
-                uid = data.get('data')['id']
-                user = User.filter(User.id == uid).first()
-                if not user:
-                    return response
-                elif not user.is_active:
-                    return response
-                g.user = user
-                g.is_adminuser = user.administrator
-            else:
-                return response
+                user_id = data.get('data')['id']
+                if OpsRedis.exists(user_id):
+                    userinfo = json.loads(OpsRedis.get(user_id).decode())
+                    if not userinfo.get('is_active'):return response
+                    g.user = userinfo
+                user = User.select().where(User.id == user_id).first()
+                if not user:return response
+                g.user = user.to_json()
+                OpsRedis.set(user_id,json.dumps(user.to_json()))
+            else:return response
         elif request.headers.get('Authorization') :
-            token = request.headers.get('Authorization')
             data = Auth.decode_auth_token(token)
             if data['status']:
-                uid = data.get('data')['id']
-                user = User.filter(User.id == uid).first()
-                if not user:
-                    return falseReturn(msg=u'用户不存在')
-                elif not user.is_active:
-                    return falseReturn(msg=u'用户被禁用')
+                user_id = data.get('data')['id']
+                if OpsRedis.exists(user_id):
+                    userinfo = json.loads(OpsRedis.get(user_id).decode())
+                    if not userinfo.get('is_active'):return jsonify(falseReturn(msg='用户被禁用'))
+                user = User.select().where(User.id == user_id).first()
+                if not user:return jsonify(falseReturn(msg='用户不存在'))
             else:
-                return falseReturn(msg=data['msg'])
+                return jsonify(falseReturn(msg=data['msg']))
         else:
-            if 'Mozilla' in request.headers.get('User-Agent'):
-                return  make_response(redirect(Config.SECURITY_LOGIN_URL))
-            else:
-                falseReturn(msg=u'请先获取token')
-        return func(*args, **kwargs)
-    return decorated_function
-
-def terminal_auth_token(func):
-    @wraps(func)
-    def decorated_function(*args, **kwargs):
-        token = request.headers.get('Authorization')
-        if token :
-            payload = Auth.decode_auth_token(token,expire=False)
-            if not payload:
-                return False
-            tid = payload.get('data')['id']
-            terminal = Terminal.filter(Terminal.id==tid).first()
-            if not terminal :
-                return False
-        else:
-            return False
+            if 'Mozilla' in request.headers.get('User-Agent'):return  response
+            else:return jsonify(falseReturn(msg=u'请先获取token'))
         return func(*args, **kwargs)
     return decorated_function
 
@@ -85,18 +66,13 @@ class Auth():
     def encode_auth_token(user_id, login_time,ulimit=True):
         try:
             payload = {
-                'exp': datetime.datetime.now() + datetime.timedelta(days=0, minutes=600),
+                'exp': datetime.datetime.now() + datetime.timedelta(days=0,
+                                            seconds=int(config.get('DEFAULT', 'SECURITY_TOKEN_MAX_AGE'))),
                 'iat': datetime.datetime.now(),
                 'iss': 'ken',
-                'data': {
-                    'id': user_id,'login_time': login_time
-                }
+                'data': {'id': user_id,'login_time': login_time}
             }
-            return jwt.encode(
-                payload,
-                Config.SECRET_KEY,
-                algorithm='HS256'
-            )
+            return jwt.encode(payload,config.get('DEFAULT','SECRET_KEY'),algorithm='HS256')
         except Exception as e:
             return e
 
@@ -104,10 +80,10 @@ class Auth():
     def decode_auth_token(auth_token,expire=True):
         try:
             if expire:
-                payload = jwt.decode(auth_token, Config.SECRET_KEY, options={'verify_exp': True},
+                payload = jwt.decode(auth_token, config.get('DEFAULT','SECRET_KEY'),options={'verify_exp': True},
                                     leeway=datetime.timedelta(minutes=600))
             else:
-                payload = jwt.decode(auth_token, Config.SECRET_KEY, options={'verify_exp': False})
+                payload = jwt.decode(auth_token, config.get('DEFAULT','SECRET_KEY'), options={'verify_exp': False})
             if ('data' in payload and 'id' in payload['data']):
                 payload['status'] = True
                 return payload

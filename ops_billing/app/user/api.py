@@ -1,12 +1,13 @@
-from app import get_logger, get_config
-from flask import request,jsonify,g
-from flask_restful import Api,Resource,reqparse
+from flask import jsonify
+from flask_restful import Resource,reqparse
 from app.models import User,Groups,User_Group,AssetPerm_Users
 from app.auth import Auth,login_required,adminuser_required
 from app.utils import  trueReturn,falseReturn
 from .serializer import UserSerializer,GroupSerializer
+from app.models.base import OpsRedis,ldap_conn
 from app.utils.encrypt import encryption_md5
-import json,time,uuid
+from app import config
+import json,time,uuid,ldap
 
 class UsersApi(Resource):
     @login_required
@@ -85,6 +86,20 @@ class UserApi(Resource):
 class GroupsApi(Resource):
     @login_required
     def get(self):
+        args = reqparse.RequestParser()\
+            .add_argument('group_id', type=str,location='args').parse_args()
+        if args.get('group_id'):
+            data = []
+            group = Groups.select().where(Groups.id == args.get('group_id'))
+            parent_key = group.get().key
+            child_mark = group.get().child_mark
+            userdata = json.loads(GroupSerializer(many=True,only=['user']).dumps(group).data)[0]['user']
+            for user in userdata:
+                child_mark = child_mark + 1
+                key = f'{parent_key}:{child_mark}'
+                data.append(dict(id=user.get('id'), is_node=False, key=key,
+                                 parent_key=parent_key,open=False,value=user.get('username')))
+            return jsonify(trueReturn(data))
         query_set = Groups.select()
         data = json.loads(GroupSerializer(many=True).dumps(query_set).data)
         return jsonify(trueReturn(data))
@@ -93,7 +108,7 @@ class GroupsApi(Resource):
     @adminuser_required
     def post(self):
         args = reqparse.RequestParser()\
-            .add_argument('groupname', type=str,location=['form'],required=True) \
+            .add_argument('value', type=str,location=['form'],required=True) \
             .add_argument('description', type=str, location=['form']).parse_args()
         data,errors = GroupSerializer().load(args)
         if errors:
@@ -103,6 +118,16 @@ class GroupsApi(Resource):
         return jsonify(trueReturn(msg='创建成功'))
 
 class GroupApi(Resource):
+    @login_required
+    def get(self,groupid):
+        group = Groups.select().where(Groups.id == groupid)
+        if group.get().is_root() :
+            query_set = User.select()
+            data = json.loads(UserSerializer(many=True, exclude=['password']).dumps(query_set).data)
+        else:
+            data = json.loads(GroupSerializer(many=True,only=['user']).dumps(group).data)[0]['user']
+        return jsonify(trueReturn(data))
+
     @login_required
     @adminuser_required
     def delete(self,groupid):
@@ -114,7 +139,7 @@ class GroupApi(Resource):
     @adminuser_required
     def put(self,groupid):
         args = reqparse.RequestParser()\
-            .add_argument('groupname', type=str,location=['form'],required=True) \
+            .add_argument('value', type=str,location=['form'],required=True) \
             .add_argument('description', type=str, location=['form']).parse_args()
         data,errors = GroupSerializer().load(args)
         if errors:
@@ -123,23 +148,49 @@ class GroupApi(Resource):
             Groups.update(**data).where(Groups.id == groupid).execute()
         return jsonify(trueReturn(msg='更新成功'))
 
-class AuthToken(Resource):
+class UserLogin(Resource):
     def post(self):
+        location = ['form','json']
         args = reqparse.RequestParser() \
-            .add_argument('username', type=str, location='json', required=True, help="用户名不能为空") \
-            .add_argument("password", type=str, location='json', required=True, help="密码不能为空") \
+            .add_argument('username', type=str, location=location, required=True, help="用户名不能为空") \
+            .add_argument("password", type=str, location=location, required=True, help="密码不能为空")\
+            .add_argument('is_ldap_login',type=bool,location=location, required=True)\
             .parse_args()
-        try:
-            user = User.select().where((User.email == args.get('username')) |
-                                                    (User.username == args.get('username'))).get()
-        except Exception as e:
-            return falseReturn(msg=str('e'))
-        if user and user.verify_password(args['password']):
-            token = Auth.encode_auth_token(user.id.hex,int(time.time()))
-            if isinstance(token,bytes):
-                token = token.decode()
-            return jsonify(trueReturn({"token": token}))
+        username = args.get('username');password = args.get('password')
+        if args.get('is_ldap_login'):
+            ldapuser = ldap_conn.search_s(config.get('LDAP','BASE_DN'), ldap.SCOPE_SUBTREE, f'(uid={username})')
+            if len(ldapuser) == 1 :
+                mail = ldapuser[0][1]['mail'][0];userpass = ldapuser[0][1]['userPassword'][0]
+                phone = ldapuser[0][1]['telephoneNumber'][0]
+                userinfo = {
+                    'username':username,
+                    'mail':mail.decode() if isinstance(mail,bytes) else mail,
+                    'group':ldapuser[0][0].split(',')[1].split('=')[1],
+                    'is_ldap_user':True,
+                    'phone':phone.decode() if isinstance(phone,bytes) else phone
+                }
+                if isinstance(userpass,bytes): userpass = userpass.decode()
+                if userpass == password:
+                    user = User.select().where(User.username == username).first()
+                    userinfo['password'] = encryption_md5(userpass)
+                    if not user :
+                        user = User.create(**userinfo)
+                    OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
+                    token = Auth.encode_auth_token(user.id.hex,int(time.time()))
+                    if isinstance(token, bytes):  token.decode()
+                    return jsonify(trueReturn(dict(token=token)))
+                else:
+                    return jsonify(falseReturn(msg='password is invalid!'))
+            else:
+                return jsonify(falseReturn(msg='username is not exist!'))
         else:
-            return falseReturn(msg='username or password is invalid!')
+            user = User.select().where((User.email == username)|(User.username == username)).first()
+            if user and user.verify_password(password):
+                OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
+                token = Auth.encode_auth_token(user.id.hex,int(time.time()))
+                if  isinstance(token,bytes) :  token.decode()
+                return jsonify(trueReturn({"token": token}))
+            else:
+                return falseReturn(msg='username or password is invalid!')
 
 

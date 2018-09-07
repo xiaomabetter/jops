@@ -1,4 +1,4 @@
-from app import get_logger, get_config
+from app import get_logger
 from flask import render_template,request,flash
 from app.utils import model_to_form
 from app.models import SystemUser,AssetPermission
@@ -9,7 +9,6 @@ from app.auth import login_required
 import json
 
 logger = get_logger(__name__)
-cfg = get_config()
 
 @perm.route('/perm/systemuser/list',methods=['GET'])
 @login_required

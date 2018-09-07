@@ -1,4 +1,4 @@
-from app import get_logger, get_config
+from app import get_logger
 from flask import request,jsonify,make_response
 from flask_restful import Api,Resource,reqparse
 from app.auth import login_required,terminal_auth_token,Auth
@@ -8,7 +8,6 @@ from .serializer import TerminalSerializer,TaskSerializer
 import time,datetime,json
 
 logger = get_logger(__name__)
-cfg = get_config()
 
 def get_terminal_id():
     token = request.headers.get('Authorization')

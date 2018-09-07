@@ -1,6 +1,5 @@
 # ~*~ coding: utf-8 ~*~
-import oss2
-import shutil,time,re,os
+import oss2,time,re,os
 from app.models import Bill
 from app.models import db
 from app.models import SyncBillInfo

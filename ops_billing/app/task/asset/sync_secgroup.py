@@ -3,7 +3,7 @@ import sys,json
 from aliyunsdkcore import client
 from app.models.base import OpsRedis
 from aliyunsdkecs.request.v20140526 import DescribeSecurityGroupsRequest
-from conf.aliyun_conf import AliConfig
+from app import config
 
 __all__ = ['AliSyncSecurityGroup']
 
@@ -13,7 +13,7 @@ class AliSyncSecurityGroup(object):
         self.AccessKeySecret = AccessKeySecret
         self.RegionId = ['cn-hangzhou','cn-beijing','us-west-1','cn-hongkong']
         self.clt_conn_list = [client.AcsClient(self.AccessKeyId, self.AccessKeySecret, r)
-                              for r in AliConfig.RegionId]
+                              for r in config.get('Aliyun','RegionId')]
 
     def sync_security_group(self,pageSize=50):
         results = []

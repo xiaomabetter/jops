@@ -4,7 +4,6 @@ from aliyunsdkecs.request.v20140526 import DescribeInstancesRequest,RunInstances
                             JoinSecurityGroupRequest
 from app.models.base import OpsRedis
 from app.models.asset import Asset
-from .sync_asset import SyncAliAssets
 from .sync_node_amount import NodeAmount
 
 class Aly_Create_Asset(object):

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from app.models import Asset,SystemUser
-from app import get_basedir
-import os,stat
 
 __all__ = [
     'InitInventory'

@@ -1,19 +1,39 @@
 # -*- coding: utf-8 -*-
 from peewee import MySQLDatabase, Model
-from conf.config import Config
-import os,uuid,datetime,json
+from celery import Celery,platforms
+from app import global_config
+import json,ldap
 from redis import ConnectionPool,Redis
 
-pool0 = ConnectionPool(host=Config.REDIS_HOST, port=Config.REDIS_PORT,db=Config.REDIS_DEFAULT_DB,
-                       password=Config.REDIS_PASS)
-pool1 = ConnectionPool(host=Config.REDIS_HOST, port=Config.REDIS_PORT,db=Config.REDIS_CELERY_DB,
-                        password = Config.REDIS_PASS)
+config = global_config()
+
+pool0 = ConnectionPool(host=config.get('DEFAULT','REDIS_HOST'),port=config.get('DEFAULT','REDIS_PORT'),
+                db=config.get('DEFAULT','REDIS_DEFAULT_DB'),password=config.get('DEFAULT','REDIS_PASS'))
+
+pool1 = ConnectionPool(host=config.get('DEFAULT','REDIS_HOST'), port=config.get('DEFAULT','REDIS_PORT'),
+                db=config.get('DEFAULT','REDIS_CELERY_DB'),password=config.get('DEFAULT','REDIS_PASS'))
 
 OpsRedis = Redis(connection_pool=pool0)
 OpsCeleryRedis = Redis(connection_pool=pool1)
 
-db = MySQLDatabase(host=Config.DB_HOST, user=Config.DB_USER, passwd=Config.DB_PASSWD,
-                   database=Config.DB_DATABASE)
+db = MySQLDatabase(host=config.get('DEFAULT','DB_HOST'), user=config.get('DEFAULT','DB_USER'),
+                passwd=config.get('DEFAULT','DB_PASSWD'),database=config.get('DEFAULT','DB_DATABASE'))
+
+def LdapConnection():
+    conn = ldap.initialize(config.get('LDAP','LDAP_SERVER'))
+    conn.simple_bind_s(config.get('LDAP','ROOT_DN'),config.get('LDAP','ROOT_DN_PASS'))
+    return conn
+
+ldap_conn = LdapConnection()
+
+def initcelery():
+    celery = Celery('worker', broker=config.get('CELERY','CELERY_BROKER_URL'),
+                                            backend=config.get('CELERY','CELERY_RESULT_BACKEND'))
+    celery.conf.CELERY_TIMEZONE = config.get('CELERY','CELERY_TIMEZONE')
+    celery.conf.CELERY_TASK_SERIALIZER = config.get('CELERY','CELERY_TASK_SERIALIZER')
+    celery.conf.CELERY_RESULT_SERIALIZER = config.get('CELERY','CELERY_RESULT_SERIALIZER')
+    platforms.C_FORCE_ROOT = True
+    return celery
 
 class BaseModel(Model):
     class Meta:

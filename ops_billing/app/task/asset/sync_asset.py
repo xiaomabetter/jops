@@ -10,7 +10,7 @@ from aliyunsdkr_kvstore.request.v20150101 import DescribeInstancesRequest as kvI
 from aliyunsdkr_kvstore.request.v20150101 import  DescribeInstanceAttributeRequest
 from .sync_node_amount import NodeAmount
 from app.models import Asset,db,OpsRedis
-from conf.aliyun_conf import AliConfig
+from app import config
 
 __all__ = ['SyncAliAssets']
 
@@ -19,7 +19,7 @@ class SyncAliAssets(object):
         self.AccessKeyId = AccessKeyId
         self.AccessKeySecret = AccessKeySecret
         self.clt_conn_list = [AcsClient(self.AccessKeyId, self.AccessKeySecret, r)
-                              for r in AliConfig.RegionId]
+                              for r in config.get('Aliyun','RegionId')]
 
     def get_ecs_result(self,result):
         insert_result = []

@@ -1,5 +1,5 @@
-from app import get_logger, get_config
-from flask import jsonify,request
+from app import get_logger,config
+from flask import jsonify
 from flask_restful import Resource,reqparse
 from app.utils import get_usertoken_from_cookies
 from app.auth import login_required
@@ -9,13 +9,12 @@ from .serializer import TasksSerializer
 from .tasks.asset import run_sync_bill,run_sync_asset,run_sync_securitygroup,\
     run_sync_zones,run_sync_images,run_sync_instancetypes
 from .tasks.ansibe import run_ansible_module,run_ansible_playbook
+from .tasks.asset import sync_ldap_user
 from .init_inventory import InitInventory
-from conf import celery_config
 from app.auth import Auth
 import json
 
 logger = get_logger(__name__)
-cfg = get_config()
 
 __all__ = ['TasksApi','TaskApi','AlySyncApi','TaskAnsRunApi']
 
@@ -85,10 +84,11 @@ class AlySyncApi(Resource):
             .add_argument('day_to', type=str, location=['json', 'form']) \
             .add_argument('asset_type', type=str, location=['json','form']).parse_args()
         task_name = args.get('task_name')
+        default_queue = config.get('CELERY', 'CELERY_DEFAULT_QUEUE')
         if task_name == 'syncasset':
             if not args.get('asset_type'):
                 return jsonify(falseReturn(msg=u'确少参数'))
-            r = run_sync_asset.apply_async([args.get('asset_type')],queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_asset.apply_async([args.get('asset_type')],queue=default_queue)
         elif task_name == 'syncbill':
             if not args.get('day_from') or not args.get('day_to'):
                 return jsonify(falseReturn(msg=u'确少参数'))
@@ -96,16 +96,17 @@ class AlySyncApi(Resource):
             payload = Auth.decode_auth_token(user_token)
             user = User.filter(User.id == payload['data']['id']).get()
             username = user.username
-            r = run_sync_bill.apply_async([username, args.get('day_from'), args.get('day_to')],
-                                    queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_bill.apply_async([username, args.get('day_from'),args.get('day_to')],queue=default_queue)
         elif task_name == 'sync_instance_types':
-            r = run_sync_instancetypes.apply_async(queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_instancetypes.apply_async(queue=default_queue)
         elif task_name == 'sync_instance_securitygroup':
-            r = run_sync_securitygroup.apply_async(queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_securitygroup.apply_async(queue=default_queue)
         elif task_name == 'sync_instance_zones':
-            r = run_sync_zones.apply_async(queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_zones.apply_async(queue=default_queue)
         elif task_name == 'sync_instance_images':
-            r = run_sync_images.apply_async(queue=celery_config.CELERY_DEFAULT_QUEUE)
+            r = run_sync_images.apply_async(queue=default_queue)
+        elif task_name == 'sync_ldapusers':
+            r = sync_ldap_user.apply_async(queue=default_queue)
         return jsonify(trueReturn(r.id,msg='任务提交成功'))
 
 class TaskAnsRunApi(Resource):

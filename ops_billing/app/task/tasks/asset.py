@@ -1,15 +1,18 @@
-from app import celery,get_logger
+from app import get_logger
 from app.task.asset import SyncBills,SyncAliAssets,NodeAmount,\
         Aly_Create_Asset,AliSyncImages,AliSyncZones,AliSyncSecurityGroup,AliSyncInstanceTypes
+from app.task.user import sync_ldapusers
 from celery.signals import worker_process_init
-from conf.aliyun_conf import AliConfig
+from app.models.base import initcelery
+from app import config
 from app.models.asset import Asset_Create_Record
 from datetime import datetime
 logger = get_logger(__name__)
 
-AccessKeyId = AliConfig.AccessKeyId
-AccessKeySecret = AliConfig.AccessKeySecret
+AccessKeyId = config.get('Aliyun','AccessKeyId')
+AccessKeySecret = config.get('Aliyun','AccessKeySecret')
 
+celery = initcelery()
 
 @worker_process_init.connect
 def fix_multiprocessing(**kwargs):
@@ -70,3 +73,7 @@ def create_asset(self,created_by,template_data,amount):
     aly_create.startInstances()
     createtask.isSuccess = True
     createtask.save()
+
+@celery.task
+def sync_ldap_user():
+    sync_ldapusers()

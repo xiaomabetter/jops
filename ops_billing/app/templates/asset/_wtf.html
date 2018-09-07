@@ -33,3 +33,13 @@
             {% endif %}
         </div>
 {% endmacro %}
+
+{% macro render_field_no_label_group(field,no_label) %}
+        {% if not no_label  %}
+            {{ field.label(class="col-md-2 control-label") }}
+        {% endif %}
+        <label class="col-md-2 control-label"></label>
+        <div class="col-md-4 row">
+            {{ field }}
+        </div>
+{% endmacro %}

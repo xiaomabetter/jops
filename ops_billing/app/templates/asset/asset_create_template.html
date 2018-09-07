@@ -1,7 +1,11 @@
 {% extends 'base/_base_create_update.html' %}
-{% from "asset/_wtf.html" import render_field,render_field_no_form_group %}
+{% from "asset/_wtf.html" import render_field,render_field_no_form_group,render_field_no_label_group %}
 {% block action %}
     创建模板
+{% endblock %}
+{% block ibox_title_right %}
+    <div class="pull-right" style="margin:0px 0px 0px 10px"><input class="btn btn-default btn-sm" id="sync_image" type="button" value="同步阿里云镜像"></div>
+    <div class="pull-right"><input class="btn btn-default btn-sm" id="sync_SecurityGroup" type="button" value="同步阿里云安全组"></div>
 {% endblock %}
 {% block form %}
 <form  method="post" id="create_template" class="form-horizontal" autocomplete="off" enctype="multipart/form-data" action="" >
@@ -142,6 +146,26 @@ $(document).ready(function () {
         },
         clearForm: false,
         resetForm: false
+    })
+}).on("click",'#sync_image',function(){
+    var success = function () {
+        console.log(123);
+    };
+    APIUpdateAttr({
+        'url': "{{ url_for('task-api.aly-sync-task') }}",
+        'method': 'POST',
+        'body': JSON.stringify({'task_name':'sync_instance_images'}),
+        'success': success
+    })
+}).on("click",'#sync_SecurityGroup',function(){
+    var success = function () {
+        console.log(123);
+    };
+    APIUpdateAttr({
+        'url': "{{ url_for('task-api.aly-sync-task') }}",
+        'method': 'POST',
+        'body': JSON.stringify({'task_name':'sync_instance_securitygroup'}),
+        'success': success
     })
 });
 

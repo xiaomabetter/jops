@@ -1,12 +1,10 @@
-from app import get_logger, get_config
+from app import get_logger,config
 from flask import render_template,request,flash
 from peewee import fn
-from app.utils import Pagination,model_to_form
+from app.utils import Pagination
 from datetime import datetime,timedelta
 from app.models import Node,Bill,Service,Asset,Asset_Create_Template
 from app.models.base import OpsRedis
-from app.task import run_sync_images,run_sync_zones
-from conf.config import Config
 from . import asset
 from .serializer import AssetCreateTemplateSerializer
 from .form import Service_Form,Aly_Instance_Form,Aly_Instance_Template
@@ -14,7 +12,6 @@ from app.auth import login_required
 import json
 
 logger = get_logger(__name__)
-cfg = get_config()
 
 @asset.route('/asset/<asset_type>/list',methods=['GET'])
 @login_required
@@ -98,7 +95,7 @@ def service_update(serviceid):
 @asset.route('/asset/bill/list',methods=['GET'])
 @login_required
 def bill_list():
-    limit = Config.ITEMS_PER_PAGE
+    limit = config.get('DEFAULT','ITEMS_PER_PAGE')
     page = int(request.args.get('page',1))
     nodeid = request.args.get('nodeid','')
     date_from = request.args.get('date_from','')
