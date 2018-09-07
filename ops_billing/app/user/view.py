@@ -67,7 +67,7 @@ def auth_login():
 @user.route('/user/logout',methods=['GET','POST'])
 @login_required
 def auth_logout():
-    response = make_response(redirect(config.get('DEFAULT','SECURITY_TOKEN_MAX_AGE')))
+    response = make_response(redirect(config.get('DEFAULT','SECURITY_LOGIN_URL')))
     r = response.delete_cookie("access_token")
     return response
 
