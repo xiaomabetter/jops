@@ -23,10 +23,10 @@ def auth_login():
             if len(ldapuser) == 1 :
                 mail = ldapuser[0][1]['mail'][0];userpass = ldapuser[0][1]['userPassword'][0]
                 phone = ldapuser[0][1]['telephoneNumber'][0]
+                group_name = ldapuser[0][0].split(',')[1].split('=')[1],
                 userinfo = {
                     'username':username,
                     'mail':mail.decode() if isinstance(mail,bytes) else mail,
-                    'group':ldapuser[0][0].split(',')[1].split('=')[1],
                     'is_ldap_user':True,
                     'phone':phone.decode() if isinstance(phone,bytes) else phone
                 }
@@ -36,6 +36,14 @@ def auth_login():
                     userinfo['password'] = encryption_md5(userpass)
                     if not user :
                         user = User.create(**userinfo)
+                    group = Groups.select().where(Groups.value == group_name).first()
+                    if not group:
+                        group = Groups.create(value=group_name,key=0)
+                        user.group.add(group.id)
+                    else:
+                        user_group = user.group.select().where(Groups.value == group_name)
+                        if user_group.count() == 0:
+                            user.group.add(group.id)
                     OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                     token = Auth.encode_auth_token(user.id.hex,int(time.time()))
                     if isinstance(token, bytes):  token.decode()

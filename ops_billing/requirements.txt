@@ -33,3 +33,4 @@ sshpubkeys          ==2.2.0
 wtf-peewee          ==3.0.0
 WTForms             ==2.1
 aliyun-python-sdk-r-kvstore==2.0.3
+python-ldap	    ==3.1.0 
