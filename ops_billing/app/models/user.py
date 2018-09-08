@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from peewee import CharField, BooleanField, IntegerField,UUIDField,\
-    DateTimeField,TextField,ManyToManyField
+    DateTimeField,TextField,ManyToManyField,ForeignKeyField
 from app.utils.encrypt import encryption_md5
 import uuid
 from .base import BaseModel
@@ -111,5 +111,10 @@ class User(BaseModel):
             'is_active':self.is_active,
             'is_ldap_user':self.is_ldap_user
         })
+
+class UserLoginLog(BaseModel):
+    user = ForeignKeyField(User,backref='loginlog')
+    login_at = DateTimeField(null=True)
+    login_ip = CharField(max_length=128,null=True)
 
 User_Group = User.group.get_through_model()

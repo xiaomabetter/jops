@@ -32,7 +32,6 @@ class AssetsApi(Resource):
             .add_argument('un_node', type=bool, location='args')\
             .add_argument('hostnames', type = str,action='append',location='args') \
             .add_argument('iplist', type=str, action='append',location='args').parse_args()
-        print(args)
         if args.get('hostnames'):
             page_query_set = Asset.select().where(Asset.InstanceName.in_(args.get('hostnames')))
         elif args.get('iplist'):
@@ -135,6 +134,7 @@ class AssetUserApi(Resource):
                 for user in users['users']:
                     if user not in related_users:related_users.append(user)
         return jsonify(trueReturn(related_users))
+
 
 class NodesApi(Resource):
     @login_required

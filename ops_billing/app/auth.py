@@ -14,15 +14,31 @@ def get_login_user():
     current_user = User.filter(User.id == uid).first()
     return  current_user
 
+def is_browser_user():
+    if 'Mozilla' in request.headers.get('User-Agent'):
+        return True
+
+def return_response(msg=''):
+    if is_browser_user():
+        response = make_response(redirect(config.get('DEFAULT', 'SECURITY_LOGIN_URL')))
+        return response
+    else:
+        jsonify(trueReturn(msg=msg))
+
 def adminuser_required(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
         token_id = request.cookies.get('access_token') or request.headers.get('Authorization')
-        dt = Auth.decode_auth_token(token_id)
-        userid = dt.get('data')['id']
-        user = User.select().where(User.id == userid).get()
-        if not user.administrator :
-            falseReturn(msg=u'非管理员用户')
+        if token_id:
+            dt = Auth.decode_auth_token(token_id)
+            user_id = dt.get('data')['id']
+            if OpsRedis.exists(user_id):
+                userinfo = json.loads(OpsRedis.get(user_id).decode())
+                if userinfo.get('role') != 'administrator':
+                    return jsonify(falseReturn(msg='非管理员用户'))
+            user = User.select().where(User.id == user_id).get()
+            if not user.administrator :
+                return jsonify(falseReturn(msg='非管理员用户'))
         return func(*args, **kwargs)
     return decorated_function
 
@@ -31,33 +47,25 @@ def login_required(func):
     def decorated_function(*args, **kwargs):
         response = make_response(redirect(config.get('DEFAULT','SECURITY_LOGIN_URL')))
         token = request.cookies.get('access_token') or request.headers.get('Authorization')
-        if 'access_token' in  request.cookies:
+        if token:
             data = Auth.decode_auth_token(token)
             if data['status']:
                 user_id = data.get('data')['id']
                 if OpsRedis.exists(user_id):
                     userinfo = json.loads(OpsRedis.get(user_id).decode())
-                    if not userinfo.get('is_active'):return response
-                    g.user = userinfo
+                    if not userinfo.get('is_active'):
+                        return_response(msg='用户被禁用')
+                    if is_browser_user():
+                        g.user = userinfo
                 user = User.select().where(User.id == user_id).first()
-                if not user:return response
-                g.user = user.to_json()
+                if not user:
+                    return_response(msg='用户不存在')
+                if is_browser_user():
+                    g.user = user.to_json()
                 OpsRedis.set(user_id,json.dumps(user.to_json()))
             else:return response
-        elif request.headers.get('Authorization') :
-            data = Auth.decode_auth_token(token)
-            if data['status']:
-                user_id = data.get('data')['id']
-                if OpsRedis.exists(user_id):
-                    userinfo = json.loads(OpsRedis.get(user_id).decode())
-                    if not userinfo.get('is_active'):return jsonify(falseReturn(msg='用户被禁用'))
-                user = User.select().where(User.id == user_id).first()
-                if not user:return jsonify(falseReturn(msg='用户不存在'))
-            else:
-                return jsonify(falseReturn(msg=data['msg']))
         else:
-            if 'Mozilla' in request.headers.get('User-Agent'):return  response
-            else:return jsonify(falseReturn(msg=u'请先获取token'))
+            return_response(msg='请先获取token')
         return func(*args, **kwargs)
     return decorated_function
 

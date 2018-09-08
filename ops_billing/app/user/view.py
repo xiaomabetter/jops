@@ -1,12 +1,12 @@
 from flask import render_template, redirect,request,make_response,url_for
-from app.models import User,User_Group,Groups,OpsRedis,ldap_conn
+from app.models import User,User_Group,Groups,OpsRedis,ldap_conn,UserLoginLog
 from . import user
 from app.auth import Auth
 from .form import User_Update_Form,Groups_Form
 from app.utils import dict_to_form,model_to_form,encryption_md5
 from app.auth import login_required
 from app import config
-import time,ldap,json
+import time,ldap,json,datetime
 
 @user.route('/user/login',methods=['GET','POST'])
 def auth_login():
@@ -38,13 +38,19 @@ def auth_login():
                         user = User.create(**userinfo)
                     group = Groups.select().where(Groups.value == group_name).first()
                     if not group:
+                        ROOT = Groups.root()
                         group = Groups.create(value=group_name,key=0)
+                        group.parent = ROOT
+                        group.save()
                         user.group.add(group.id)
                     else:
                         user_group = user.group.select().where(Groups.value == group_name)
                         if user_group.count() == 0:
                             user.group.add(group.id)
                     OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
+                    remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
+                    UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),
+                                                                                login_ip=remote_addr)
                     token = Auth.encode_auth_token(user.id.hex,int(time.time()))
                     if isinstance(token, bytes):  token.decode()
                     success.set_cookie('access_token', token)

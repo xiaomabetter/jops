@@ -17,11 +17,11 @@ class UserSerializer(Schema):
 
 class GroupSerializer(Schema):
     id = fields.Function(lambda obj: obj.id.hex)
-    key = fields.String(required=True)
+    key = fields.String(required=True,dump_only=True)
     value = fields.String(required=True)
     parent_id = fields.Function(lambda obj: obj.parent.id.hex)
     parent_key = fields.Function(lambda obj:obj.parent.key)
-    description = fields.String(required=True)
+    description = fields.String()
     user = fields.Nested(UserSerializer,many=True)
     user_amount = fields.Function(lambda obj:len(obj.user))
     open = fields.Boolean(default=True)

@@ -81,16 +81,23 @@
             </div>
    </div>
 </div>
+    <div id="rMenu">
+    <ul class="dropdown-menu">
+        <li class="divider"></li>
+        <li id="m_create" tabindex="-1" onclick="addTreeNode();"><a><i class="fa fa-plus-square-o"></i>添加用户组</a></li>
+        <li id="m_rename" tabindex="-1" onclick="editTreeNode();"><a><i class="fa fa-pencil-square-o"></i>重命名用户组</a></li>
+        <li id="m_del" tabindex="-1" onclick="deleteTreeNode();"><a><i class="fa fa-minus-square"></i>删除用户组</a></li>
+    </ul>
+    </div>
 {% endblock %}
 {% block content_bottom_left %}{% endblock %}
 {% block custom_foot_js %}
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
 <script>
 
-var zTree, table, show = 0;
+var zTree, rMenu,table, show = 0;
 
 function onSelected(event, treeNode) {
-    console.log(treeNode);
     if (treeNode.isParent) {
         var url = "{{ url_for('user-api.group_api',groupid='PK') }}".replace('PK',treeNode.node_id);
         table.ajax.url(url);
@@ -98,6 +105,115 @@ function onSelected(event, treeNode) {
     } else {
         $('#user_list_class').addClass('');
     }
+}
+
+function OnRightClick(event, treeId, treeNode) {
+    if (treeNode.id !== "0") {
+        $('#m_create').addClass('hidden');
+    } else {
+        $('#m_create').removeClass('hidden');
+    }
+    if (!treeNode && event.target.tagName.toLowerCase() !== "button" && $(event.target).parents("a").length === 0) {
+		zTree.cancelSelectedNode();
+		showRMenu("root", event.clientX, event.clientY);
+	} else if (treeNode && !treeNode.noR) {
+		zTree.selectNode(treeNode);
+		showRMenu("node", event.clientX, event.clientY);
+	}
+}
+
+function showRMenu(type, x, y) {
+	$("#rMenu ul").show();
+    x -= 220;
+    $('#rMenu').css({"top":y+"px", "left":x+"px", "visibility":"visible"});
+	$("body").bind("mousedown", onBodyMouseDown);
+}
+
+function onBodyMouseDown(event){
+	if (!(event.target.id === "rMenu" || $(event.target).parents("#rMenu").length>0)) {
+		$('#rMenu').css({"visibility" : "hidden"});
+	}
+}
+
+function hideRMenu() {
+	$('#rMenu').css({"visibility": "hidden"});
+	$("body").unbind("mousedown", onBodyMouseDown);
+}
+
+function onRename(event, treeId, treeNode, isCancel){
+    var url = "{{ url_for('user-api.group_api',groupid='PK') }}".replace('PK',treeNode.node_id);
+    var data = {"value": treeNode.name};
+    if (isCancel){
+        return
+    }
+    APIUpdateAttr({
+        url: url,
+        body: JSON.stringify(data),
+        method: "PUT",
+        success:$('#rMenu').css({"visibility": "hidden"})
+    })
+}
+
+function editTreeNode() {
+    hideRMenu();
+	var current_node = zTree.getSelectedNodes()[0];
+	if (!current_node){
+	    return
+    }
+    if (current_node.value) {
+        current_node.name = current_node.value;
+    }
+    zTree.editName(current_node);
+}
+
+function addTreeNode() {
+	var parentNode = zTree.getSelectedNodes()[0];
+	if (!parentNode){return}
+    function success(result) {
+        $('#rMenu').css({"visibility" : "hidden"});
+        if (result['status']) {
+            var newnode = result['data'];
+            var newNode = {
+                name: newnode["value"] + ' (' + 0 + ')',
+                id: newnode["key"],
+                pId: parentNode.id,
+                user_amount:0
+            };
+            newNode.checked = zTree.getSelectedNodes()[0].checked;
+            zTree.addNodes(parentNode, 0, newNode);
+            toastr.success("创建用户组成功");
+        } else {
+            toastr.error("创建用户组失败");
+        }
+    }
+    APIUpdateAttr({
+        url: "{{ url_for('user-api.group_api',groupid='PK') }}".replace('PK',parentNode.node_id),
+        method: "POST",
+        body:JSON.stringify({'value':''}),
+        success:success
+    })
+}
+
+function deleteTreeNode() {
+	hideRMenu();
+	var current_node = zTree.getSelectedNodes()[0];
+	if (!current_node){
+	    return
+    }
+	if (current_node.children && current_node.children.length > 0) {
+		toastr.error("该节点有子节点，不能删除");
+	 } else if (current_node.user_amount != 0) {
+        toastr.error("该组下有用户,不能直接删除");
+    } else {
+		$.ajax({
+            url: "{{ url_for('user-api.group_api',groupid='PK') }}".replace('PK',current_node.node_id),
+            method: "DELETE",
+            success: function () {
+                zTree.removeNode(current_node);
+                toastr.success("组删除成功");
+            }
+        });
+	}
 }
 
 function filter(treeId, parentNode, childNodes) {
@@ -139,7 +255,9 @@ function initTree() {
             type: 'get'
 		},
         callback: {
+            onRightClick: OnRightClick,
             onSelected: onSelected,
+            onRename: onRename,
             beforeAsync: beforeAsync
         }
     };
