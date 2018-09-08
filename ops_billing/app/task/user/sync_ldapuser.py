@@ -18,10 +18,10 @@ def sync_ldapusers():
             }
             user = User.select().where(User.username == _user['username']).first()
             group = Groups.select().where(Groups.value == groupname).first()
-            ROOT = Groups.select().where(Groups.value == 'ROOT').first()
+            ROOT = Groups.root()
             if not group :
-                ROOT.create_child(value=groupname)
-            else:
+                group = ROOT.create_child(value=groupname)
+            if group.parent != ROOT:
                 group.parent = ROOT
                 group.save()
             if not user:

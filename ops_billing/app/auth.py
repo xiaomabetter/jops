@@ -53,16 +53,13 @@ def login_required(func):
                 user_id = data.get('data')['id']
                 if OpsRedis.exists(user_id):
                     userinfo = json.loads(OpsRedis.get(user_id).decode())
-                    if not userinfo.get('is_active'):
-                        return_response(msg='用户被禁用')
-                    if is_browser_user():
-                        g.user = userinfo
-                user = User.select().where(User.id == user_id).first()
-                if not user:
-                    return_response(msg='用户不存在')
-                if is_browser_user():
-                    g.user = user.to_json()
-                OpsRedis.set(user_id,json.dumps(user.to_json()))
+                    if not userinfo.get('is_active'):return_response(msg='用户被禁用')
+                    if is_browser_user():g.user = userinfo
+                else:
+                    user = User.select().where(User.id == user_id).first()
+                    if not user:return_response(msg='用户不存在')
+                    if is_browser_user():g.user = user.to_json()
+                    OpsRedis.set(user_id,json.dumps(user.to_json()))
             else:return response
         else:
             return_response(msg='请先获取token')
