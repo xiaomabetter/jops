@@ -10,8 +10,8 @@ import json
 def get_login_user():
     token = request.cookies.get('access_token') or request.headers.get('Authorization')
     data = Auth.decode_auth_token(token)
-    uid = data.get('data')['id']
-    current_user = User.filter(User.id == uid).first()
+    user_id = data['data']['id'][:32]
+    current_user = User.filter(User.id == user_id).first()
     return  current_user
 
 def is_browser_user():

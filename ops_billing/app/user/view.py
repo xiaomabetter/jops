@@ -20,7 +20,7 @@ def auth_login():
         success = make_response(redirect(url_for('asset.asset_list', asset_type='ecs')))
         if is_ldap_login:
             ldapuser = ldap_conn.search_s(config.get('LDAP','BASE_DN'), ldap.SCOPE_SUBTREE, f'(uid={username})')
-            if len(ldapuser) == 1 :
+            if len(ldapuser) >= 1 :
                 mail = ldapuser[0][1]['mail'][0];userpass = ldapuser[0][1]['userPassword'][0]
                 phone = ldapuser[0][1]['telephoneNumber'][0]
                 group_name = ldapuser[0][0].split(',')[1].split('=')[1],
@@ -31,26 +31,23 @@ def auth_login():
                     'phone':phone.decode() if isinstance(phone,bytes) else phone
                 }
                 if isinstance(userpass,bytes): userpass = userpass.decode()
+                print(userpass)
                 if userpass == password:
                     user = User.select().where(User.username == username).first()
-                    userinfo['password'] = encryption_md5(userpass)
                     if not user :
+                        userinfo['password'] = encryption_md5(userpass)
                         user = User.create(**userinfo)
                     group = Groups.select().where(Groups.value == group_name).first()
                     if not group:
-                        ROOT = Groups.root()
-                        group = Groups.create(value=group_name,key=0)
-                        group.parent = ROOT
-                        group.save()
+                        ROOT = Groups.root(); group = Groups.create(value=group_name,key=0)
+                        group.parent = ROOT; group.save()
                         user.group.add(group.id)
                     else:
                         user_group = user.group.select().where(Groups.value == group_name)
-                        if user_group.count() == 0:
-                            user.group.add(group.id)
+                        if user_group.count() == 0:user.group.add(group.id)
                     OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                     remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
-                    UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),
-                                                                                login_ip=remote_addr)
+                    UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),login_ip=remote_addr)
                     token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
                     if isinstance(token, bytes):  token.decode()
                     success.set_cookie('access_token', token)

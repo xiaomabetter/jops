@@ -1,5 +1,6 @@
 from marshmallow import fields,Schema,validates,ValidationError
 from app.utils.sshkey import validate_ssh_public_key
+from app.models.user import  User
 
 class UserSerializer(Schema):
     id = fields.Function(lambda obj: obj.id.hex)
@@ -23,7 +24,7 @@ class GroupSerializer(Schema):
     parent_key = fields.Function(lambda obj:obj.parent.key)
     description = fields.String()
     user = fields.Nested(UserSerializer,many=True)
-    user_amount = fields.Function(lambda obj:len(obj.user))
+    user_amount = fields.Function(lambda obj:len(obj.user) if obj.key != '0' else User.select().count())
     open = fields.Boolean(default=True)
 
     class Meta:
