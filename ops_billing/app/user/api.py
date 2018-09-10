@@ -172,7 +172,7 @@ class UserLogin(Resource):
         args = reqparse.RequestParser() \
             .add_argument('username', type=str, location=location, required=True, help="用户名不能为空") \
             .add_argument("password", type=str, location=location, required=True, help="密码不能为空")\
-            .add_argument('is_ldap_login',type=bool,location=location)\
+            .add_argument('is_ldap_login',type=bool,default=True,location=location)\
             .parse_args()
         username = args.get('username');password = args.get('password')
         if args.get('is_ldap_login'):
