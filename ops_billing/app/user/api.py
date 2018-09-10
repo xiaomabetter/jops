@@ -214,7 +214,7 @@ class UserLogin(Resource):
             if user and user.verify_password(password):
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
-                if  isinstance(token,bytes) :  token.decode()
+                if  isinstance(token,bytes) :  token = token.decode()
                 return jsonify(trueReturn({"token": token}))
             else:
                 return falseReturn(msg='username or password is invalid!')

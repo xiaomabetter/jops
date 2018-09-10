@@ -15,7 +15,8 @@ class User_Base_Form(FlaskForm):
                         render_kw={"class":"form-control","placeholder":"邮箱"})
     public_key = TextAreaField('ssh公钥', render_kw={"class": "form-control","placeholder":"粘贴你的ssh公钥"})
     password = PasswordField(u'密码',widget=TextInput(),
-                             render_kw={"class":"form-control",'type':'password',"autocomplete":"off","placeholder":"密码，不填写默认邮件发送"})
+                             render_kw={"class":"form-control",'type':'password',"autocomplete":"off",
+                                        "placeholder":"请填写你的密码"})
     phone = StringField('手机',render_kw={"class":"form-control"})
     wechat = StringField('微信',render_kw={"class": "form-control"})
     ding = StringField('钉钉', render_kw={"class": "form-control"})

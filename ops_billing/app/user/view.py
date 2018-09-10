@@ -31,7 +31,6 @@ def auth_login():
                     'phone':phone.decode() if isinstance(phone,bytes) else phone
                 }
                 if isinstance(userpass,bytes): userpass = userpass.decode()
-                print(userpass)
                 if userpass == password:
                     user = User.select().where(User.username == username).first()
                     if not user :
