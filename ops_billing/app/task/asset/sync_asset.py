@@ -10,7 +10,7 @@ from aliyunsdkr_kvstore.request.v20150101 import DescribeInstancesRequest as kvI
 from aliyunsdkr_kvstore.request.v20150101 import  DescribeInstanceAttributeRequest
 from .sync_node_amount import NodeAmount
 from app.models import Asset,db,OpsRedis
-from app import config
+from conf import aliyun
 
 __all__ = ['SyncAliAssets']
 
@@ -18,8 +18,7 @@ class SyncAliAssets(object):
     def __init__(self,AccessKeyId,AccessKeySecret):
         self.AccessKeyId = AccessKeyId
         self.AccessKeySecret = AccessKeySecret
-        self.clt_conn_list = [AcsClient(self.AccessKeyId, self.AccessKeySecret, r)
-                              for r in config.get('Aliyun','RegionId')]
+        self.clt_conn_list = [AcsClient(self.AccessKeyId, self.AccessKeySecret, r) for r in aliyun.RegionId]
 
     def get_ecs_result(self,result):
         insert_result = []
@@ -227,9 +226,10 @@ class SyncAliAssets(object):
             with db.atomic():
                 Asset.update(Status = 'Destroy').where(Asset.InstanceId.in_(ids)).execute()
         if insert_many :
-            insert_many = self.pop_duplicate(insert_many)
-            with db.atomic():
-                Asset.insert_many(insert_many).execute()
+            if self.pop_duplicate(insert_many):
+                print(insert_many)
+                with db.atomic():
+                    Asset.insert_many(insert_many).execute()
         NodeAmount.sync_root_assets()
 
     def pop_duplicate(self,asset_list):

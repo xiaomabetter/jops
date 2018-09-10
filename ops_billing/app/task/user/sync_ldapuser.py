@@ -24,8 +24,9 @@ def sync_ldapusers():
             if group.parent != ROOT:
                 group.parent = ROOT
                 group.save()
-            if not user:
+            if  user:
+                User.update(**_user).where(User.id == user.id).execute()
+            else:
                 user = User.create(**_user)
-            user_group = user.group.select().where(Groups.value == groupname)
-            if user_group.count() == 0:
+            if user.group.select().where(Groups.value == groupname).count() == 0:
                 user.group.add(group.id)

@@ -1,5 +1,5 @@
 from app import get_logger
-from flask import jsonify,request
+from flask import jsonify
 from flask_restful import Resource,reqparse
 from app.auth import login_required,adminuser_required,get_login_user
 from app.utils import trueReturn,falseReturn
@@ -11,6 +11,7 @@ from app.perm.serializer import AssetPermissionSerializer
 from app.task import run_sync_asset_amount,create_asset,run_sync_asset
 from app.utils.encrypt import ChaEncrypt
 from app import config
+from conf import aliyun
 from app.models.base import OpsRedis
 import json
 
@@ -96,12 +97,12 @@ class AssetApi(Resource):
         if OpsRedis.exists(asset.InstanceId):
             try:
                 json_data = json.loads(OpsRedis.get(asset.InstanceId).decode())
-                for k,v in json_data.items():
-                    if k in config.get('Aliyun',f"Instance_{asset.AssetType}_Detail_Attributes"):
-                        data[k] = v
-                return jsonify(trueReturn(data))
             except Exception as e:
-                return jsonify(falseReturn(data,msg='同步到redis的数据异常'))
+                return jsonify(falseReturn(data, msg=f'同步到redis的数据异常{e}'))
+            for k,v in json_data.items():
+                if k in getattr(aliyun,f"Instance_{asset.AssetType}_Detail_Attributes"):
+                    data[k] = v
+            return jsonify(trueReturn(data))
         else:
             run_sync_asset.delay(asset.AssetType)
             return jsonify(trueReturn(data,msg='redis详细信息不存在,即将同步'))
@@ -134,7 +135,6 @@ class AssetUserApi(Resource):
                 for user in users['users']:
                     if user not in related_users:related_users.append(user)
         return jsonify(trueReturn(related_users))
-
 
 class NodesApi(Resource):
     @login_required
@@ -264,7 +264,7 @@ class AssetCreateApi(Resource):
         templatedata = dict(json.loads(AssetCreateTemplateSerializer(many=True).dumps(template).data)[0])
         templatedata['InstanceChargeType'] = args.get('InstanceChargeType') or 'PrePaid'
         templatedata['IoOptimized'] = 'optimized' if templatedata['instance_type'].split('.')[1] \
-                                                     in config.get('Aliyun','isIoOptimize') else None
+                                                     in aliyun.isIoOptimize else None
         amount = args.get('amount') or 1
         for key in ['InstanceName','Description','HostName'] :
             templatedata[key] = args.get('InstanceName')

@@ -456,7 +456,7 @@ jumpserver.initServerSideDataTable = function (options) {
             selector: 'td:first-child'
       };
   var table = ele.DataTable({
-        pageLength: options.pageLength || 10,
+        pageLength: options.pageLength || 11,
         dom: options.dom || '<"#uc.pull-left">flt<"row m-t"<"col-md-8"<"#op.col-md-6"><"col-md-6 text-center"i>><"col-md-4"p>>',
         order: options.order || [],
         // select: options.select || 'multi',
@@ -468,7 +468,7 @@ jumpserver.initServerSideDataTable = function (options) {
             url: options.ajax_url ,
             data: function (data) {
                 delete data.columns;
-                data.asset_type = asset_type
+                data.asset_type = asset_type || 'ecs'
                 if (data.length !== null ){
                     data.limit = data.length;
                     delete data.length;

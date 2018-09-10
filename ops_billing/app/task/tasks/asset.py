@@ -4,13 +4,13 @@ from app.task.asset import SyncBills,SyncAliAssets,NodeAmount,\
 from app.task.user import sync_ldapusers
 from celery.signals import worker_process_init
 from app.models.base import initcelery
-from app import config
+from conf import aliyun
 from app.models.asset import Asset_Create_Record
 from datetime import datetime
 logger = get_logger(__name__)
 
-AccessKeyId = config.get('Aliyun','AccessKeyId')
-AccessKeySecret = config.get('Aliyun','AccessKeySecret')
+AccessKeyId = aliyun.AccessKeyId
+AccessKeySecret = aliyun.AccessKeySecret
 
 celery = initcelery()
 

@@ -36,25 +36,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-sm-10">
-        <h2></h2>
-        <ol class="breadcrumb">
-            <li>
-                <a href="">仪表盘</a>
-            </li>
-
-            <li>
-                <a>资产管理</a>
-            </li>
-            <li class="active">
-                <strong>资产列表</strong>
-            </li>
-        </ol>
-    </div>
-    <div class="col-sm-2">
-    </div>
-</div>
 <div class="wrapper wrapper-content">
    <div class="row">
        <div class="col-lg-3" id="split-left" style="padding-left: 3px">
@@ -88,7 +69,7 @@
                <div class="btn-group pull-right m-r-5">
                     <button class="btn btn-default btn-sm" id="asset_notin_node">点击查看未分组资产</button>
                </div>
-               <div class="btn-group pull-left m-r-5">
+               <div class="btn-group pull-right m-r-5">
                     <button class="btn btn-default btn-sm" id="sync_aly_asset">同步阿里云资产</button>
                </div>
                <table class="table table-striped table-bordered table-hover " id="asset_list_table" style="width: 100%">
@@ -104,7 +85,7 @@
                    <tbody>
                    </tbody>
                </table>
-               <div id="actions" class="hide">
+               <div id="actions" class="hide" >
                    <div class="input-group">
                        <select class="form-control m-b" style="width: auto" id="slct_bulk_update">
                            <option value="moveout">从此节点移除</option>

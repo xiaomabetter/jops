@@ -1,4 +1,4 @@
-from flask import request,make_response,redirect,g
+from flask import request,make_response,redirect,g,flash
 from functools import wraps
 import jwt, datetime
 from flask import jsonify
@@ -18,20 +18,22 @@ def is_browser_user():
     if 'Mozilla' in request.headers.get('User-Agent'):
         return True
 
-def return_response(msg=''):
+def return_response(msg='',isflash=True):
     if is_browser_user():
+        if isflash:
+            flash(message=msg,category='error')
         response = make_response(redirect(config.get('DEFAULT', 'SECURITY_LOGIN_URL')))
         return response
     else:
-        jsonify(trueReturn(msg=msg))
+        return jsonify(falseReturn(msg=msg))
 
 def adminuser_required(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
         token_id = request.cookies.get('access_token') or request.headers.get('Authorization')
         if token_id:
-            dt = Auth.decode_auth_token(token_id)
-            user_id = dt.get('data')['id']
+            data = Auth.decode_auth_token(token_id)
+            user_id = data['data']['id'][:32]
             if OpsRedis.exists(user_id):
                 userinfo = json.loads(OpsRedis.get(user_id).decode())
                 if userinfo.get('role') != 'administrator':
@@ -45,24 +47,28 @@ def adminuser_required(func):
 def login_required(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        response = make_response(redirect(config.get('DEFAULT','SECURITY_LOGIN_URL')))
         token = request.cookies.get('access_token') or request.headers.get('Authorization')
         if token:
             data = Auth.decode_auth_token(token)
             if data['status']:
-                user_id = data.get('data')['id']
+                user_id = data['data']['id'][:32]
+                password = data['data']['id'][32:]
                 if OpsRedis.exists(user_id):
                     userinfo = json.loads(OpsRedis.get(user_id).decode())
-                    if not userinfo.get('is_active'):return_response(msg='用户被禁用')
+                    if not userinfo.get('is_active'):return return_response(msg='用户被禁用')
+                    if userinfo.get('password') != password:return return_response(msg='密码有变化,请重新登录')
                     if is_browser_user():g.user = userinfo
                 else:
                     user = User.select().where(User.id == user_id).first()
-                    if not user:return_response(msg='用户不存在')
+                    if not user:return return_response(msg='用户不存在')
+                    if not user.is_active:return return_response(msg='用户被禁用')
+                    if user.password != password:return return_response(msg='密码有变化,请重新登录')
                     if is_browser_user():g.user = user.to_json()
                     OpsRedis.set(user_id,json.dumps(user.to_json()))
-            else:return response
+            else:
+                return return_response(msg=data['msg'],isflash=False)
         else:
-            return_response(msg='请先获取token')
+            return return_response('请先登录',isflash=False)
         return func(*args, **kwargs)
     return decorated_function
 
@@ -72,7 +78,7 @@ class Auth():
         try:
             payload = {
                 'exp': datetime.datetime.now() + datetime.timedelta(days=0,
-                                            seconds=int(config.get('DEFAULT', 'SECURITY_TOKEN_MAX_AGE'))),
+                                    seconds=int(config.get('DEFAULT', 'SECURITY_TOKEN_MAX_AGE'))),
                 'iat': datetime.datetime.now(),
                 'iss': 'ken',
                 'data': {'id': user_id,'login_time': login_time}
@@ -85,10 +91,12 @@ class Auth():
     def decode_auth_token(auth_token,expire=True):
         try:
             if expire:
-                payload = jwt.decode(auth_token, config.get('DEFAULT','SECRET_KEY'),options={'verify_exp': True},
+                payload = jwt.decode(auth_token, config.get('DEFAULT','SECRET_KEY'),
+                                     options={'verify_exp': True},
                                     leeway=datetime.timedelta(minutes=600))
             else:
-                payload = jwt.decode(auth_token, config.get('DEFAULT','SECRET_KEY'), options={'verify_exp': False})
+                payload = jwt.decode(auth_token, config.get('DEFAULT','SECRET_KEY'),
+                                     options={'verify_exp': False})
             if ('data' in payload and 'id' in payload['data']):
                 payload['status'] = True
                 return payload

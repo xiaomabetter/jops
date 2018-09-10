@@ -1,6 +1,7 @@
 from flask import jsonify,request
 from flask_restful import Resource,reqparse
 from app.models import User,Groups,User_Group,AssetPerm_Users,UserLoginLog
+from app.models.base import OpsRedis
 from app.auth import Auth,login_required,adminuser_required
 from app.utils import  trueReturn,falseReturn
 from .serializer import UserSerializer,GroupSerializer
@@ -16,8 +17,8 @@ class UsersApi(Resource):
         data = json.loads(UserSerializer(many=True,exclude=['password']).dumps(query_set).data)
         return jsonify(trueReturn(data))
 
-    @adminuser_required
     @login_required
+    @adminuser_required
     def post(self):
         parse = reqparse.RequestParser()
         arg_names = ('ding', 'password', 'wechat', 'role' ,'user', 'username','comment',
@@ -66,6 +67,7 @@ class UserApi(Resource):
                 user.group.add(gid)
             for gid in list(set(user_groups) - set(groups)):
                 user.group.remove(gid)
+        if args.get('password'):OpsRedis.delete(userid)
         return jsonify(trueReturn(msg='更新成功'))
 
     @login_required
@@ -76,8 +78,8 @@ class UserApi(Resource):
         User.delete().where(User.id == userid).execute()
         return jsonify(trueReturn(msg='删除成功'))
 
-    @adminuser_required
     @login_required
+    @adminuser_required
     def patch(self,userid):
         user = User.select().where(User.id == userid).get()
         if user.role != 'administrator':
@@ -130,8 +132,8 @@ class GroupApi(Resource):
             data = json.loads(GroupSerializer(many=True,only=['user']).dumps(group).data)[0]['user']
         return jsonify(trueReturn(data))
 
-    @adminuser_required
     @login_required
+    @adminuser_required
     def post(self,groupid):
         args = reqparse.RequestParser() \
             .add_argument('value', location='json').parse_args()
@@ -145,15 +147,15 @@ class GroupApi(Resource):
             return jsonify(trueReturn(msg=str(e)))
         return jsonify(trueReturn(data))
 
-    @adminuser_required
     @login_required
+    @adminuser_required
     def delete(self,groupid):
         User_Group.delete().where(User_Group.groups_id == groupid).execute()
-        r = Groups.delete().where(Groups.id == groupid).execute()
+        Groups.delete().where(Groups.id == groupid).execute()
         return jsonify(trueReturn('已经删除'))
 
-    @adminuser_required
     @login_required
+    @adminuser_required
     def put(self,groupid):
         args = reqparse.RequestParser()\
             .add_argument('value', type=str,location=['form','json'],required=True) \
@@ -170,43 +172,37 @@ class UserLogin(Resource):
         args = reqparse.RequestParser() \
             .add_argument('username', type=str, location=location, required=True, help="用户名不能为空") \
             .add_argument("password", type=str, location=location, required=True, help="密码不能为空")\
-            .add_argument('is_ldap_login',type=bool,location=location, required=True)\
+            .add_argument('is_ldap_login',type=bool,location=location)\
             .parse_args()
         username = args.get('username');password = args.get('password')
         if args.get('is_ldap_login'):
             ldapuser = ldap_conn.search_s(config.get('LDAP','BASE_DN'), ldap.SCOPE_SUBTREE, f'(uid={username})')
             if len(ldapuser) == 1 :
                 mail = ldapuser[0][1]['mail'][0];userpass = ldapuser[0][1]['userPassword'][0]
-                phone = ldapuser[0][1]['telephoneNumber'][0]
-                groupname = ldapuser[0][0].split(',')[1].split('=')[1]
+                phone = ldapuser[0][1]['telephoneNumber'][0];groupname = ldapuser[0][0].split(',')[1].split('=')[1]
                 userinfo = {
-                    'username':username,
+                    'username':username,'is_ldap_user':True,
                     'mail':mail.decode() if isinstance(mail,bytes) else mail,
-                    'is_ldap_user':True,
                     'phone':phone.decode() if isinstance(phone,bytes) else phone
                 }
                 if isinstance(userpass,bytes): userpass = userpass.decode()
                 if userpass == password:
                     user = User.select().where(User.username == username).first()
-                    userinfo['password'] = encryption_md5(userpass)
                     if not user :
+                        userinfo['password'] = encryption_md5(userpass)
                         user = User.create(**userinfo)
                     group = Groups.select().where(Groups.value == groupname).first()
                     if not group:
-                        ROOT = Groups.root()
-                        group = Groups.create(value=groupname,key=0)
-                        group.parent = ROOT
-                        group.save()
+                        ROOT = Groups.root(); group = Groups.create(value=groupname,key=0)
+                        group.parent = ROOT; group.save()
                         user.group.add(group.id)
                     else:
                         user_group = user.group.select().where(Groups.value == groupname)
-                        if user_group.count() == 0:
-                            user.group.add(group.id)
+                        if user_group.count() == 0:user.group.add(group.id)
                     OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                     remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
-                    UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),
-                                                                                login_ip=remote_addr)
-                    token = Auth.encode_auth_token(user.id.hex,int(time.time()))
+                    UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),login_ip=remote_addr)
+                    token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
                     if isinstance(token, bytes):  token.decode()
                     return jsonify(trueReturn(dict(token=token)))
                 else:
@@ -217,7 +213,7 @@ class UserLogin(Resource):
             user = User.select().where((User.email == username)|(User.username == username)).first()
             if user and user.verify_password(password):
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
-                token = Auth.encode_auth_token(user.id.hex,int(time.time()))
+                token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
                 if  isinstance(token,bytes) :  token.decode()
                 return jsonify(trueReturn({"token": token}))
             else:

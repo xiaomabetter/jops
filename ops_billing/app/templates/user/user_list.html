@@ -32,28 +32,13 @@
         overflow:hidden;
         white-space:nowrap;
     }
+    .pagination {
+        padding-left:0;
+        width:300px;
+    }
 </style>
 {% endblock %}
 {% block content %}
-<div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-sm-10">
-        <h2></h2>
-        <ol class="breadcrumb">
-            <li>
-                <a href="">仪表盘</a>
-            </li>
-
-            <li>
-                <a>用户管理</a>
-            </li>
-            <li class="active">
-                <strong>用户列表</strong>
-            </li>
-        </ol>
-    </div>
-    <div class="col-sm-2">
-    </div>
-</div>
 <div class="wrapper wrapper-content">
    <div class="row">
        <div class="col-lg-3" id="split-left" style="padding-left: 3px">
@@ -100,14 +85,14 @@
             </div>
    </div>
 </div>
-    <div id="rMenu">
+<div id="rMenu">
     <ul class="dropdown-menu">
         <li class="divider"></li>
         <li id="m_create" tabindex="-1" onclick="addTreeNode();"><a><i class="fa fa-plus-square-o"></i>添加用户组</a></li>
         <li id="m_rename" tabindex="-1" onclick="editTreeNode();"><a><i class="fa fa-pencil-square-o"></i>重命名用户组</a></li>
         <li id="m_del" tabindex="-1" onclick="deleteTreeNode();"><a><i class="fa fa-minus-square"></i>删除用户组</a></li>
     </ul>
-    </div>
+</div>
 {% endblock %}
 {% block content_bottom_left %}{% endblock %}
 {% block custom_foot_js %}

@@ -104,6 +104,7 @@ class User(BaseModel):
         return dict({
             'id': str(self.id),
             'username': self.username,
+            'password':self.password,
             'email': self.email,
             'role': self.role,
             'wechat': self.wechat,
