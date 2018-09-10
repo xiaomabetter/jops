@@ -48,8 +48,7 @@ def auth_login():
                     remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
                     UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),login_ip=remote_addr)
                     token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
-                    if isinstance(token, bytes):  token.decode()
-                    success.set_cookie('access_token', token)
+                    success.set_cookie('access_token', token.decode() if isinstance(token, bytes) else token)
                     return success
                 else:
                     return response

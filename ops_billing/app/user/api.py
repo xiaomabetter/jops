@@ -203,8 +203,7 @@ class UserLogin(Resource):
                     remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
                     UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),login_ip=remote_addr)
                     token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
-                    if isinstance(token, bytes):  token.decode()
-                    return jsonify(trueReturn(dict(token=token)))
+                    return jsonify(trueReturn(dict(token=token.decode() if isinstance(token, bytes) else token)))
                 else:
                     return jsonify(falseReturn(msg='password is invalid!'))
             else:
