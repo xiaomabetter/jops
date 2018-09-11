@@ -122,7 +122,7 @@ class TaskAnsRunApi(Resource):
             .add_argument('run_as_sudo', type=bool,location='form').parse_args()
 
         inventory = InitInventory(hostname_list=args.get('assets'),
-                              run_as_sudo=args.get('run_as'),
+                              run_as_sudo=args.get('run_as_sudo'),
                               run_as=args.get('run_as'))
         host_list = inventory.get_hostlist()
         regin_host_list = {}
@@ -148,6 +148,6 @@ class TaskAnsRunApi(Resource):
             for region, host_list in regin_host_list.items():
                 r = run_ansible_playbook.apply_async([host_list, args.get('playbook')], queue=region)
                 task_ids.append(r.id)
-            return jsonify(trueReturn(dict(taskid=r.id, ismodule=False)))
+            return jsonify(trueReturn(dict(taskid=task_ids, ismodule=False)))
 
 

@@ -53,11 +53,6 @@
            </div>
        </div>
        <div class="col-lg-9 animated fadeInRight" id="split-right">
-           <div class="tree-toggle">
-               <div class="btn btn-sm btn-primary tree-toggle-btn">
-                   <i class="fa fa-angle-left fa-x" id="toggle-icon"></i>
-               </div>
-           </div>
            <div class="mail-box-header" id="user_list_class">
                <div class="btn-group uc pull-left m-r-5" >
                    <div class="pull-left m-r-5"><a href="{{ url_for('user.users_create') }}" class="btn btn-sm btn-primary ">创建用户</a></div>
@@ -82,7 +77,8 @@
                     <tbody>
                     </tbody>
                 </table>
-            </div>
+           </div>
+       </div>
    </div>
 </div>
 <div id="rMenu">
@@ -98,7 +94,6 @@
 {% block custom_foot_js %}
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
 <script>
-
 var zTree, rMenu,table, show = 0;
 
 function onSelected(event, treeNode) {
@@ -359,4 +354,3 @@ $(document).ready(function(){
 });
 </script>
 {% endblock %}
-
