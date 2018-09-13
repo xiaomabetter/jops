@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField,PasswordField,SelectMultipleField
-from wtforms.widgets import TextInput
+from wtforms import StringField, TextAreaField,PasswordField,SelectMultipleField,BooleanField
+from wtforms.widgets import TextInput,CheckboxInput
 from wtforms.validators import DataRequired
-from wtforms.csrf.core import CSRF
-from hashlib import md5
-from flask import request
 from app.models import Groups
 
-class User_Base_Form(FlaskForm):
+class User_Form(FlaskForm):
+    group_list = [(ug.id.hex,ug.value) for ug in Groups.select()]
     username = StringField(u'用户名',[DataRequired()],widget=TextInput(),
                            render_kw={"class":"form-control","placeholder":"用户名"})
     email = StringField(u'邮箱',widget=TextInput(),
                         render_kw={"class":"form-control","placeholder":"邮箱"})
+    is_ldap_user = BooleanField(u'Ldap用户', widget=CheckboxInput(),render_kw={"class":"form-control",'checked':'true'})
     public_key = TextAreaField('ssh公钥', render_kw={"class": "form-control","placeholder":"粘贴你的ssh公钥"})
     password = PasswordField(u'密码',widget=TextInput(),
                              render_kw={"class":"form-control",'type':'password',"autocomplete":"off",
@@ -21,10 +20,6 @@ class User_Base_Form(FlaskForm):
     wechat = StringField('微信',render_kw={"class": "form-control"})
     ding = StringField('钉钉', render_kw={"class": "form-control"})
     comment = TextAreaField('备注',render_kw={"class":"form-control"})
-
-
-class User_Update_Form(User_Base_Form):
-    group_list = [(ug.id,ug.value) for ug in Groups.select()]
     ROLE_CHOICES = [('administrator', 'administrator'),('user', 'user')]
     groups = SelectMultipleField(u'用户组',choices=group_list,
                                             render_kw={"class":"form-control select2",

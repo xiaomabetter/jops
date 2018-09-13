@@ -63,18 +63,6 @@ class TaskApi(Resource):
             else:
                 return jsonify(falseReturn())
 
-    @login_required
-    def put(self,taskid):
-        args = reqparse.RequestParser()\
-            .add_argument('taskname', type=str, location=['json','form'],required=True) \
-            .add_argument('comment', type=str, location=['json','form']).parse_args()
-        if not args.get('comment'):
-            return jsonify(falseReturn(msg='参数异常'))
-        task = Tasks.select().where(Tasks.id == taskid).get()
-        task.comment = args.get('comment')
-        task.save()
-        return jsonify(trueReturn(msg='更新成功'))
-
 class AlySyncApi(Resource):
     @login_required
     def post(self):
@@ -94,7 +82,7 @@ class AlySyncApi(Resource):
                 return jsonify(falseReturn(msg=u'确少参数'))
             user_token = get_usertoken_from_cookies()
             payload = Auth.decode_auth_token(user_token)
-            user = User.filter(User.id == payload['data']['id']).get()
+            user = User.filter(User.id == payload['data']['id'][:32]).get()
             username = user.username
             r = run_sync_bill.apply_async([username, args.get('day_from'),args.get('day_to')],queue=default_queue)
         elif task_name == 'sync_instance_types':

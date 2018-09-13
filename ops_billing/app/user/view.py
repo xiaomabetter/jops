@@ -1,9 +1,10 @@
 from flask import render_template, redirect,request,make_response,url_for
-from app.models import User,User_Group,Groups,OpsRedis,ldap_conn,UserLoginLog
+from app.models import User,User_Group,Groups,OpsRedis,UserLoginLog
 from . import user
 from app.auth import Auth
-from .form import User_Update_Form,Groups_Form
-from app.utils import dict_to_form,model_to_form,encryption_md5
+from .form import User_Form,Groups_Form
+from app.utils import model_to_form,encryption_md5
+from .ldapapi import ldapconn
 from app.auth import login_required
 from app import config
 import time,ldap,json,datetime
@@ -12,46 +13,38 @@ import time,ldap,json,datetime
 def auth_login():
     if request.method == 'GET':
         return render_template('user/login_user.html')
-    elif request.method == 'POST':
+    else:
         response = make_response(redirect(config.get('DEFAULT','SECURITY_LOGIN_URL')))
         username = request.form.get('username',False)
         password = request.form.get('password',False)
         is_ldap_login = request.form.get('is_ldap_login',False)
         success = make_response(redirect(url_for('asset.asset_list', asset_type='ecs')))
         if is_ldap_login:
-            ldapuser = ldap_conn.search_s(config.get('LDAP','BASE_DN'), ldap.SCOPE_SUBTREE, f'(uid={username})')
-            if len(ldapuser) >= 1 :
-                mail = ldapuser[0][1]['mail'][0];userpass = ldapuser[0][1]['userPassword'][0]
-                phone = ldapuser[0][1]['telephoneNumber'][0]
-                group_name = ldapuser[0][0].split(',')[1].split('=')[1],
-                userinfo = {
-                    'username':username,
-                    'mail':mail.decode() if isinstance(mail,bytes) else mail,
-                    'is_ldap_user':True,
-                    'phone':phone.decode() if isinstance(phone,bytes) else phone
-                }
-                if isinstance(userpass,bytes): userpass = userpass.decode()
-                if userpass == password:
-                    user = User.select().where(User.username == username).first()
-                    if not user :
-                        userinfo['password'] = encryption_md5(userpass)
-                        user = User.create(**userinfo)
-                    group = Groups.select().where(Groups.value == group_name).first()
-                    if not group:
-                        ROOT = Groups.root(); group = Groups.create(value=group_name,key=0)
-                        group.parent = ROOT; group.save()
-                        user.group.add(group.id)
-                    else:
-                        user_group = user.group.select().where(Groups.value == group_name)
-                        if user_group.count() == 0:user.group.add(group.id)
-                    OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
-                    remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
-                    UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),login_ip=remote_addr)
-                    token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
-                    success.set_cookie('access_token', token.decode() if isinstance(token, bytes) else token)
-                    return success
+            ldapuser = ldapconn.ldap_search_user(username)
+            if not ldapuser :
+                return response
+            userpass = ldapuser['userPassword'];groupname = ldapuser['groupname']
+            userinfo = {'username':username,'is_ldap_user':True,
+                'mail':ldapuser['mail'],'phone':ldapuser['telephoneNumber']}
+            if userpass == password:
+                user = User.select().where(User.username == username).first()
+                if not user :
+                    userinfo['password'] = encryption_md5(userpass)
+                    user = User.create(**userinfo)
+                group = Groups.select().where(Groups.value == groupname).first()
+                if not group:
+                    ROOT = Groups.root(); group = Groups.create(value=groupname,key=0)
+                    group.parent = ROOT; group.save()
+                    user.group.add(group.id)
                 else:
-                    return response
+                    user_group = user.group.select().where(Groups.value == groupname)
+                    if user_group.count() == 0:user.group.add(group.id)
+                OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
+                remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
+                UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),login_ip=remote_addr)
+                token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
+                success.set_cookie('access_token', token.decode() if isinstance(token, bytes) else token)
+                return success
             else:
                 return response
         else:
@@ -89,15 +82,16 @@ def users_detail(userid):
 @user.route('/user/users/create',methods=['GET','POST'])
 @login_required
 def users_create():
-    form = User_Update_Form()
+    form = User_Form()
     return render_template('user/user_create.html', form=form)
 
 @user.route('/user/users/update/<userid>',methods=['GET'])
 @login_required
 def users_update(userid):
-    form = User_Update_Form()
-    user = User.select().where(User.id == userid).get()
-    dict_to_form(user.to_json(), form,exclude=['password'])
+    form = User_Form()
+    user = User.select().where(User.id == userid)
+    model_to_form(user,form,exclude=['password'])
+    form.groups.data = [g.id.hex for g in user.get().group.objects()]
     return render_template('user/user_update.html',form=form,userid=userid)
 
 @user.route('/user/groups/list',methods=['GET','POST'])

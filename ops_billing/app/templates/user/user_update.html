@@ -5,8 +5,7 @@
 </h3>
 {% endblock %}
 {% block form %}
-    <form method="post" id="update_user" class="form-horizontal" action="" autocomplete="off" enctype="multipart/form-data">
-        {{ form.csrf_token }}
+    <form method="post" id="update_user" class="form-horizontal row" action="" autocomplete="off" enctype="multipart/form-data">
         <h3>账户</h3>
         <div class="form-group">
             {{ form.username.label(class="col-md-2 control-label") }}
@@ -14,7 +13,7 @@
                 {{ form.username(size=20) }}
             </div>
         </div>
-        <div class="form-group">
+         <div class="form-group">
             {{ form.email.label(class="col-md-2 control-label") }}
             <div class="col-md-8">
                 {{ form.email(size=20) }}
@@ -46,7 +45,7 @@
         <h3>角色安全</h3>
         <div class="form-group">
             {{ form.role.label(class="col-md-2 control-label") }}
-            <div class="col-md-8">
+            <div class="col-md-7">
                 {{ form.role(size=20) }}
             </div>
         </div>

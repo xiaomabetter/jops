@@ -1,14 +1,13 @@
 from flask import jsonify,request
 from flask_restful import Resource,reqparse
 from app.models import User,Groups,User_Group,AssetPerm_Users,UserLoginLog
-from app.models.base import OpsRedis
 from app.auth import Auth,login_required,adminuser_required
 from app.utils import  trueReturn,falseReturn
 from .serializer import UserSerializer,GroupSerializer
-from app.models.base import OpsRedis,ldap_conn
+from app.models.base import OpsRedis
 from app.utils.encrypt import encryption_md5
+from .ldapapi import ldapconn
 import json,time,uuid,ldap,datetime
-from app import config
 
 class UsersApi(Resource):
     @login_required
@@ -25,12 +24,18 @@ class UsersApi(Resource):
                      'email', 'public_key', 'phone')
         for arg in arg_names:
             parse.add_argument(arg,type=str,location='form')
+        parse.add_argument('is_ldap_user',type=bool,location='form')
+        parse.add_argument('password', type=str,required=True,location='form')
         args = parse.add_argument('groups', type=str,action='append', location='form').parse_args()
         data,errors = UserSerializer().load(args)
         if errors:
             return jsonify(falseReturn(msg='提交数据验证失败 %s' % errors))
-        if args.get('password') :
-            data['password'] = encryption_md5(args.get('password'))
+        if args.get('is_ldap_user'):
+            ou = Groups.select().where(Groups.id == args.get('groups')[0]).get()
+            ldapconn.ldap_add_user(ou=ou.value,username=args.get('username'),
+                                   password=args.get('password'),email=args.get('email'),
+                                   telephoneNumber=args.get('phone'))
+        data['password'] = encryption_md5(args.get('password'))
         user = User.create(**data)
         if args.get('groups') :
             groups = [uuid.UUID(g).hex for g in args.get('groups')]
@@ -51,14 +56,14 @@ class UserApi(Resource):
         arg_names = ('ding', 'password', 'wechat', 'role' ,'user', 'username','comment','email',
                      'public_key', 'phone')
         for arg in arg_names:
-            parse.add_argument(arg,type=str,location='form')
-        args = parse.add_argument('groups', type=str,action='append', location='form').parse_args()
+            parse.add_argument(arg,type=str,location=['form','json'])
+        user = User.select().where(User.id == userid).get()
+        args = parse.add_argument('groups', type=str,action='append', location=['form','json']).parse_args()
         data,errors = UserSerializer().load(args)
         if errors:
             return jsonify(falseReturn(msg='提交数据验证失败 %s' % errors))
         if args.get('password') :
             data['password'] = encryption_md5(args.get('password'))
-        user = User.select().where(User.id == userid).get()
         User.update(**data).where(User.id == userid).execute()
         if args.get('groups') :
             groups = [uuid.UUID(g).hex for g in args.get('groups')]
@@ -73,8 +78,14 @@ class UserApi(Resource):
     @login_required
     @adminuser_required
     def delete(self,userid):
-        User_Group.delete().where(User_Group.user_id == userid).execute()
-        AssetPerm_Users.delete().where(AssetPerm_Users.user_id == userid).execute()
+        user = User.select().where(User.id == userid).get()
+        user.group.clear()
+        user.asset_permissions.clear()
+        if user.is_ldap_user:
+            ou = user.group.get().value
+            print(ou)
+            r = ldapconn.ldap_delete_user(ou=ou,username=user.username)
+            print(r)
         User.delete().where(User.id == userid).execute()
         return jsonify(trueReturn(msg='删除成功'))
 
@@ -82,10 +93,12 @@ class UserApi(Resource):
     @adminuser_required
     def patch(self,userid):
         user = User.select().where(User.id == userid).get()
-        if user.role != 'administrator':
-            user.is_active = 0
-            user.save()
-        return jsonify(trueReturn(msg='禁用成功'))
+        if user.is_active:
+            user.is_active = False;msg = '禁用成功'
+        else:
+            user.is_active = True;msg = '激活成功'
+        user.save()
+        return jsonify(trueReturn(msg=msg))
 
 class GroupsApi(Resource):
     @login_required
@@ -103,6 +116,7 @@ class GroupsApi(Resource):
                 key = f'{parent_key}:{child_mark}'
                 data.append(dict(id=user.get('id'), is_node=False, key=key,
                                  parent_key=parent_key,open=False,value=user.get('username')))
+            print(data)
             return jsonify(trueReturn(data))
         query_set = Groups.select()
         data = json.loads(GroupSerializer(many=True).dumps(query_set).data)
@@ -176,38 +190,36 @@ class UserLogin(Resource):
             .parse_args()
         username = args.get('username');password = args.get('password')
         if args.get('is_ldap_login'):
-            ldapuser = ldap_conn.search_s(config.get('LDAP','BASE_DN'), ldap.SCOPE_SUBTREE, f'(uid={username})')
-            if len(ldapuser) == 1 :
-                mail = ldapuser[0][1]['mail'][0];userpass = ldapuser[0][1]['userPassword'][0]
-                phone = ldapuser[0][1]['telephoneNumber'][0];groupname = ldapuser[0][0].split(',')[1].split('=')[1]
-                userinfo = {
-                    'username':username,'is_ldap_user':True,
-                    'mail':mail.decode() if isinstance(mail,bytes) else mail,
-                    'phone':phone.decode() if isinstance(phone,bytes) else phone
-                }
-                if isinstance(userpass,bytes): userpass = userpass.decode()
-                if userpass == password:
-                    user = User.select().where(User.username == username).first()
-                    if not user :
-                        userinfo['password'] = encryption_md5(userpass)
-                        user = User.create(**userinfo)
-                    group = Groups.select().where(Groups.value == groupname).first()
-                    if group:
-                        user_group = user.group.select().where(Groups.value == groupname)
-                        if user_group.count() == 0:user.group.add(group.id)
-                    else:
-                        ROOT = Groups.root(); group = Groups.create(value=groupname,key=0)
-                        group.parent = ROOT; group.save()
-                        user.group.add(group.id)
-                    OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
-                    remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
-                    UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),login_ip=remote_addr)
-                    token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
-                    return jsonify(trueReturn(dict(token=token.decode() if isinstance(token, bytes) else token)))
-                else:
-                    return jsonify(falseReturn(msg='password is invalid!'))
-            else:
+            ldapuser = ldapconn.ldap_search_user(username)
+            if not ldapuser :
                 return jsonify(falseReturn(msg='username is not exist!'))
+            userpass = ldapuser['userPassword']
+            groupname = ldapuser['groupname']
+            userinfo = {
+                'username':username,'is_ldap_user':True,
+                'mail':ldapuser['mail'],
+                'phone':ldapuser['telephoneNumber']
+            }
+            if userpass == password:
+                user = User.select().where(User.username == username).first()
+                if not user :
+                    userinfo['password'] = encryption_md5(userpass)
+                    user = User.create(**userinfo)
+                group = Groups.select().where(Groups.value == groupname).first()
+                if group:
+                    user_group = user.group.select().where(Groups.value == groupname)
+                    if user_group.count() == 0:user.group.add(group.id)
+                else:
+                    ROOT = Groups.root(); group = Groups.create(value=groupname,key=0)
+                    group.parent = ROOT; group.save()
+                    user.group.add(group.id)
+                OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
+                remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
+                UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),login_ip=remote_addr)
+                token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
+                return jsonify(trueReturn(dict(token=token.decode() if isinstance(token, bytes) else token)))
+            else:
+                return jsonify(falseReturn(msg='password is invalid!'))
         else:
             user = User.select().where((User.email == username)|(User.username == username)).first()
             if user and user.verify_password(password):

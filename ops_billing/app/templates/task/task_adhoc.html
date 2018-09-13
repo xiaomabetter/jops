@@ -84,9 +84,8 @@ $(document).ready(function () {
         });
         $("#asset_list_modal").modal('hide');
 }).on('click', '#submit_button', function () {
-    $('#stdout_result').html('等待....');
+    $('#stdout_result').html('等待。。。。');
     var success = function(result) {
-        console.log(result);
         $('#run_result_modal').modal()
         if (result.data.ismodule) {
             $.each(result.data.taskid, function (key, task_id) {
@@ -134,7 +133,7 @@ function get_ansible_module_result(taskid) {
             if (result['status']) {
                 var json_data = JSON.stringify(result['data']);
                 json_data = json_data.replace(/\\n/g,"\t\n");
-                $('#stdout_result').html(json_data);
+                $('#stdout_result').append(json_data);
             } else {
                 setTimeout(function () {
                     get_ansible_module_result(taskid);

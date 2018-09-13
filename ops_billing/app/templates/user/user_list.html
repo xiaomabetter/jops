@@ -112,10 +112,11 @@ function OnRightClick(event, treeId, treeNode) {
     } else {
         $('#m_create').removeClass('hidden');
     }
-    if (!treeNode && event.target.tagName.toLowerCase() !== "button" && $(event.target).parents("a").length === 0) {
+    if (!treeNode && event.target.tagName.toLowerCase() !== "button" &&
+                                $(event.target).parents("a").length === 0 && treeNode.isParent) {
 		zTree.cancelSelectedNode();
 		showRMenu("root", event.clientX, event.clientY);
-	} else if (treeNode && !treeNode.noR) {
+	} else if (treeNode && !treeNode.noR && treeNode.isParent) {
 		zTree.selectNode(treeNode);
 		showRMenu("node", event.clientX, event.clientY);
 	}
@@ -304,7 +305,13 @@ function initTable() {
                 }
              }},
              {targets: 6, createdCell: function (td, cellData, rowData) {
-                var ban_btn = '<a class="btn btn-xs m-l-xs btn-warning btn-forbid" data-uid="PK">禁用</a>'.replace('PK', cellData);
+                if (rowData.is_active) {
+                    var action = '禁用';
+                } else {
+                    var action = '激活';
+                }
+                var ban_btn = '<a class="btn btn-xs m-l-xs btn-warning btn-forbid" data-uid="PK">ACTION</a>'.replace('PK', cellData);
+                ban_btn = ban_btn.replace('ACTION',action);
                 var del_btn = '<a class="btn btn-xs btn-danger m-l-xs btn-del" data-uid="PK">删除</a>'.replace('PK', cellData);
                 $(td).html(ban_btn + del_btn);
              }},
