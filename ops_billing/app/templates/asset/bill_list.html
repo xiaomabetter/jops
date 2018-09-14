@@ -72,6 +72,7 @@
 <script src="{{ url_for('static', filename='js/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
 <script src="{{ url_for('static', filename='js/plugins/honeySwitch/bootstrap-select.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/loadingoverlay.min.js') }}"></script>
 <script>
 $(document).ready(function() {
     $('table').DataTable({
@@ -94,30 +95,6 @@ $(document).ready(function() {
     });
     initTree();
 })
-
-$("#sync_aly_bill").on("click",function(){
-    $('#sync-bill-modal').modal();
-})
-
-$("#submit_button").on("click",function(){
-   $('#run_task').ajaxSubmit(
-        {
-            url: "{{ url_for('task-api.aly-sync-task') }}",
-            type: 'post',
-            dataType: 'json',
-            success: function (result) {
-                if (result['status']) {
-                    $('#stdout_result').empty();
-                    $('#stdout_result').text('等待....');
-                } else {
-                    toastr.error(result['msg']);
-                }
-            },
-            clearForm: false,
-            resetForm: false
-        })
-});
-
 
 function initTree() {
     var setting = {
@@ -232,6 +209,56 @@ function beforeDrag() {
 function onSelected(event, treeNode) {
     $("input[name='nodeid']").val(treeNode.id);
 
+}
+
+$("#sync_aly_bill").on("click",function(){
+   $('#sync-bill-modal').modal('show');
+})
+
+$("#submit_button").on("click",function(){
+   $('#sync-bill-modal').modal('hide');
+   $('#run_task').ajaxSubmit(
+        {
+            url: "{{ url_for('task-api.aly-sync-task') }}",
+            type: 'post',
+            dataType: 'json',
+            success: function (result) {
+                if (result['status']) {
+                    $.LoadingOverlay("show", {
+                        image       : "",
+                        fontawesome : "fa fa-cog fa-spin"
+                    });
+                    get_sync_bill_result(result['data'])
+                } else {
+                    toastr.error(result['msg']);
+                }
+            },
+            error:function (XmlHttpRequest, textStatus, errorThrown) {
+                error_msg = JSON.stringify(XmlHttpRequest.responseJSON.message);
+                toastr.error(error_msg);
+            },
+            clearForm: false,
+            resetForm: false
+        })
+});
+
+function get_sync_bill_result(taskid) {
+    $.ajax({
+        url: "{{ url_for('task-api.task_api',taskid='PK') }}".replace('PK',taskid),
+        type: "GET",
+        success: function (result) {
+        if (result['status']) {
+            $.LoadingOverlay("hide");
+            if (result['data']['status'] === 'SUCCESS') {
+                toastr.success('费用同步成功');
+            } else {
+                toastr.error('费用同步失败');
+            }
+        } else {
+            setTimeout(function () {
+                get_sync_bill_result(taskid);
+            }, 2000);
+        }}})
 }
 
 </script>

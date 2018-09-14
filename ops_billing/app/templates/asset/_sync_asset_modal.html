@@ -1,6 +1,6 @@
 <style>
 .modal-body-1 {
-    padding: 10px 10px 10px 10px;
+    padding: 20px 10px 10px 10px;
 }
 </style>
 
@@ -11,15 +11,15 @@
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title">同步资产...</h4>
       </div>
-      <div class="modal-body">
+      <div class="modal-body-1">
         <div>
-            <form  method="post" id="run_task" class="form-horizontal" autocomplete="off" enctype="multipart/form-data" action="" >
+            <form  method="post" id="run_sync_asset_task" class="form-horizontal" autocomplete="off" enctype="multipart/form-data" action="" >
                 <div class="form-group">
                     <div class="col-md-8 hidden">
                         <input class="form-control" name="task_name" placeholder="任务名称" type="text" value="syncasset">
                     </div>
-                    <label class="col-md-2 control-label" for="asset_type">资产类型</label>
-                    <div class="col-md-8">
+                    <label class="col-md-4 control-label" for="asset_type">选择同步的资产类型</label>
+                    <div class="col-md-6">
                         <select class="form-control select2" data-placeholder="资产类型" id="asset_type" name="asset_type">
                             <option value="ecs">ecs</option>
                             <option value="slb">slb</option>

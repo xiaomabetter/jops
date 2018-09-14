@@ -41,6 +41,7 @@
 {% block custom_foot_js %}
 <script src="{{ url_for('static', filename='js/plugins/select2/select2.full.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/loadingoverlay.min.js') }}"></script>
 <script>
 var zonesdata = JSON.parse({{Zones|tojson}});
 var PublicIpAddress = '#'+'PublicIpAddress';
@@ -100,11 +101,13 @@ $(document).ready(function () {
         dataType: 'json',
         success: function (data) {
             if (data['status']) {
-                toastr.success(data['msg'])
-                $("#progress_trend").removeClass("progress-bar-danger");
-                $('#create_progress').modal();
-                var taskid = data['data']
-                get_create_asset_result(taskid,2);
+                $.LoadingOverlay("show", {
+                    image       : "",
+                    progress    : true,
+                    progressColor:'#87CEFA',
+                    progressFixedPosition:''
+                });
+                get_create_asset_result(data['data'],2);
             } else {
                 toastr.error(data['msg'])
             }
@@ -118,27 +121,27 @@ $(document).ready(function () {
     })
 });
 
-function get_create_asset_result(taskid,p) {
-    $("#progress_trend").css("width", p + "%");
-    p += 1.5;
+function get_create_asset_result(taskid,count) {
+    count += 1.5;
+    $.LoadingOverlay("progress", count);
     $.ajax({
         url: "{{ url_for('task-api.task_api',taskid='PK') }}".replace('PK',taskid),
         type: "GET",
         success: function (result) {
         if (result['status']) {
+            console.log(11111111);
+            $.LoadingOverlay("hide");
             if (result['data']['status'] === 'SUCCESS') {
-                $("#progress_trend").css("width","100%");
-                $("#progress_title").text("机器创建成功")
+                toastr.success("机器创建成功")
             } else {
-                $("#progress_trend").addClass("progress-bar-danger");
-                $("#progress_title").text("机器创建失败")
-                $('#stdout_hidden').removeClass('hidden');
+                toastr.error("机器创建失败")
+                $('#create_progress').modal('show');
                 $('#stdout_result').text(JSON.stringify(result['data']));
             }
 
         } else {
             setTimeout(function () {
-                get_create_asset_result(taskid,p);
+                get_create_asset_result(taskid,count);
             }, 2000);
         }}})
 }

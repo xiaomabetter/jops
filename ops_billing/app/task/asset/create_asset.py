@@ -31,7 +31,8 @@ class Aly_Create_Asset(object):
         if template_data.get('DataDiskinfo'):
             DataDiskinfo = list(json.loads(template_data['DataDiskinfo']))
             for dataDisk in DataDiskinfo:
-                params = dict(params, **dataDisk)
+                if dataDisk.get('DataDisk.1.Size') > 0:
+                    params = dict(params, **dataDisk)
         if self.amount > 1 :
             params['UniqueSuffix'] = True
         if template_data['IoOptimized']:

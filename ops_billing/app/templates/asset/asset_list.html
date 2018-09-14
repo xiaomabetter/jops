@@ -121,7 +121,8 @@
 {% block custom_foot_js %}
 <script src="{{ url_for('static', filename='js/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
 <script src="{{ url_for('static', filename='js/plugins/honeySwitch/bootstrap-select.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
+<script src="{{ url_for('static', filename='js/loadingoverlay.min.js') }}"></script>
+
 <script>
 var zTree,zTree3, rMenu, asset_table, show = 0,asset_type="{{asset_type}}";
 var init_table_url = "{{ url_for('assets-api.assets_api') }}";
@@ -561,27 +562,54 @@ $(document).ready(function(){
     asset_table.ajax.reload();
 })
 $("#sync_aly_asset").on("click",function(){
-    $('#sync-asset-modal').modal();
+    $('#sync-asset-modal').modal('show');
 })
 
 $("#submit_button").on("click",function(){
-   $('#run_task').ajaxSubmit(
+   $('#sync-asset-modal').modal('hide')
+   $('#run_sync_asset_task').ajaxSubmit(
         {
             url: "{{ url_for('task-api.aly-sync-task') }}",
             type: 'post',
             dataType: 'json',
             success: function (result) {
                 if (result['status']) {
-                    $('#stdout_result').empty();
-                    $('#stdout_result').text('等待....');
+                    $.LoadingOverlay("show", {
+                        image       : "",
+                        fontawesome : "fa fa-cog fa-spin"
+                    });
+                    get_sync_asset_result(result['data'])
                 } else {
                     toastr.error(result['msg']);
                 }
+            },
+            error:function (XmlHttpRequest, textStatus, errorThrown) {
+                error_msg = JSON.stringify(XmlHttpRequest.responseJSON.message);
+                toastr.error(error_msg);
             },
             clearForm: false,
             resetForm: false
         })
 });
+
+function get_sync_asset_result(taskid) {
+    $.ajax({
+        url: "{{ url_for('task-api.task_api',taskid='PK') }}".replace('PK',taskid),
+        type: "GET",
+        success: function (result) {
+        if (result['status']) {
+            $.LoadingOverlay("hide");
+            if (result['data']['status'] === 'SUCCESS') {
+                toastr.success('资产同步成功');
+            } else {
+                toastr.error('资产同步失败');
+            }
+        } else {
+            setTimeout(function () {
+                get_sync_asset_result(taskid);
+            }, 2000);
+        }}})
+}
 </script>
 
 {% endblock %}

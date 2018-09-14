@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
+from playhouse.flask_utils import FlaskDB
 from app import create_app
 from app.asset.api import *
 from app.perm.api import *
 from app.user.api import *
 from app.task.api import *
 from flask_restful import Api
+from app.models.base import db
 import os
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 api = Api(app)
+FlaskDB(app, db)
 #asset
 api.add_resource(AssetsApi,'/api/asset/v1/assets',endpoint = 'assets-api.assets_api')
 api.add_resource(AssetApi,'/api/asset/v1/asset/<assetid>',endpoint = 'assets-api.asset_api')
@@ -49,7 +52,6 @@ api.add_resource(GroupsApi,'/api/v1/group/groups',endpoint = 'user-api.groups_ap
 api.add_resource(GroupApi,'/api/v1/group/<groupid>',endpoint = 'user-api.group_api')
 api.add_resource(UserLogin,'/api/user/v1/token',endpoint = 'user-api.user-login-api')
 #task
-api.add_resource(TasksApi,'/api/task/v1/tasks',endpoint = 'task-api.tasks_api')
 api.add_resource(TaskApi,'/api/task/v1/task/<taskid>',endpoint = 'task-api.task_api')
 api.add_resource(AlySyncApi,'/api/task/v1/alysync',endpoint = 'task-api.aly-sync-task')
 api.add_resource(TaskAnsRunApi,'/api/task/v1/ansible/run',endpoint = 'task-api.task_ansrun_api')

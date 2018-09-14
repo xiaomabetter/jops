@@ -1,4 +1,4 @@
-from flask import render_template, redirect,request,make_response,url_for
+from flask import render_template,flash,redirect,request,make_response,url_for
 from app.models import User,User_Group,Groups,OpsRedis,UserLoginLog
 from . import user
 from app.auth import Auth
@@ -20,8 +20,14 @@ def auth_login():
         is_ldap_login = request.form.get('is_ldap_login',False)
         success = make_response(redirect(url_for('asset.asset_list', asset_type='ecs')))
         if is_ldap_login:
+            try:
+                ldapconn.ldapconn.open();ldapconn.ldapconn.bind()
+            except :
+                flash(message='ldap连接异常', category='error')
+                return response
             ldapuser = ldapconn.ldap_search_user(username)
             if not ldapuser :
+                flash(message='ldapuser不存在',category='error')
                 return response
             userpass = ldapuser['userPassword'];groupname = ldapuser['groupname']
             userinfo = {'username':username,'is_ldap_user':True,
@@ -41,11 +47,13 @@ def auth_login():
                     if user_group.count() == 0:user.group.add(group.id)
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
-                UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),login_ip=remote_addr)
+                UserLoginLog.create(username=user.username,login_at=datetime.datetime.now(),
+                                    login_ip=remote_addr)
                 token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
                 success.set_cookie('access_token', token.decode() if isinstance(token, bytes) else token)
                 return success
             else:
+                flash(message='密码不正确', category='error')
                 return response
         else:
             user = User.select().where((User.email == username) | (User.username == username)).first()

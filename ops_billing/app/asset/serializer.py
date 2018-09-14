@@ -80,7 +80,7 @@ class AssetCreateTemplateSerializer(Schema):
     id = fields.Function(lambda obj: obj.id.hex)
     RegionId = fields.String(required=True)
     ZoneId = fields.String(required=True)
-    ImageId = fields.Function(lambda obj:'{0}-join-{1}'.format(obj.ImageId,obj.RegionId),required=True)
+    ImageId = fields.String(required=True)
     InstanceNetworkType = fields.String(required=True)
     instance_type = fields.String(validate=lambda s:' ' not in s,required=True)
     SystemDiskCategory = fields.String(required=True)

@@ -114,7 +114,7 @@ class User(BaseModel):
         })
 
 class UserLoginLog(BaseModel):
-    user = ForeignKeyField(User,backref='loginlog')
+    username = CharField(max_length=128,null=True)
     login_at = DateTimeField(null=True)
     login_ip = CharField(max_length=128,null=True)
 

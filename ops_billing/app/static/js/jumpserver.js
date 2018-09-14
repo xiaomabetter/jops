@@ -212,13 +212,14 @@ function APIUpdateAttr(props) {
         contentType: props.content_type || "application/json; charset=utf-8",
         dataType: props.data_type || "json"
     }).done(function(data, textStatue, jqXHR) {
+        console.log(data);
         if (typeof props.success === 'function') {
            return props.success(data);
         } else if (data['status']) {
             toastr.success(data['msg']);
-        }else if ( data['status'] === 'false') {
+        } else if ( data['status'] == false) {
             toastr.error(data['msg']);
-        } else if (flash_message) {
+        } else  {
             toastr.success(success_message);
         }
     }).fail(function(jqXHR, textStatus, errorThrown) {

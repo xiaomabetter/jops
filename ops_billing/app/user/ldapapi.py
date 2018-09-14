@@ -1,25 +1,23 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-import ldap3
-from ldap3 import Server, Connection, ALL,SUBTREE,ALL_ATTRIBUTES,\
-                MODIFY_ADD,MODIFY_REPLACE,MODIFY_DELETE
+from ldap3 import Server, Connection, ALL,SUBTREE,ALL_ATTRIBUTES,MODIFY_REPLACE
 from ldap3.abstract.entry import Entry
 import json
-#from app import config
-import ldap.modlist as modlist
-#from app import get_logger
-import logging
-#logger = get_logger(__name__)
-logger = logging.getLogger(__name__)
+from app import config
+from app import get_logger
+logger = get_logger(__name__)
+
+LDAP_SERVER = config.get('LDAP','LDAP_SERVER')
+BASE_DN = config.get('LDAP','BASE_DN')
+ROOT_DN = config.get('LDAP','ROOT_DN')
+ROOT_DN_PASS = config.get('LDAP','ROOT_DN_PASS')
 
 class LDAPTool(object):
-    def __init__(self,ldap_uri=None,base_dn=None,manager=None,password=None):
-        self.manager = manager
+    def __init__(self,ldap_uri=None,base_dn=None,manager_dn=None,password=None):
+        self.manager_dn = manager_dn
         self.password = password
         self.base_dn = base_dn
         server =  Server(ldap_uri,get_info=ALL)
         try:
-            self.ldapconn = Connection(server,f'cn={manager},{self.base_dn}',self.password,auto_bind=True)
+            self.ldapconn = Connection(server,self.manager_dn,self.password,auto_bind=True)
         except Exception as e:
             logger.error('ldap conn失败，原因为: %s' % str(e))
 
@@ -47,8 +45,9 @@ class LDAPTool(object):
 
     def ldap_add_user(self, ou,username, password,email=None,telephoneNumber=None):
         attributes = {'objectClass': ['inetOrgPerson'],'cn':username,'sn':username}
+        attributes['userPassword'] = password
         if email:
-            attributes['mail'] = [f'{email}']
+            attributes['mail'] = f'{email}'
         elif telephoneNumber:
             attributes['telephoneNumber'] = [f'{telephoneNumber}']
         result = self.ldapconn.add(f'uid={username},ou={ou},{self.base_dn}',attributes=attributes)
@@ -68,19 +67,19 @@ class LDAPTool(object):
         try:
             if new_password:
                 self.ldapconn.modify(f'uid={username},ou={ou},{self.base_dn}',
-                                          {'userPassword':[(MODIFY_REPLACE,[new_password])]})
+                                          {'userPassword':[(MODIFY_REPLACE,f'{new_password}')]})
             elif mail:
                 self.ldapconn.modify(f'uid={username},ou={ou},{self.base_dn}',
-                                          {'mail':[(MODIFY_REPLACE,[mail])]})
+                                          {'mail':[(MODIFY_REPLACE,f'{mail}')]})
             elif telephoneNumber:
                 self.ldapconn.modify(f'uid={username},ou={ou},{self.base_dn}',
-                                          {'telephoneNumber':[(MODIFY_REPLACE,[telephoneNumber])]})
+                                          {'telephoneNumber':[(MODIFY_REPLACE,[f'{telephoneNumber}'])]})
             return True
         except Exception as e:
-            logger.error("%s 密码更新失败，原因为: %s" % (username, str(e)))
+            logger.error("%s 更新失败，原因为: %s" % (username, str(e)))
             return False
 
-ldapconn = LDAPTool('ldap://123.56.239.63:389', 'dc=easemob,dc=com', 'Manager', 'Easemob.')
+ldapconn = LDAPTool(LDAP_SERVER, BASE_DN, ROOT_DN, ROOT_DN_PASS)
 
 # for test
 def main():

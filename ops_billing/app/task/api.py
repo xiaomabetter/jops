@@ -2,7 +2,7 @@ from app import get_logger,config
 from flask import jsonify
 from flask_restful import Resource,reqparse
 from app.utils import get_usertoken_from_cookies
-from app.auth import login_required
+from app.auth import login_required,get_login_user
 from app.utils import falseReturn,trueReturn
 from app.models import OpsCeleryRedis,User,Tasks
 from .serializer import TasksSerializer
@@ -16,25 +16,7 @@ import json
 
 logger = get_logger(__name__)
 
-__all__ = ['TasksApi','TaskApi','AlySyncApi','TaskAnsRunApi']
-
-class TasksApi(Resource):
-    @login_required
-    def get(self):
-        tasks = Tasks.select()
-        data = json.loads(TasksSerializer(many=True).dumps(tasks).data)
-        return jsonify(trueReturn(data))
-
-    @login_required
-    def post(self):
-        args = reqparse.RequestParser()\
-            .add_argument('taskname', type=str, location=['json','form'],required=True) \
-            .add_argument('comment', type=str, location=['json','form']).parse_args()
-        data,errors = TasksSerializer().load(args)
-        if errors:
-            return jsonify(falseReturn(msg='创建失败'))
-        Tasks.create(taskname=args.get('taskname'),comment=args.get('comment'))
-        return jsonify(trueReturn(msg='创建成功'))
+__all__ = ['TaskApi','AlySyncApi','TaskAnsRunApi']
 
 class TaskApi(Resource):
     @login_required
@@ -80,9 +62,7 @@ class AlySyncApi(Resource):
         elif task_name == 'syncbill':
             if not args.get('day_from') or not args.get('day_to'):
                 return jsonify(falseReturn(msg=u'确少参数'))
-            user_token = get_usertoken_from_cookies()
-            payload = Auth.decode_auth_token(user_token)
-            user = User.filter(User.id == payload['data']['id'][:32]).get()
+            user = get_login_user()
             username = user.username
             r = run_sync_bill.apply_async([username, args.get('day_from'),args.get('day_to')],queue=default_queue)
         elif task_name == 'sync_instance_types':

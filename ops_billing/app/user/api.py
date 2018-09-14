@@ -24,14 +24,19 @@ class UsersApi(Resource):
                      'email', 'public_key', 'phone')
         for arg in arg_names:
             parse.add_argument(arg,type=str,location='form')
-        parse.add_argument('is_ldap_user',type=bool,location='form')
+        parse.add_argument('is_ldap_user',type=bool,default=False,location='form')
         parse.add_argument('password', type=str,required=True,location='form')
         args = parse.add_argument('groups', type=str,action='append', location='form').parse_args()
+        print(args)
         data,errors = UserSerializer().load(args)
         if errors:
             return jsonify(falseReturn(msg='提交数据验证失败 %s' % errors))
         if args.get('is_ldap_user'):
             ou = Groups.select().where(Groups.id == args.get('groups')[0]).get()
+            try:
+                ldapconn.ldapconn.open();ldapconn.ldapconn.bind()
+            except :
+                return falseReturn(msg=u'ldap连接异常')
             ldapconn.ldap_add_user(ou=ou.value,username=args.get('username'),
                                    password=args.get('password'),email=args.get('email'),
                                    telephoneNumber=args.get('phone'))
@@ -64,6 +69,14 @@ class UserApi(Resource):
             return jsonify(falseReturn(msg='提交数据验证失败 %s' % errors))
         if args.get('password') :
             data['password'] = encryption_md5(args.get('password'))
+        if user.is_ldap_user:
+            ou = user.group.get().value
+            try:
+                ldapconn.ldapconn.open();ldapconn.ldapconn.bind()
+            except :
+                return falseReturn(msg=u'ldap连接异常')
+            ldapconn.ldap_update_user(username=user.username,ou=ou,new_password=args.get('password'),
+                                      mail=args.get('email'),telephoneNumber=args.get('phone'))
         User.update(**data).where(User.id == userid).execute()
         if args.get('groups') :
             groups = [uuid.UUID(g).hex for g in args.get('groups')]
@@ -79,13 +92,11 @@ class UserApi(Resource):
     @adminuser_required
     def delete(self,userid):
         user = User.select().where(User.id == userid).get()
-        user.group.clear()
-        user.asset_permissions.clear()
         if user.is_ldap_user:
             ou = user.group.get().value
-            print(ou)
-            r = ldapconn.ldap_delete_user(ou=ou,username=user.username)
-            print(r)
+            ldapconn.ldap_delete_user(ou=ou,username=user.username)
+        user.group.clear()
+        user.asset_permissions.clear()
         User.delete().where(User.id == userid).execute()
         return jsonify(trueReturn(msg='删除成功'))
 
@@ -94,6 +105,7 @@ class UserApi(Resource):
     def patch(self,userid):
         user = User.select().where(User.id == userid).get()
         if user.is_active:
+            OpsRedis.delete(userid)
             user.is_active = False;msg = '禁用成功'
         else:
             user.is_active = True;msg = '激活成功'
@@ -116,7 +128,6 @@ class GroupsApi(Resource):
                 key = f'{parent_key}:{child_mark}'
                 data.append(dict(id=user.get('id'), is_node=False, key=key,
                                  parent_key=parent_key,open=False,value=user.get('username')))
-            print(data)
             return jsonify(trueReturn(data))
         query_set = Groups.select()
         data = json.loads(GroupSerializer(many=True).dumps(query_set).data)
@@ -190,6 +201,10 @@ class UserLogin(Resource):
             .parse_args()
         username = args.get('username');password = args.get('password')
         if args.get('is_ldap_login'):
+            try:
+                ldapconn.ldapconn.open();ldapconn.ldapconn.bind()
+            except :
+                return falseReturn(msg=u'ldap连接异常')
             ldapuser = ldapconn.ldap_search_user(username)
             if not ldapuser :
                 return jsonify(falseReturn(msg='username is not exist!'))
@@ -215,7 +230,8 @@ class UserLogin(Resource):
                     user.group.add(group.id)
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
-                UserLoginLog.create(user_id=user.id,login_at=datetime.datetime.now(),login_ip=remote_addr)
+                UserLoginLog.create(username=user.username,login_at=datetime.datetime.now(),
+                                    login_ip=remote_addr)
                 token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
                 return jsonify(trueReturn(dict(token=token.decode() if isinstance(token, bytes) else token)))
             else:

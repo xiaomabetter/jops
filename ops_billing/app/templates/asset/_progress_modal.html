@@ -3,8 +3,9 @@
     padding: 10px 10px 10px 10px;
 }
 .test_box {
-    min-height: 200px;
-    max-height: 200px;
+    min-height: 250px;
+    max-height: 250px;
+    height:100%;
     margin-left: auto;
     margin-right: auto;
     padding: 4px;
@@ -13,7 +14,7 @@
     font-size: 12px;
     word-wrap: break-word;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: scroll;
     /*white-space:pre;*/
     white-space: pre-line;
     font-family: "Bitstream Vera Sans Mono", Monaco, "Courier New", Courier, monospace;
@@ -26,18 +27,8 @@
 <div class="modal fade" id="create_progress" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
-        <div class="modal-header">
-            <h4 class="modal-title" id="progress_title">机器正在创建中...</h4>
-        </div>
-        <div class="modal-body">
-            <div class="progress" >
-              <div class="progress-bar" id="progress_trend" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                <span class="sr-only" id="span_process">0% Complete</span>
-              </div>
-            </div>
-            <div class="ibox float-e-margins hidden" id="stdout_hidden">
-              <div  class="ibox-content test_box"  id="stdout_result"  style="overflow-y:scroll">
-              </div>
+        <div class="modal-body-1">
+            <div class="ibox float-e-margins test_box" id="stdout_result">
             </div>
         </div>
         <div class="modal-footer">

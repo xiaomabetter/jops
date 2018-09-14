@@ -341,11 +341,13 @@ class TemplateApi(Resource):
                     'SystemDiskCategory','DataDisk.1.Category','ImageId'):
             parse.add_argument(arg,type=str,location=['form','json'])
         for arg in ('SystemDiskSize','DataDisk.1.Size'):
-            parse.add_argument(arg, type=int, location=['form', 'json'])
+            parse.add_argument(arg, type=int, default=0,location=['form', 'json'])
         args = parse.add_argument('SecurityGroupId', type=str, action='append', location=['form', 'json'])\
             .parse_args()
+        print(args)
         data,errors = AssetCreateTemplateSerializer().load(args)
-        if errors:return jsonify(falseReturn(msg=str(errors)))
+        if errors:
+            return jsonify(falseReturn(msg=str(errors)))
         data['ImageId'] = data['ImageId'].split('-join-')[0]
         if not OpsRedis.exists('aly_InstanceTypes'):
             return jsonify(falseReturn(msg='先执行同步aly_InstanceTypes任务'))
@@ -355,7 +357,7 @@ class TemplateApi(Resource):
             data['memory'] = instancetypes[args.get('instance_type')]['MemorySize']
         Asset_Create_Template.update(**data).where(Asset_Create_Template.id == templateid).execute()
         template = Asset_Create_Template.select().where(Asset_Create_Template.id == templateid).get()
-        if args.get('DataDisk.1.Size') and args.get('DataDisk.1.Category'):
+        if args.get('DataDisk.1.Size') >= 0 and args.get('DataDisk.1.Category'):
             template.DataDiskinfo = json.dumps([{
                 'DataDisk.1.Category':args.get('DataDisk.1.Category'),
                 'DataDisk.1.Size': args.get('DataDisk.1.Size')}])
