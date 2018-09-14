@@ -66,7 +66,7 @@ class User(BaseModel):
         ('user','user')
     )
     id = UUIDField(default=uuid.uuid4, primary_key=True)
-    email = CharField(max_length=128,null=True)
+    email = CharField(max_length=128)
     username = CharField(max_length=128,null=True,unique=True)
     password = CharField(max_length=128)
     public_key = TextField(null=True)

@@ -1,4 +1,5 @@
 import ldap
+from app.models.base import db
 from app.models import ldap_conn,User,Groups
 from app.utils.encrypt import encryption_md5
 from app import config
@@ -11,9 +12,12 @@ def sync_ldapusers():
             groupname = info[1].split('=')[1]
             _user  = {
                 'username':info[0].split('=')[1],
-                'password':encryption_md5(ldapuser[1]['userPassword'][0].decode()),
-                'phone':ldapuser[1]['telephoneNumber'][0].decode(),
-                'email':ldapuser[1]['mail'][0].decode(),
+                'password':encryption_md5(ldapuser[1]['userPassword'][0].decode())
+                                                if ldapuser[1].get('userPassword') else '',
+                'phone':ldapuser[1]['telephoneNumber'][0].decode()
+                                                if ldapuser[1].get('telephoneNumber') else '',
+                'email':ldapuser[1]['mail'][0].decode()
+                                                if ldapuser[1].get('mail') else '',
                 'is_ldap_user':True
             }
             user = User.select().where(User.username == _user['username']).first()

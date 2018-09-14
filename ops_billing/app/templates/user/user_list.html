@@ -3,6 +3,7 @@
 <link href="{{ url_for('static', filename='css/plugins/ztree/awesomeStyle/awesome.css') }}" rel="stylesheet">
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/ztree/jquery.ztree.all.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/loadingoverlay.min.js') }}"></script>
 <style type="text/css">
     div#rMenu {
         position:absolute;
@@ -356,8 +357,38 @@ $(document).ready(function(){
         'url': "{{ url_for('task-api.aly-sync-task') }}",
         'method': 'POST',
         'body': JSON.stringify({'task_name':'sync_ldapusers'}),
-        'success': success
+        'success': sync_success
     })
 });
+
+function sync_success(result){
+    if (result['status']) {
+        $.LoadingOverlay("show", {
+            image       : "",
+            fontawesome : "fa fa-cog fa-spin"
+        });
+        sync_ldapuser(result['data'])
+    } else {
+        toastr.error(result['msg']);
+    }
+}
+function sync_ldapuser(taskid) {
+    $.ajax({
+        url: "{{ url_for('task-api.task_api',taskid='PK') }}".replace('PK',taskid),
+        type: "GET",
+        success: function (result) {
+        if (result['status']) {
+            $.LoadingOverlay("hide");
+            if (result['data']['status'] === 'SUCCESS') {
+                toastr.success('同步成功');
+            } else {
+                toastr.error('同步失败');
+            }
+        } else {
+            setTimeout(function () {
+                sync_ldapuser(taskid);
+            }, 2000);
+        }}})
+}
 </script>
 {% endblock %}

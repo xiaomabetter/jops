@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from peewee import MySQLDatabase, Model
+from playhouse.db_url import connect
 from celery import Celery,platforms
 from app import global_config
 import json,ldap
@@ -16,8 +17,12 @@ pool1 = ConnectionPool(host=config.get('DEFAULT','REDIS_HOST'), port=config.get(
 OpsRedis = Redis(connection_pool=pool0)
 OpsCeleryRedis = Redis(connection_pool=pool1)
 
-db = MySQLDatabase(host=config.get('DEFAULT','DB_HOST'), user=config.get('DEFAULT','DB_USER'),
-                passwd=config.get('DEFAULT','DB_PASSWD'),database=config.get('DEFAULT','DB_DATABASE'))
+
+url = 'mysql+pool://{0}:{1}@{2}:{3}/{4}?charset=utf8&max_connections=20&stale_timeout=300'.format(
+                            config.get('DEFAULT','DB_USER'),config.get('DEFAULT','DB_PASSWD'),
+                            config.get('DEFAULT','DB_HOST'),config.get('DEFAULT','DB_PORT'),
+                            config.get('DEFAULT','DB_DATABASE'))
+db = connect(url=url)
 
 def LdapConnection():
     conn = ldap.initialize(config.get('LDAP','LDAP_SERVER'))
@@ -37,7 +42,10 @@ def initcelery():
 
 class BaseModel(Model):
     class Meta:
-        database = db
+        try:
+            database = db
+        except :
+            db.connect()
 
     def __str__(self):
         r = {}
