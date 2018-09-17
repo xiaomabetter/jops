@@ -237,3 +237,4 @@ class SyncAliAssets(object):
         for i,item in enumerate(asset_list):
             if item['InstanceId'] not in [asset['InstanceId'] for asset in new_asset_list]:
                 new_asset_list.append(item)
+        return new_asset_list

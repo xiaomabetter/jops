@@ -53,6 +53,10 @@ class LDAPTool(object):
         result = self.ldapconn.add(f'uid={username},ou={ou},{self.base_dn}',attributes=attributes)
         return result
 
+    def ldap_add_ou(self, ou):
+        result = self.ldapconn.add(f'ou={ou},{self.base_dn}')
+        return result
+
     def ldap_delete_user(self, ou,username):
         try:
             result = self.ldapconn.delete(f'uid={username},ou={ou},{self.base_dn}')

@@ -51,14 +51,12 @@ def asset_create_template_list():
 @login_required
 def asset_create_template_update(templateid):
     template = Asset_Create_Template.select().where(Asset_Create_Template.id == templateid)
-    data = dict(json.loads(AssetCreateTemplateSerializer(many=True).dumps(template).data)[0])
-    if data['DataDiskinfo']:
-        DataDiskinfo = list(json.loads(data['DataDiskinfo']))
+    templatedata = dict(json.loads(AssetCreateTemplateSerializer(many=True).dumps(template).data)[0])
+    if templatedata['DataDiskinfo']:
+        DataDiskinfo = list(json.loads(templatedata['DataDiskinfo']))
         for dataDisk in DataDiskinfo:
-            data = dict(data,**dataDisk)
-    data['ImageId'] = '{0}-join-{1}'.format(data['ImageId'],data['RegionId'])
-    templatedata = data
-    print(data)
+            data = dict(templatedata,**dataDisk)
+    templatedata['ImageId'] = '{0}-join-{1}'.format(templatedata['ImageId'],templatedata['RegionId'])
     form = Aly_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template_update.html',**locals())
