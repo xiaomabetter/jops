@@ -166,7 +166,6 @@ class GroupApi(Resource):
         args = reqparse.RequestParser() \
             .add_argument('is_ldap_group', type=bool, location=['form','json'], required=True) \
             .add_argument('value', location='json').parse_args()
-        print(args)
         instance = Groups.filter(Groups.id == groupid).first()
         value = args.get('value')  or "新节点"
         value = "{} {}".format(value,Groups.root().get_next_child_key().split(":")[-1])
@@ -202,7 +201,7 @@ class GroupApi(Resource):
         if errors:
             return jsonify(falseReturn(msg=str(errors)))
         group = Groups.select().where(Groups.id == groupid).get()
-        if args.get('value') and args.get('value') != group.value:
+        if args.get('value') and args.get('value') != group.value and group.is_ldap_group:
             if not ldapconn.ldap_modify_ou(group.value,data.get('value')):
                 return jsonify(falseReturn(msg=ldapconn.gather_result()))
         Groups.update(**data).where(Groups.id == groupid).execute()
