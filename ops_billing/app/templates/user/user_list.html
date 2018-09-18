@@ -85,7 +85,8 @@
 <div id="rMenu">
     <ul class="dropdown-menu">
         <li class="divider"></li>
-        <li id="m_create" tabindex="-1" onclick="addTreeNode();"><a><i class="fa fa-plus-square-o"></i>添加用户组</a></li>
+        <li id="m_create" tabindex="-1" onclick="addTreeNode(false);"><a><i class="fa fa-plus-square-o"></i>添加用户组</a></li>
+        <li id="m_create_ldap" tabindex="-1" onclick="addTreeNode(true);"><a><i class="fa fa-plus-square-o"></i>添加LDAP用户组</a></li>
         <li id="m_rename" tabindex="-1" onclick="editTreeNode();"><a><i class="fa fa-pencil-square-o"></i>重命名用户组</a></li>
         <li id="m_del" tabindex="-1" onclick="deleteTreeNode();"><a><i class="fa fa-minus-square"></i>删除用户组</a></li>
     </ul>
@@ -110,8 +111,10 @@ function onSelected(event, treeNode) {
 function OnRightClick(event, treeId, treeNode) {
     if (treeNode.id !== "0") {
         $('#m_create').addClass('hidden');
+        $('#m_create_ldap').addClass('hidden');
     } else {
         $('#m_create').removeClass('hidden');
+        $('#m_create_ldap').removeClass('hidden');
     }
     if (!treeNode && event.target.tagName.toLowerCase() !== "button" &&
                                 $(event.target).parents("a").length === 0 && treeNode.isParent) {
@@ -167,7 +170,12 @@ function editTreeNode() {
     zTree.editName(current_node);
 }
 
-function addTreeNode() {
+function addTreeNode(is_ldap_group) {
+    if (is_ldap_group == true) {
+        var is_ldap_group = true
+    } else {
+        var is_ldap_group = false;
+    }
 	var parentNode = zTree.getSelectedNodes()[0];
 	if (!parentNode){return}
     function success(result) {
@@ -190,7 +198,7 @@ function addTreeNode() {
     APIUpdateAttr({
         url: "{{ url_for('user-api.group_api',groupid='PK') }}".replace('PK',parentNode.node_id),
         method: "POST",
-        body:JSON.stringify({'value':''}),
+        body:JSON.stringify({'value':'','is_ldap_group':is_ldap_group}),
         success:success
     })
 }

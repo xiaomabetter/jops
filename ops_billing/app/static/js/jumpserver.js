@@ -457,7 +457,7 @@ jumpserver.initServerSideDataTable = function (options) {
             selector: 'td:first-child'
       };
   var table = ele.DataTable({
-        pageLength: options.pageLength || 11,
+        pageLength: options.pageLength || 10,
         dom: options.dom || '<"#uc.pull-left">flt<"row m-t"<"col-md-8"<"#op.col-md-6"><"col-md-6 text-center"i>><"col-md-4"p>>',
         order: options.order || [],
         // select: options.select || 'multi',

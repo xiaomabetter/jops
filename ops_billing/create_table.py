@@ -7,7 +7,7 @@ def create_table():
         SystemUser,Asset_Create_Template,
         AssetPermission,AssetPerm_Assets,AssetPerm_Nodes,AssetPerm_SystemUser,AssetPerm_Users,AssetPerm_Groups,
         Groups, User_Group,User,UserLoginLog,
-        SyncBillInfo,Tasks
+        Sync_Bill_History,Tasks
     ]
     db.create_tables(create_tables)
 

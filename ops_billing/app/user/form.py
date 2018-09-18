@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField,PasswordField,SelectMultipleField,BooleanField
+from wtforms import StringField, TextAreaField,PasswordField,SelectMultipleField,BooleanField,SelectField
 from wtforms.widgets import TextInput,CheckboxInput
 from wtforms.validators import DataRequired
 from app.models import Groups
 
 class User_Form(FlaskForm):
-    group_list = [(ug.id.hex,ug.value) for ug in Groups.select()]
     username = StringField(u'用户名',[DataRequired()],widget=TextInput(),
                            render_kw={"class":"form-control","placeholder":"用户名"})
     email = StringField(u'邮箱',widget=TextInput(),
@@ -21,12 +20,24 @@ class User_Form(FlaskForm):
     ding = StringField('钉钉', render_kw={"class": "form-control"})
     comment = TextAreaField('备注',render_kw={"class":"form-control"})
     ROLE_CHOICES = [('administrator', 'administrator'),('user', 'user')]
-    groups = SelectMultipleField(u'用户组',choices=group_list,
-                                            render_kw={"class":"form-control select2",
-                                                    "multiple":"multiple","data-placeholder":"选择用户组"})
-    role = SelectMultipleField(u'角色',choices=ROLE_CHOICES,
-                                            render_kw={"class":"form-control select2",
-                                                    "multiple":"multiple","data-placeholder":"角色"})
+    role = SelectField(u'角色',choices=ROLE_CHOICES,render_kw={"class":"form-control select2",
+                                                    "data-placeholder":"角色"})
+
+class Ldap_User_Form(User_Form):
+    groups = SelectField(u'LDAP用户组',choices=[],render_kw={"class":"form-control select2",
+                                                    "data-placeholder":"选择用户组"})
+
+class Local_User_Form(User_Form):
+    groups = SelectField(u'用户组',choices=[],render_kw={"class":"form-control select2",
+                                                    "data-placeholder":"选择用户组"})
+
+class User_Create_Form(User_Form):
+    local_group_list = [(ug.id.hex, ug.value) for ug in Groups.select().where(Groups.is_ldap_group == False)]
+    ldap_group_list = [(ug.id.hex,ug.value) for ug in Groups.select().where(Groups.is_ldap_group == True)]
+    ldap_groups = SelectField(u'LDAP用户组',choices=ldap_group_list,render_kw={"class":"form-control select2",
+                                                    "data-placeholder":"选择用户组"})
+    local_groups = SelectField(u'用户组',choices=local_group_list,render_kw={"class":"form-control select2",
+                                                    "data-placeholder":"选择用户组"})
 
 class Groups_Form(FlaskForm):
     groupname = StringField(u'用户名',[DataRequired()],

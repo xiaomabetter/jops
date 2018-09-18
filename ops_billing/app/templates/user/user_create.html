@@ -21,9 +21,15 @@
             </div>
         </div>
         <div class="form-group">
-            {{ form.groups.label(class="col-md-2 control-label") }}
+            {{ form.ldap_groups.label(class="col-md-2 control-label") }}
             <div class="col-md-8">
-                {{ form.groups(size=20) }}
+                {{ form.ldap_groups(size=20) }}
+            </div>
+        </div>
+        <div class="form-group">
+            {{ form.local_groups.label(class="col-md-2 control-label") }}
+            <div class="col-md-8">
+                {{ form.local_groups(size=20) }}
             </div>
         </div>
         <div class="form-group">
@@ -95,6 +101,21 @@
 <script src="{{ url_for('static', filename='js/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
 <script>
+function create_ldap_or_local_user() {
+    if ($('#is_ldap_user').prop('checked')) {
+        $('#local_groups').attr('name','')
+        $('#ldap_groups').attr('name','groups')
+        $('#local_groups').parent().parent().addClass('hidden');
+        $('#ldap_groups').parent().parent().removeClass('hidden');
+        $()
+    } else {
+        $('#ldap_groups').attr('name','')
+        $('#local_groups').attr('name','groups')
+        $('#ldap_groups').parent().parent().addClass('hidden');
+        $('#local_groups').parent().parent().removeClass('hidden');
+    }
+}
+
 $(document).ready(function () {
     $('.select2').select2();
 
@@ -105,6 +126,12 @@ $(document).ready(function () {
         forceParse: false,
         calendarWeeks: true,
         autoclose: true
+    });
+
+    create_ldap_or_local_user()
+
+    $('#is_ldap_user').change(function () {
+        create_ldap_or_local_user()
     });
 })
 $("#submit_button").on("click",function(){

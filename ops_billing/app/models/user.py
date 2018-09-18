@@ -11,6 +11,7 @@ class Groups(BaseModel):
     value = CharField(max_length=255,unique=True,null=False)
     child_mark = IntegerField(default=0)
     description = TextField(null=True)
+    is_ldap_group = BooleanField(default=False)
     is_node = True
 
     def __str__(self):
@@ -68,6 +69,7 @@ class User(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
     email = CharField(max_length=128)
     username = CharField(max_length=128,null=True,unique=True)
+    chinese_name = CharField(max_length=500,null=True)
     password = CharField(max_length=128)
     public_key = TextField(null=True)
     group = ManyToManyField(Groups,backref='user')

@@ -1,5 +1,4 @@
-from ldap3 import Server, Connection, ALL,SUBTREE,ALL_ATTRIBUTES,MODIFY_REPLACE
-from ldap3.abstract.entry import Entry
+from ldap3 import Server, Connection, ALL,SUBTREE,ALL_ATTRIBUTES,MODIFY_REPLACE,ASYNC
 import json
 from app import config
 from app import get_logger
@@ -17,31 +16,35 @@ class LDAPTool(object):
         self.base_dn = base_dn
         server =  Server(ldap_uri,get_info=ALL)
         try:
-            self.ldapconn = Connection(server,self.manager_dn,self.password,auto_bind=True)
+            self.conn = Connection(server,self.manager_dn,
+                                        self.password,auto_bind=True,pool_keepalive=300,
+                                        pool_size=10,pool_name='easemob')
         except Exception as e:
+            self.conn.open();self.conn.bind()
             logger.error('ldap conn失败，原因为: %s' % str(e))
 
     def ldap_search_user(self, username=None):
-        try:
-            self.ldapconn.search(self.base_dn,f'(&(objectclass=inetOrgPerson)(uid={username}))',
-                                                        search_scope=SUBTREE,attributes=ALL_ATTRIBUTES)
-            entries = self.ldapconn.entries
-            if len(entries) >=  1:
-                if not isinstance(entries[0],Entry):
-                    return None
-                result = json.loads(entries[0].entry_to_json())['attributes']
-                userinfo = {
-                    'mail':result['mail'][0] if result.get('mail') else None,
-                    'userPassword':result['userPassword'][0] if result.get('userPassword') else None,
-                    'telephoneNumber':result['telephoneNumber'][0] if result.get('telephoneNumber') else None,
-                    'groupname':entries[0].entry_dn.split(',')[1].split('=')[1]
-                }
-                return userinfo
-            else:
-                return None
-        except Exception as e:
-            logger.error('ldap search %s 失败，原因为: %s' % (username, str(e)))
-            return None
+        if username:
+            search_filter = f'(&(objectclass=inetOrgPerson)(uid={username}))'
+        else:
+            search_filter = f'(objectclass=inetOrgPerson)'
+        result = self.conn.search(search_base=BASE_DN,search_filter=search_filter,
+                                                    search_scope=SUBTREE, attributes=ALL_ATTRIBUTES)
+        if not result:
+            return result
+        entry_list = []
+        for entry in self.conn.entries:
+            attributes = json.loads(entry.entry_to_json())['attributes']
+            entry_list.append({
+                'username':attributes['cn'][0],
+                'chinese_name':attributes['sn'][0],
+                'email':attributes['mail'][0] if attributes.get('mail') else None,
+                'password':attributes['userPassword'][0] if attributes.get('userPassword') else None,
+                'phone':attributes['telephoneNumber'][0] if attributes.get('telephoneNumber') else None,
+                'department': entry.entry_dn.split(',')[1].split('=')[1],
+                'is_ldap_user':True
+            })
+        return entry_list
 
     def ldap_add_user(self, ou,username, password,email=None,telephoneNumber=None):
         attributes = {'objectClass': ['inetOrgPerson'],'cn':username,'sn':username}
@@ -50,48 +53,70 @@ class LDAPTool(object):
             attributes['mail'] = f'{email}'
         elif telephoneNumber:
             attributes['telephoneNumber'] = [f'{telephoneNumber}']
-        result = self.ldapconn.add(f'uid={username},ou={ou},{self.base_dn}',attributes=attributes)
+        result = self.conn.add(f'uid={username},ou={ou},{self.base_dn}',attributes=attributes)
+        return result
+
+    def ldap_update_user(self, username, ou,new_password='',mail='',telephoneNumber=''):
+        if not ou:
+            userinfo = self.ldap_search_user(username=username)
+            if userinfo:
+                userinfo = userinfo[0]
+            else:
+                return False
+            ou = userinfo.get('department')
+        if new_password:
+            result = self.conn.modify(f'uid={username},ou={ou},{self.base_dn}',
+                                 {'userPassword':[(MODIFY_REPLACE,f'{new_password}')]})
+        elif mail:
+            result = self.conn.modify(f'uid={username},ou={ou},{self.base_dn}',
+                                      {'mail':[(MODIFY_REPLACE,f'{mail}')]})
+        elif telephoneNumber:
+            result = self.conn.modify(f'uid={username},ou={ou},{self.base_dn}',
+                                      {'telephoneNumber':[(MODIFY_REPLACE,[f'{telephoneNumber}'])]})
+        else:result = False
+        return result
+
+    def ldap_modify_user(self,username,newusername):
+        userinfo = self.ldap_search_user(username=username)
+        if userinfo:
+            userinfo = userinfo[0]
+        else:return False
+        ou = userinfo.get('department')
+        result = self.conn.modify_dn(f'uid={username},ou={ou},{self.base_dn}',f'ou={newusername}')
+        return result
+
+    def ldap_move_user(self,username,newou):
+        userinfo = self.ldap_search_user(username=username)
+        if userinfo:
+            userinfo = userinfo[0]
+        else:return False
+        ou = userinfo.get('department')
+        result = self.conn.modify_dn(f'uid={username},ou={ou},{self.base_dn}',f'uid={username}',
+                                     new_superior=f'ou={newou},{self.base_dn}')
+        return result
+
+    def ldap_test_ou_exist(self,ou):
+        result = self.conn.search(f'{BASE_DN}', f'(&(objectclass=top)(ou={ou}))')
         return result
 
     def ldap_add_ou(self, ou):
-        result = self.ldapconn.add(f'ou={ou},{self.base_dn}')
+        result = self.conn.add(f'ou={ou},{self.base_dn}','organizationalUnit')
+        return result
+
+    def ldap_delete_ou(self, ou):
+        result = self.conn.delete(f'ou={ou},{self.base_dn}')
+        return result
+
+    def ldap_modify_ou(self,ou,newou):
+        result = self.conn.modify_dn(f'ou={ou},{self.base_dn}',f'ou={newou}')
         return result
 
     def ldap_delete_user(self, ou,username):
-        try:
-            result = self.ldapconn.delete(f'uid={username},ou={ou},{self.base_dn}')
-            return result
-        except Exception as e:
-            return False
+        result = self.conn.delete(f'uid={username},ou={ou},{self.base_dn}')
+        return result
 
-    def ldap_update_user(self, username, ou,new_password=None,mail=None,telephoneNumber=None):
-        if not ou:
-            userinfo = self.ldap_search_user(username=username)
-            ou = userinfo.get('groupname')
-        try:
-            if new_password:
-                self.ldapconn.modify(f'uid={username},ou={ou},{self.base_dn}',
-                                          {'userPassword':[(MODIFY_REPLACE,f'{new_password}')]})
-            elif mail:
-                self.ldapconn.modify(f'uid={username},ou={ou},{self.base_dn}',
-                                          {'mail':[(MODIFY_REPLACE,f'{mail}')]})
-            elif telephoneNumber:
-                self.ldapconn.modify(f'uid={username},ou={ou},{self.base_dn}',
-                                          {'telephoneNumber':[(MODIFY_REPLACE,[f'{telephoneNumber}'])]})
-            return True
-        except Exception as e:
-            logger.error("%s 更新失败，原因为: %s" % (username, str(e)))
-            return False
+    def gather_result(self):
+        msg = ','.join([self.conn.result['description'],self.conn.result['message']])
+        return msg
 
 ldapconn = LDAPTool(LDAP_SERVER, BASE_DN, ROOT_DN, ROOT_DN_PASS)
-
-# for test
-def main():
-    ldap = LDAPTool('ldap://123.56.239.63:389','dc=easemob,dc=com','Manager','Easemob.')
-    print(ldap.ldap_search_user('mazhenjie1'))
-    print(ldap.ldap_update_user('mazhenjie1', 'PAAS',mail='test@easemob.com',new_password='123456'))
-    print(ldap.ldap_search_user('mazhenjie1'))
-    print(ldap.ldap_add_user(ou='PAAS',username='mmmm',password='mmmmm'))
-    print(ldap.ldap_search_user(username='mmmm'))
-if __name__ == '__main__':
-    main()

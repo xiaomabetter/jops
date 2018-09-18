@@ -1,17 +1,14 @@
 from app import get_logger,config
 from flask import jsonify
 from flask_restful import Resource,reqparse
-from app.utils import get_usertoken_from_cookies
 from app.auth import login_required,get_login_user
 from app.utils import falseReturn,trueReturn
-from app.models import OpsCeleryRedis,User,Tasks
-from .serializer import TasksSerializer
+from app.models import OpsCeleryRedis
 from .tasks.asset import run_sync_bill,run_sync_asset,run_sync_securitygroup,\
     run_sync_zones,run_sync_images,run_sync_instancetypes
 from .tasks.ansibe import run_ansible_module,run_ansible_playbook
 from .tasks.asset import sync_ldap_user
 from .init_inventory import InitInventory
-from app.auth import Auth
 import json
 
 logger = get_logger(__name__)

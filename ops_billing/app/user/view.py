@@ -2,12 +2,12 @@ from flask import render_template,flash,redirect,request,make_response,url_for
 from app.models import User,User_Group,Groups,OpsRedis,UserLoginLog
 from . import user
 from app.auth import Auth
-from .form import User_Form,Groups_Form
+from .form import User_Form,Groups_Form,User_Create_Form,Ldap_User_Form,Local_User_Form
 from app.utils import model_to_form,encryption_md5
 from .ldapapi import ldapconn
 from app.auth import login_required
 from app import config
-import time,ldap,json,datetime
+import time,json,datetime
 
 @user.route('/user/login',methods=['GET','POST'])
 def auth_login():
@@ -20,30 +20,24 @@ def auth_login():
         is_ldap_login = request.form.get('is_ldap_login',False)
         success = make_response(redirect(url_for('asset.asset_list', asset_type='ecs')))
         if is_ldap_login:
-            try:
-                ldapconn.ldapconn.open();ldapconn.ldapconn.bind()
-            except :
-                flash(message='ldap连接异常', category='error')
-                return response
             ldapuser = ldapconn.ldap_search_user(username)
             if not ldapuser :
                 flash(message='ldapuser不存在',category='error')
                 return response
-            userpass = ldapuser['userPassword'];groupname = ldapuser['groupname']
-            userinfo = {'username':username,'is_ldap_user':True,
-                'mail':ldapuser['mail'],'phone':ldapuser['telephoneNumber']}
-            if userpass == password:
+            else:ldapuser = ldapuser[0]
+            department = ldapuser['department'];ldapuser.pop('department')
+            if password == ldapuser['password']:
                 user = User.select().where(User.username == username).first()
                 if not user :
-                    userinfo['password'] = encryption_md5(userpass)
-                    user = User.create(**userinfo)
-                group = Groups.select().where(Groups.value == groupname).first()
+                    ldapuser['password'] = encryption_md5(ldapuser['password'])
+                    user = User.create(**ldapuser)
+                group = Groups.select().where(Groups.value == department).first()
                 if not group:
-                    ROOT = Groups.root(); group = Groups.create(value=groupname,key=0)
+                    ROOT = Groups.root(); group = Groups.create(value=department,key=0)
                     group.parent = ROOT; group.save()
                     user.group.add(group.id)
                 else:
-                    user_group = user.group.select().where(Groups.value == groupname)
+                    user_group = user.group.select().where(Groups.value == department)
                     if user_group.count() == 0:user.group.add(group.id)
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
@@ -56,6 +50,7 @@ def auth_login():
                 flash(message='密码不正确', category='error')
                 return response
         else:
+            print(22222)
             user = User.select().where((User.email == username) | (User.username == username)).first()
             if user and user.verify_password(password):
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
@@ -64,6 +59,7 @@ def auth_login():
                 if  isinstance(token,bytes) : token.decode()
                 return success
             else:
+                flash(message='用户名或者密码不正确', category='error')
                 return response
 
 @user.route('/user/logout',methods=['GET','POST'])
@@ -90,16 +86,23 @@ def users_detail(userid):
 @user.route('/user/users/create',methods=['GET','POST'])
 @login_required
 def users_create():
-    form = User_Form()
+    form = User_Create_Form()
+    form.ldap_groups.choices = [(ug.id.hex,ug.value) for ug in  Groups.select().
+                                where(Groups.is_ldap_group == True)]
+    form.local_groups.choices = [(ug.id.hex, ug.value) for ug in Groups.select().
+                                where(Groups.is_ldap_group == False) if ug != Groups.root()]
     return render_template('user/user_create.html', form=form)
 
 @user.route('/user/users/update/<userid>',methods=['GET'])
 @login_required
 def users_update(userid):
-    form = User_Form()
     user = User.select().where(User.id == userid)
+    if user.get().is_ldap_user:
+        form = Ldap_User_Form()
+    else:
+        form = Local_User_Form()
     model_to_form(user,form,exclude=['password'])
-    form.groups.data = [g.id.hex for g in user.get().group.objects()]
+    form.groups.data = user.get().group.get().id.hex
     return render_template('user/user_update.html',form=form,userid=userid)
 
 @user.route('/user/groups/list',methods=['GET','POST'])

@@ -2,7 +2,7 @@
 import oss2,time,re,os
 from app.models import Bill
 from app.models import db
-from app.models import SyncBillInfo
+from app.models import Sync_Bill_History
 from app import get_basedir
 
 class SyncBills():
@@ -36,7 +36,9 @@ class SyncBills():
 
     def getfiles(self):
         billfiles = {}
+        print(oss2.ObjectIterator(self.bucket))
         for b in oss2.ObjectIterator(self.bucket):
+            print(b)
             kv = b.key.split('/')
             billfiles[kv[0]] = b.key
         return billfiles
@@ -49,35 +51,41 @@ class SyncBills():
                 timestamp = time.mktime(time.strptime(fileday, "%Y-%m-%d")) - 24 * 3600
             except:
                 continue
-            is_synced = SyncBillInfo.select().where(SyncBillInfo.day == fileday)
-            if timestamp >= begin and  timestamp <= end and not is_synced :
-                handlefile = self.generate(filename)
-                result = {}
-                with open(handlefile,'r') as f:
-                    next(f)
-                    for line in f.readlines():
-                        linelist = line.split(',')
-                        day = linelist[2]
-                        instanceid = linelist[11].strip()
-                        instancename = linelist[12] or instanceid
-                        instancetype = linelist[5]
-                        cost = float(linelist[21])
-                        if instanceid in result:
-                            result[instanceid]['cost'] = round((result[instanceid]['cost'] + cost), 3)
-                            result[instanceid]['day'] = day
-                        else:
-                            result[instanceid] = {
-                                'instance_id': instanceid,
-                                'instance_type': instancetype,
-                                'instance_name': instancename,
-                                'cost': cost,
-                                'day': day
-                            }
-                    f.close()
+            if  timestamp < begin or  timestamp > end :
+                continue
+            is_synced = Sync_Bill_History.select().where(Sync_Bill_History.filename == filename |
+                                                         Sync_Bill_History.day == fileday).first()
+            if is_synced:
+                is_synced.filename = filename
+                is_synced.save()
+                continue
+            handlefile = self.generate(filename)
+            result = {}
+            with open(handlefile,'r') as f:
+                next(f)
+                for line in f.readlines():
+                    linelist = line.split(',')
+                    day = linelist[2]
+                    instanceid = linelist[11].strip()
+                    instancename = linelist[12] or instanceid
+                    instancetype = linelist[5]
+                    cost = float(linelist[21])
+                    if instanceid in result:
+                        result[instanceid]['cost'] = round((result[instanceid]['cost'] + cost), 3)
+                        result[instanceid]['day'] = day
+                    else:
+                        result[instanceid] = {
+                            'instance_id': instanceid,
+                            'instance_type': instancetype,
+                            'instance_name': instancename,
+                            'cost': cost,
+                            'day': day
+                        }
+                f.close()
                 with db.atomic():
                     for k,v in result.items():
                         Bill.create(**v)
-                    SyncBillInfo.create(username=self.username,day=fileday)
+                    Sync_Bill_History.create(username=self.username,day=fileday,filename=filename)
 
 
 if __name__ == '__main__':

@@ -1,1 +1,1 @@
-from .sync_ldapuser import sync_ldapusers
+from .sync_ldapuser1 import sync_ldapusers
