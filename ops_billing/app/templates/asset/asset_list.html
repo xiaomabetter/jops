@@ -307,6 +307,7 @@ function onBodyMouseDown(event){
 function onSelected(event, treeNode,no_reload) {
     var url = asset_table.ajax.url();
     url = setUrlParam(url, "node_id", treeNode.id);
+    url = setUrlParam(url, 'un_node',false);
     setCookie('node_selected', treeNode.id);
     if (typeof(no_reload) == "undefined") {
         asset_table.ajax.url(url);
@@ -556,7 +557,7 @@ $(document).ready(function(){
 }).on('hidden.bs.modal', '#asset_list_modal', function () {
     window.location.reload();
 }).on('click', '#asset_notin_node', function () {
-    url = setUrlParam(init_table_url, 'un_node','True');
+    url = setUrlParam(init_table_url, 'un_node',true);
     asset_table.ajax.url(url);
     asset_table.ajax.reload();
 })

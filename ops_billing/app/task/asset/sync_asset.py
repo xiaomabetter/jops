@@ -224,7 +224,7 @@ class SyncAliAssets(object):
         if ids:
             with db.atomic():
                 Asset.update(Status = 'Destroy').where(Asset.InstanceId.in_(ids)).execute()
-        last_insert_many = self.pop_duplicate(insert_many) if not insert_many  else insert_many
+        last_insert_many = self.pop_duplicate(insert_many)
         if last_insert_many :
             with db.atomic():
                 Asset.insert_many(last_insert_many).execute()
@@ -233,6 +233,7 @@ class SyncAliAssets(object):
 
     def pop_duplicate(self,asset_list):
         new_asset_list = []
+        if not asset_list:return new_asset_list
         for i,item in enumerate(asset_list):
             if item['InstanceId'] not in [asset['InstanceId'] for asset in new_asset_list]:
                 new_asset_list.append(item)

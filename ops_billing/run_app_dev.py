@@ -17,6 +17,7 @@ api.add_resource(AssetsApi,'/api/asset/v1/assets',endpoint = 'assets-api.assets_
 api.add_resource(AssetApi,'/api/asset/v1/asset/<assetid>',endpoint = 'assets-api.asset_api')
 api.add_resource(AssetCreateApi,'/api/asset/v1/create',endpoint = 'assets-api.asset_create_api')
 api.add_resource(ImagesApi,'/api/asset/v1/images',endpoint = 'assets-api.images_api')
+api.add_resource(VSwitchesApi,'/api/asset/v1/vswitches',endpoint = 'assets-api.vswitches_api')
 api.add_resource(SecurityGroupsApi,'/api/asset/v1/secgroup',endpoint = 'assets-api.securitygroups_api')
 api.add_resource(TemplatesApi,'/api/asset/v1/templates',endpoint = 'assets-api.templates_api')
 api.add_resource(TemplateApi,'/api/asset/v1/template/<templateid>',endpoint = 'assets-api.template_api')
