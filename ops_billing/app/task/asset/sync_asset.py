@@ -217,19 +217,17 @@ class SyncAliAssets(object):
             new_InstanceIds.append(instance['InstanceId'])
             if instance['InstanceId'] in InstanceIds and update:
                 with db.atomic():
-                    Asset.update(**instance).where(Asset.InstanceId ==
-                                                   instance['InstanceId']).execute()
+                    Asset.update(**instance).where(Asset.InstanceId ==instance['InstanceId']).execute()
             else:
                 insert_many.append(instance)
         ids = list(set(InstanceIds) - set(new_InstanceIds) )
         if ids:
             with db.atomic():
                 Asset.update(Status = 'Destroy').where(Asset.InstanceId.in_(ids)).execute()
-        if insert_many :
-            if self.pop_duplicate(insert_many):
-                print(insert_many)
-                with db.atomic():
-                    Asset.insert_many(insert_many).execute()
+        last_insert_many = self.pop_duplicate(insert_many) if not insert_many  else insert_many
+        if last_insert_many :
+            with db.atomic():
+                Asset.insert_many(last_insert_many).execute()
         NodeAmount.sync_root_assets()
         NodeAmount.sync_all_node_assets()
 
