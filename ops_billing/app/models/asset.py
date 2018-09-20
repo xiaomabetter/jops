@@ -88,13 +88,6 @@ class Node(BaseModel):
             assetids.append(asset.id)
         return assetids
 
-    def get_assets(self):
-        assets = Asset.filter(Asset.id.in_([self.id]))
-        return assets
-
-    def get_valid_assets(self):
-        return self.get_assets().valid()
-
     def get_all_assets(self,asset_type):
         if self.is_root():
             assets = Asset.filter(Asset.AssetType==asset_type)
@@ -106,9 +99,6 @@ class Node(BaseModel):
                 assets = Asset.filter(Asset.AssetType==asset_type).join(Asset_Node).\
                     where(Asset_Node.node_id.in_(nodeids))
         return assets
-
-    def get_all_valid_assets(self):
-        return self.get_all_assets('ecs').valid()
 
     def is_root(self):
         return self.key == '0'
@@ -203,6 +193,13 @@ class Asset(BaseModel):
     def full_name(self):
         return '{0.InstanceName}({0.InnerAddress})'.format(self)
 
+    @property
+    def is_valid(self):
+        if self.Status == 'Destory':
+            return False
+        else:
+            return True
+
     @classmethod
     def asset_type(cls):
         results = Asset.select(Asset.AssetType).distinct()
@@ -243,6 +240,7 @@ class Asset_Create_Template(BaseModel):
     cpu = IntegerField(null=True)
     memory = IntegerField(null=True)
     InstanceNetworkType = CharField(max_length=128, null=True)
+    VSwitchId = CharField(max_length=256, null=True)
     instance_type = CharField(max_length=128, null=False)
     SecurityGroupId = CharField(max_length=600,null=False,default=[])
     SystemDiskCategory = CharField(max_length=128, null=False)

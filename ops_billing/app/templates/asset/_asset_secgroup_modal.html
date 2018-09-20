@@ -45,11 +45,16 @@
 <script>
 securitygroup_table = 0;
 function SecinitTable() {
+    var init_securitygroup_url = "{{ url_for('assets-api.securitygroups_api') }}";
+    var VSwitchId = $('#VSwitchId').val()
+    if (VSwitchId){
+        init_securitygroup_url = setUrlParam(init_securitygroup_url, "VSwitchId", VSwitchId);
+    }
     var options = {
         ele: $('#securitygroups_list_table'),
         buttons: [],
         columnDefs: [],
-        ajax_url: "{{ url_for('assets-api.securitygroups_api') }}",
+        ajax_url: init_securitygroup_url,
         columns: [{data: "SecurityGroupId" },{data: "SecurityGroupId" }, {data: "SecurityGroupName"},{data: "RegionId"}, {data: "CreationTime"}],
         order: [],
         op_html: $('#actions').html()
@@ -59,10 +64,14 @@ function SecinitTable() {
 }
 
 function SecurityGroupChangeSelect() {
-    var init_securitygroup_url = securitygroup_table.ajax.url();
+    var init_securitygroup_url = "{{ url_for('assets-api.securitygroups_api') }}";
     var regionid = $('#SecRegionId_select').val()
+    var VSwitchId = $('#VSwitchId').val()
     if (regionid) {
         init_securitygroup_url = setUrlParam(init_securitygroup_url, "RegionId", regionid);
+    }
+    if (VSwitchId){
+        init_securitygroup_url = setUrlParam(init_securitygroup_url, "VSwitchId", VSwitchId);
     }
     securitygroup_table.ajax.url(init_securitygroup_url);
     securitygroup_table.ajax.reload();

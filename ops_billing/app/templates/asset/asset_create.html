@@ -88,7 +88,7 @@ $(document).ready(function () {
     AppendZoneId();
 }).on('click', '#btn_template_modal_confirm', function () {
     var template_selected = template_table.selected;
-    if ( template_selected.length !== 1  ) {
+    if ( template_selected.length !== 1 ) {
         toastr.error("请选择模板,并选择一个!");
         return
     }

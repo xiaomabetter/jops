@@ -91,7 +91,7 @@ class AssetCreateTemplateSerializer(Schema):
                             format(obj.SystemDiskCategory,obj.SystemDiskSize),dump_only=True)
 
     class Meta:
-        fields = ("id","name","RegionId", "ZoneId", "ImageId","InstanceNetworkType", "instance_type",
+        fields = ("id","name","RegionId", "ZoneId", "ImageId",'VSwitchId',"InstanceNetworkType", "instance_type",
                   "SystemDiskCategory", "SecurityGroupId","SystemDiskCategorySize","SystemDiskSize",
                   "DataDiskinfo","CreateTime","cpu","memory"
                   )

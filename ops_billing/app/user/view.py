@@ -21,14 +21,14 @@ def auth_login():
         success = make_response(redirect(url_for('asset.asset_list', asset_type='ecs')))
         if is_ldap_login:
             ldapuser = ldapconn.ldap_search_user(username)
-            if not ldapuser :
+            if not ldapuser:
                 flash(message='ldapuser不存在',category='error')
                 return response
             else:ldapuser = ldapuser[0]
             department = ldapuser['department'];ldapuser.pop('department')
             if password == ldapuser['password']:
                 user = User.select().where(User.username == username).first()
-                if not user :
+                if not user:
                     ldapuser['password'] = encryption_md5(ldapuser['password'])
                     user = User.create(**ldapuser)
                 group = Groups.select().where(Groups.value == department).first()
@@ -50,7 +50,6 @@ def auth_login():
                 flash(message='密码不正确', category='error')
                 return response
         else:
-            print(22222)
             user = User.select().where((User.email == username) | (User.username == username)).first()
             if user and user.verify_password(password):
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
@@ -99,8 +98,12 @@ def users_update(userid):
     user = User.select().where(User.id == userid)
     if user.get().is_ldap_user:
         form = Ldap_User_Form()
+        form.groups.choices = [(ug.id.hex, ug.value) for ug in Groups.select().
+            where(Groups.is_ldap_group == True)]
     else:
         form = Local_User_Form()
+        form.groups.choices = [(ug.id.hex, ug.value) for ug in Groups.select().
+            where(Groups.is_ldap_group == False) if ug != Groups.root()]
     model_to_form(user,form,exclude=['password'])
     form.groups.data = user.get().group.get().id.hex
     return render_template('user/user_update.html',form=form,userid=userid)

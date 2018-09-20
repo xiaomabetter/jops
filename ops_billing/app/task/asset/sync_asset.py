@@ -231,6 +231,7 @@ class SyncAliAssets(object):
                 with db.atomic():
                     Asset.insert_many(insert_many).execute()
         NodeAmount.sync_root_assets()
+        NodeAmount.sync_all_node_assets()
 
     def pop_duplicate(self,asset_list):
         new_asset_list = []

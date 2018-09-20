@@ -5,7 +5,7 @@ from app.auth import login_required,get_login_user
 from app.utils import falseReturn,trueReturn
 from app.models import OpsCeleryRedis
 from .tasks.asset import run_sync_bill,run_sync_asset,run_sync_securitygroup,\
-    run_sync_zones,run_sync_images,run_sync_instancetypes
+    run_sync_zones,run_sync_images,run_sync_instancetypes,run_sync_vswitches
 from .tasks.ansibe import run_ansible_module,run_ansible_playbook
 from .tasks.asset import sync_ldap_user
 from .init_inventory import InitInventory
@@ -70,6 +70,8 @@ class AlySyncApi(Resource):
             r = run_sync_zones.apply_async(queue=default_queue)
         elif task_name == 'sync_instance_images':
             r = run_sync_images.apply_async(queue=default_queue)
+        elif task_name == 'sync_vswitches':
+            r = run_sync_vswitches.apply_async(queue=default_queue)
         elif task_name == 'sync_ldapusers':
             r = sync_ldap_user.apply_async(queue=default_queue)
         return jsonify(trueReturn(r.id,msg='任务提交成功'))

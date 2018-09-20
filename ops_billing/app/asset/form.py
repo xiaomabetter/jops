@@ -32,6 +32,7 @@ class Aly_Instance_Template(FlaskForm):
     image_categorys = [('self',u'自有镜像'),('system',u'系统镜像')]
     disk_categorys = [('cloud_efficiency',u'高效云盘'),('cloud_ssd',u'SSD云盘')]
     InstanceNetworkTypes = [('classic', u'经典网络'), ('vpc', u'专有网络')]
+    VSwitchId = SelectField(u'选择交换机', choices=[], render_kw={"class": "form-control"})
     name = StringField(u'实例模板名称',render_kw={"class":"form-control","placeholder":"实例模板名称"})
     RegionId = SelectField(u'选择区域',choices=[],render_kw={"class":"form-control"})
     ZoneId = SelectField(u'选择可用区',choices=[],render_kw={"class":"form-control"})

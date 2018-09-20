@@ -4,7 +4,8 @@
     创建模板
 {% endblock %}
 {% block ibox_title_right %}
-    <div class="pull-right" style="margin:0px 0px 0px 10px"><input class="btn btn-default btn-sm" id="sync_image" type="button" value="同步阿里云镜像"></div>
+    <div class="pull-right" style="margin:0px 40px 10px 10px"><input class="btn btn-default btn-sm" id="sync_vswitches" type="button" value="同步阿里云交换机"></div>
+    <div class="pull-right" style="margin:0px 10px 10px 10px"><input class="btn btn-default btn-sm" id="sync_image" type="button" value="同步阿里云镜像"></div>
     <div class="pull-right"><input class="btn btn-default btn-sm" id="sync_SecurityGroup" type="button" value="同步阿里云安全组"></div>
 {% endblock %}
 {% block form %}
@@ -17,6 +18,9 @@
         {{ render_field_no_form_group(form.ZoneId,'required') }}
         {{ render_field_no_form_group(form.InstanceNetworkType,'required') }}
         {{ render_field_no_form_group(form.instance_type,'required') }}
+    </div>
+    <div class="form-group">
+        {{ render_field_no_form_group(form.VSwitchId,'required') }}
     </div>
     <div class="hr-line-dashed"></div>
     <h4>选择镜像 / 安全组</h4>
@@ -72,6 +76,26 @@ function AppendZoneid() {
         $('#ZoneId').append(option);
     })
 }
+
+function netvpc() {
+    $("#VSwitchId").empty();
+    var InstanceNetworkType = $('#InstanceNetworkType').val()
+    if (InstanceNetworkType == 'classic') {
+        $('#VSwitchId').parent().parent().addClass('hidden');
+    } else {
+        $('#VSwitchId').parent().parent().removeClass('hidden');
+        var zoneid = $('#ZoneId').val()
+        $.get("{{ url_for('assets-api.vswitches_api') }}",{'ZoneId':zoneid}, function(result){
+            if (result['data']) {
+                $.each(result['data'], function (key, value) {
+                    option = '<option value=' + value['VSwitchId'] + '>' + value['VSwitchName'] + '</option>';
+                    $('#VSwitchId').append(option);
+                });
+            }
+        });
+    }
+}
+
 $(document).ready(function () {
     $('.select2').select2();
     $.get("{{ url_for('assets-api.images_api') }}",{}, function(result){
@@ -89,9 +113,6 @@ $(document).ready(function () {
     $("#ImageId").parent().find(".select2").on('click', function (e) {
         $("#image_list_modal").modal();
     });
-    $("#SecurityGroupId").parent().find(".select2").on('click', function (e) {
-        $("#securitygroup_list_modal").modal();
-    })
     $.each(zonesdata, function (key, value) {
             var option = '<option value='+key+'>'+key+'</option>';
             $('#RegionId').append(option);
@@ -99,8 +120,14 @@ $(document).ready(function () {
             $('#SecRegionId_select').append(option);
     });
     AppendZoneid();
+    netvpc()
 }).on('change', '#RegionId', function () {
     AppendZoneid();
+    netvpc();
+}).on('change', '#InstanceNetworkType', function () {
+    netvpc();
+}).on('change', '#ZoneId', function () {
+    netvpc();
 }).on('click', '#btn_image_modal_confirm', function () {
     var $data_table = $('#images_list_table').DataTable();
     var id_list = [];
@@ -162,6 +189,13 @@ $(document).ready(function () {
         'body': JSON.stringify({'task_name':'sync_instance_securitygroup'}),
         'success': sync_success
     })
+}).on("click",'#sync_vswitches',function(){
+    APIUpdateAttr({
+        'url': "{{ url_for('task-api.aly-sync-task') }}",
+        'method': 'POST',
+        'body': JSON.stringify({'task_name':'sync_vswitches'}),
+        'success': sync_success
+    })
 });
 
 function sync_success(result){
@@ -193,5 +227,6 @@ function get_sync_asset_result(taskid) {
             }, 2000);
         }}})
 }
+
 </script>
 {% endblock %}

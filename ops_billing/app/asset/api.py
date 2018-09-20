@@ -8,7 +8,7 @@ from app.models import Asset,Node,Service,Account,Asset_Account,AssetPermission,
 from .serializer import AssetSerializer,NodeSerializer,ServiceSerializer,\
                                     AssetCreateTemplateSerializer,AccountSerializer
 from app.perm.serializer import AssetPermissionSerializer
-from app.task import run_sync_asset_amount,create_asset,run_sync_asset
+from app.task import run_sync_asset_amount,create_asset,run_sync_asset,create_asset_tryRun
 from app.utils.encrypt import ChaEncrypt
 from app import config
 from conf import aliyun
@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 __all__ = ['AssetsApi','AssetApi','AssetUserApi','AssetCreateApi',
            'TemplatesApi','TemplateApi','ImagesApi','SecurityGroupsApi','AssetAccountsApi',
            'AssetAccountApi','NodesApi','NodeApi','NodeAssetApi',
-           'ServicesApi','ServiceApi','ServiceAssetApi'
+           'ServicesApi','ServiceApi','ServiceAssetApi','VSwitchesApi'
            ]
 
 class AssetsApi(Resource):
@@ -42,12 +42,12 @@ class AssetsApi(Resource):
             asset_type = args.get('asset_type')
             node = Node.filter(Node.id == node_id).get()
             if node.is_root():
-                query_set = Asset.filter(Asset.AssetType == asset_type)
+                query_set = Asset.filter((Asset.AssetType == asset_type) & (Asset.Status != 'Destroy'))
                 if args.get('un_node'):
                     assetids = node.get_family_assetids(asset_type)
                     query_set = query_set.filter(Asset.id.not_in(assetids))
             else:
-                query_set = node.get_all_assets(asset_type)
+                query_set = node.get_all_assets(asset_type).filter(Asset.Status != 'Destroy')
             if args.get('search'):
                 search = args.get('search')
                 query_set = query_set.filter(Asset.InstanceName.contains(search) |
@@ -57,7 +57,7 @@ class AssetsApi(Resource):
                 page = (args.get('offset') + args.get('limit')) / args.get('limit')
                 page_query_set = query_set.order_by(Asset.InnerAddress).paginate(page, args['limit'])
             else:
-                page_query_set = query_set.order_by(Asset.InnerAddress)
+                page_query_set = query_set.order_by(Asset.InstanceName)
         results = json.loads(AssetSerializer(many=True,exclude=['account','node']).dumps(page_query_set).data)
         return jsonify(trueReturn(results))
 
@@ -274,6 +274,11 @@ class AssetCreateApi(Resource):
         else:
             templatedata['InternetChargeType'] = None
             templatedata['InternetMaxBandwidthOut'] = None
+        print(templatedata)
+        tryrun_msg = create_asset_tryRun(templatedata,amount)
+        # if 'DryRunOperation' not in tryrun_msg:
+        #     print(tryrun_msg)
+        #     return jsonify(falseReturn( msg=tryrun_msg))
         current_user = get_login_user()
         created_by = current_user.username
         r = create_asset.delay(created_by,templatedata,amount)
@@ -298,7 +303,7 @@ class TemplatesApi(Resource):
     def post(self):
         parse = reqparse.RequestParser()
         for arg in ('name','RegionId','ZoneId','InstanceNetworkType','instance_type',
-                    'SystemDiskCategory','DataDisk.1.Category','ImageId'):
+                    'SystemDiskCategory','DataDisk.1.Category','ImageId','VSwitchId'):
             parse.add_argument(arg,type=str,location=['form','json'])
         for arg in ('SystemDiskSize','DataDisk.1.Size'):
             parse.add_argument(arg, type=str, location=['form', 'json'])
@@ -309,7 +314,7 @@ class TemplatesApi(Resource):
         data['ImageId'] = data['ImageId'].split('-join-')[0]
         try:
             if not OpsRedis.exists('aly_InstanceTypes') :
-                return jsonify(falseReturn(msg='先执行同步aly_InstanceTypes任务'))
+                return jsonify(falseReturn(msg='先同步实例类型信息'))
             instancetypes = json.loads(OpsRedis.get('aly_InstanceTypes').decode())
             if args.get('instance_type') in instancetypes:
                 data['cpu'] = instancetypes[args.get('instance_type')]['CpuCoreCount']
@@ -338,18 +343,19 @@ class TemplateApi(Resource):
     def put(self,templateid):
         parse = reqparse.RequestParser()
         for arg in ('name','RegionId','ZoneId','InstanceNetworkType','instance_type',
-                    'SystemDiskCategory','DataDisk.1.Category','ImageId'):
+                    'SystemDiskCategory','DataDisk.1.Category','ImageId','VSwitchId'):
             parse.add_argument(arg,type=str,location=['form','json'])
         parse.add_argument('SystemDiskSize', type=int, required=True, location=['form', 'json'])
         parse.add_argument('DataDisk.1.Size', type=str,location=['form', 'json'])
         args = parse.add_argument('SecurityGroupId', type=str, action='append', location=['form', 'json'])\
             .parse_args()
+        print(args)
         data,errors = AssetCreateTemplateSerializer().load(args)
         if errors:
             return jsonify(falseReturn(msg=str(errors)))
         data['ImageId'] = data['ImageId'].split('-join-')[0]
         if not OpsRedis.exists('aly_InstanceTypes'):
-            return jsonify(falseReturn(msg='先执行同步aly_InstanceTypes任务'))
+            return jsonify(falseReturn(msg='先同步实例类型信息'))
         instancetypes = json.loads(OpsRedis.get('aly_InstanceTypes').decode())
         if args.get('instance_type') in instancetypes:
             data['cpu'] = instancetypes[args.get('instance_type')]['CpuCoreCount']
@@ -381,7 +387,7 @@ class ImagesApi(Resource):
             .add_argument('image_category',type=str,location='args')\
             .add_argument('RegionId',type=str,location='args').parse_args()
         if not OpsRedis.exists('aly_images'):
-            return jsonify(falseReturn(msg='先执行同步aly_images任务'))
+            return jsonify(falseReturn(msg='先同步镜像信息'))
         result = json.loads(OpsRedis.get('aly_images').decode())
         if args.get('image_category') and args.get('RegionId'):
             data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
@@ -402,16 +408,42 @@ class SecurityGroupsApi(Resource):
     @login_required
     def get(self):
         args = reqparse.RequestParser()\
-            .add_argument('RegionId',type=str,location='args').parse_args()
+            .add_argument('RegionId',type=str,location='args') \
+            .add_argument('VSwitchId', type=str, location='args').parse_args()
         if not OpsRedis.exists('aly_security_groups'):
-            return jsonify(falseReturn(msg='先执行同步aly_security_groups任务'))
-        result = json.loads(OpsRedis.get('aly_security_groups').decode())
-        if args.get('RegionId') :
-            data = [dict(SecurityGroupId=r['SecurityGroupId'],SecurityGroupName=r['SecurityGroupName'],RegionId=r['RegionId'],
-                CreationTime=r['CreationTime']) for r in result if r['RegionId'] == args.get('RegionId')]
+            return jsonify(falseReturn(msg='先同步安全组信息'))
+        results = []
+        for sg in json.loads(OpsRedis.get('aly_security_groups').decode()):
+            results.append(
+                {'SecurityGroupId': sg['SecurityGroupId'],
+                 'SecurityGroupName': sg['SecurityGroupName'],
+                 'RegionId': sg['RegionId'],
+                 'CreationTime': sg['CreationTime'],
+                 'NetworkType': 'vpc' if sg.get('VpcId') else 'classic',
+                 'VpcId': sg.get('VpcId')}
+            )
+        if args.get('VSwitchId') and not OpsRedis.exists('aly_vswitches_vpcs'):
+            return jsonify(falseReturn(msg='先同步交换机信息'))
+        swinfos = json.loads(OpsRedis.get('aly_vswitches_vpcs').decode())
+        vpcid = swinfos.get(args.get('VSwitchId'))
+        if args.get('VSwitchId'):
+            data = [info for info in results if vpcid == info.get('VpcId')]
+        elif args.get('RegionId'):
+            data = [info for info in results if args.get('RegionId') == info.get('RegionId')]
         else:
-            data = [dict(SecurityGroupId=r['SecurityGroupId'],SecurityGroupName=r['SecurityGroupName'],
-                RegionId=r['RegionId'],CreationTime=r['CreationTime']) for r in result ]
+            data = results
+        return jsonify(trueReturn(data))
+
+class VSwitchesApi(Resource):
+    @login_required
+    def get(self):
+        args = reqparse.RequestParser()\
+            .add_argument('ZoneId',type=str,location='args').parse_args()
+        if not OpsRedis.exists('aly_vswitches') or not OpsRedis.get('aly_vswitches'):
+            return jsonify(falseReturn(msg='先同步交换机信息'))
+        result = json.loads(OpsRedis.get('aly_vswitches').decode())
+        data = result.get(args.get('ZoneId')) if args.get('ZoneId') else result
+        print(data)
         return jsonify(trueReturn(data))
 
 class AssetAccountsApi(Resource):

@@ -1,6 +1,6 @@
 from app import get_logger
 from app.task.asset import SyncBills,SyncAliAssets,NodeAmount,\
-        Aly_Create_Asset,AliSyncImages,AliSyncZones,AliSyncSecurityGroup,AliSyncInstanceTypes
+        Aly_Create_Asset,AliSyncImages,AliSyncZones,AliSyncSecurityGroup,AliSyncInstanceTypes,AliSyncVSwitches
 from app.task.user import sync_ldapusers
 from celery.signals import worker_process_init
 from app.models.base import initcelery
@@ -52,12 +52,23 @@ def run_sync_securitygroup():
     sync_securitygroup = AliSyncSecurityGroup(AccessKeyId, AccessKeySecret)
     sync_securitygroup.sync_security_group()
 
+@celery.task
+def run_sync_vswitches():
+    sync_vswitches = AliSyncVSwitches(AccessKeyId, AccessKeySecret)
+    sync_vswitches.sync_vswitchs()
+
 @celery.task(bind=True)
 def run_sync_asset_amount(self,nodeid=None):
     if nodeid:
         NodeAmount.sync_node_assets(nodeid)
     else:
         NodeAmount.sync_root_assets()
+
+def create_asset_tryRun(template_data,amount):
+    aly_create = Aly_Create_Asset(template_data,amount,AccessKeyId, AccessKeySecret)
+    aly_create.CreateInstanceFromcopy(DryRun=True)
+    tryRun_msg = aly_create.startInstances()
+    return tryRun_msg
 
 @celery.task(bind=True)
 def create_asset(self,created_by,template_data,amount):

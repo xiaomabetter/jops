@@ -14,6 +14,9 @@
         {{ render_field_no_form_group(form.InstanceNetworkType,'required') }}
         {{ render_field_no_form_group(form.instance_type,'required') }}
     </div>
+    <div class="form-group">
+        {{ render_field_no_form_group(form.VSwitchId,'required') }}
+    </div>
     <div class="hr-line-dashed"></div>
     <h4>选择镜像/安全组</h4>
     <div class="form-group" style="margin:1px 0px">
@@ -69,6 +72,26 @@ function AppendZoneid() {
         $('#ZoneId').append(option);
     })
 }
+
+function netvpc() {
+    $("#VSwitchId").empty();
+    var InstanceNetworkType = $('#InstanceNetworkType').val()
+    if (InstanceNetworkType == 'classic') {
+        $('#VSwitchId').parent().parent().addClass('hidden');
+    } else {
+        $('#VSwitchId').parent().parent().removeClass('hidden');
+        var zoneid = $('#ZoneId').val()
+        $.get("{{ url_for('assets-api.vswitches_api') }}",{'ZoneId':zoneid}, function(result){
+            if (result['data']) {
+                $.each(result['data'], function (key, value) {
+                    option = '<option value=' + value['VSwitchId'] + '>' + value['VSwitchName'] + '</option>';
+                    $('#VSwitchId').append(option);
+                });
+            }
+        });
+    }
+}
+
 $(document).ready(function () {
     $('.select2').select2();
     $.get("{{ url_for('assets-api.images_api') }}",{}, function(result){
@@ -109,8 +132,14 @@ $(document).ready(function () {
             $("input[name='PK']".replace('PK',key)).val(value)
         }
     });
+    netvpc();
 }).on('change', '#RegionId', function () {
     AppendZoneid();
+    netvpc()
+}).on('change', '#InstanceNetworkType', function () {
+    netvpc();
+}).on('change', '#ZoneId', function () {
+    netvpc();
 }).on('click', '#btn_securitygroup_modal_confirm', function () {
     var $data_table = $('#securitygroups_list_table').DataTable();
     var id_list = [];

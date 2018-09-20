@@ -8,3 +8,4 @@ from .sync_image import AliSyncImages
 from .sync_zone import AliSyncZones
 from .sync_secgroup import AliSyncSecurityGroup
 from .sync_instancetype import AliSyncInstanceTypes
+from .sync_vswitch import AliSyncVSwitches

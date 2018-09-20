@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from peewee import CharField, BooleanField,UUIDField,DateTimeField,ManyToManyField
-import os,uuid,datetime,json
+import uuid,datetime
 from .user import User,Groups
 from .asset import Asset,Node
 from .base import BaseModel

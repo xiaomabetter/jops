@@ -13,7 +13,7 @@ class Aly_Create_Asset(object):
         self.AccessKeyId = AccessKeyId
         self.AccessKeySecret = AccessKeySecret
         
-    def CreateInstanceFromcopy(self):
+    def CreateInstanceFromcopy(self,DryRun=False):
         template_data = self.template_data
         params = {}
         params['RegionId'] = template_data['RegionId']
@@ -28,19 +28,26 @@ class Aly_Create_Asset(object):
         params['SystemDisk.Size'] = template_data['SystemDiskSize']
         params['InstanceChargeType'] = template_data['InstanceChargeType']
         params['Period'] = 1
+        params['DryRun'] = DryRun
         if template_data.get('DataDiskinfo'):
             DataDiskinfo = list(json.loads(template_data['DataDiskinfo']))
             for dataDisk in DataDiskinfo:
                 if dataDisk.get('DataDisk.1.Size') > 0:
                     params = dict(params, **dataDisk)
+                    params = dict(params,**{'DataDisk.1.DeleteWithInstance':True})
         if self.amount > 1 :
             params['UniqueSuffix'] = True
         if template_data['IoOptimized']:
             params['IoOptimized'] = 'optimized'
+        if template_data['InstanceNetworkType'] == 'vpc' and template_data.get('VSwitchId'):
+            params['VSwitchId'] = template_data['VSwitchId']
+        else:
+            return
         if template_data.get('InternetChargeType') and template_data.get('InternetMaxBandwidthOut'):
             params['InternetChargeType'] = template_data['InternetChargeType']
             params['InternetMaxBandwidthOut'] = template_data['InternetMaxBandwidthOut']
         self.params = params
+        print(self.params)
         clt = client.AcsClient(self.AccessKeyId,self.AccessKeySecret, params['RegionId'])
         self.clt = clt
 
@@ -50,6 +57,8 @@ class Aly_Create_Asset(object):
         request.set_Amount(self.amount)
         instances_list = []
         response = self._send_request(request)
+        if self.params.get('DryRun'):
+            return response
         if response.get('Code') is None:
             instance_ids = response.get('InstanceIdSets').get('InstanceIdSet')
             running_amount = 0
@@ -94,11 +103,10 @@ class Aly_Create_Asset(object):
 
     def _send_request(self,request):
         request.set_accept_format('json')
-        print(request.get_query_params())
         try:
             response_str = self.clt.do_action_with_exception(request)
             print(response_str)
             response_detail = json.loads(response_str)
             return response_detail
         except Exception as e:
-            print(e)
+            return str(e)
