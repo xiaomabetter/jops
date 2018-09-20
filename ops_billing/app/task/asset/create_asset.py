@@ -22,17 +22,21 @@ class Aly_Create_Asset(object):
         params['InstanceType'] = template_data['instance_type']
         params['SecurityGroupId'] = template_data['SecurityGroupId'][0].split(',')[0]
         params['InstanceName'] = template_data['InstanceName']
+        params['PasswordInherit'] = template_data['PasswordInherit']
+        params['Password'] = template_data['Password']
         params['Description'] = template_data['Description']
         params['HostName'] = template_data['HostName']
         params['SystemDisk.Category'] = template_data['SystemDiskCategory']
         params['SystemDisk.Size'] = template_data['SystemDiskSize']
         params['InstanceChargeType'] = template_data['InstanceChargeType']
+        if template_data['InstanceChargeType'] == 'PrePaid':
+            params['AutoRenew'] = True
         params['Period'] = 1
         params['DryRun'] = DryRun
         if template_data.get('DataDiskinfo'):
             DataDiskinfo = list(json.loads(template_data['DataDiskinfo']))
             for dataDisk in DataDiskinfo:
-                if dataDisk.get('DataDisk.1.Size') > 0:
+                if int(dataDisk.get('DataDisk.1.Size')) > 0:
                     params = dict(params, **dataDisk)
                     params = dict(params,**{'DataDisk.1.DeleteWithInstance':True})
         if self.amount > 1 :
@@ -42,12 +46,11 @@ class Aly_Create_Asset(object):
         if template_data['InstanceNetworkType'] == 'vpc' and template_data.get('VSwitchId'):
             params['VSwitchId'] = template_data['VSwitchId']
         else:
-            return
+            params['InstanceNetworkType'] = 'classic'
         if template_data.get('InternetChargeType') and template_data.get('InternetMaxBandwidthOut'):
             params['InternetChargeType'] = template_data['InternetChargeType']
             params['InternetMaxBandwidthOut'] = template_data['InternetMaxBandwidthOut']
         self.params = params
-        print(self.params)
         clt = client.AcsClient(self.AccessKeyId,self.AccessKeySecret, params['RegionId'])
         self.clt = clt
 

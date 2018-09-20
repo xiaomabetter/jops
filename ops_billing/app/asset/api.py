@@ -257,7 +257,9 @@ class AssetCreateApi(Resource):
             .add_argument('InstanceChargeType', type = str,location='form') \
             .add_argument('InternetMaxBandwidthOut', type=int, location='form') \
             .add_argument('InstanceName',type=str,location='form',required=True)\
-            .add_argument('amount',type=int,location='form',required=True)\
+            .add_argument('amount',type=int,location='form',required=True) \
+            .add_argument('PasswordInherit', type=bool, location='form') \
+            .add_argument('Password', type=str, location='form', required=True) \
             .add_argument('PublicIpAddress', type=bool, location='form').parse_args()
         template = Asset_Create_Template.select().where(Asset_Create_Template.id ==
                                                                         args.get('InstanceTemplate'))
@@ -265,23 +267,24 @@ class AssetCreateApi(Resource):
         templatedata['InstanceChargeType'] = args.get('InstanceChargeType') or 'PrePaid'
         templatedata['IoOptimized'] = 'optimized' if templatedata['instance_type'].split('.')[1] \
                                                      in aliyun.isIoOptimize else None
-        amount = args.get('amount') or 1
         for key in ['InstanceName','Description','HostName'] :
             templatedata[key] = args.get('InstanceName')
         if args.get('PublicIpAddress'):
             templatedata['InternetChargeType'] = args.get('InternetChargeType') or 'PayByTraffic'
-            templatedata['InternetMaxBandwidthOut'] = args.get('InternetMaxBandwidthOut') or 10
+            templatedata['InternetMaxBandw  idthOut'] = args.get('InternetMaxBandwidthOut') or 10
         else:
             templatedata['InternetChargeType'] = None
             templatedata['InternetMaxBandwidthOut'] = None
-        print(templatedata)
-        tryrun_msg = create_asset_tryRun(templatedata,amount)
-        # if 'DryRunOperation' not in tryrun_msg:
-        #     print(tryrun_msg)
-        #     return jsonify(falseReturn( msg=tryrun_msg))
+        if args.get('PasswordInherit'):
+            templatedata['PasswordInherit'] = True;templatedata['Password'] = Node
+        else:
+            templatedata['PasswordInherit'] = False;templatedata['Password'] = args.get('Password')
+        tryrun_msg = create_asset_tryRun(templatedata,args.get('amount'))
+        if 'DryRunOperation' not in tryrun_msg:
+            return jsonify(falseReturn( msg=tryrun_msg))
         current_user = get_login_user()
         created_by = current_user.username
-        r = create_asset.delay(created_by,templatedata,amount)
+        r = create_asset.delay(created_by,templatedata,args.get('amount'))
         return jsonify(trueReturn(r.id,msg=u'开始拼命执行创建机器任务'))
 
 class TemplatesApi(Resource):
@@ -349,7 +352,7 @@ class TemplateApi(Resource):
         parse.add_argument('DataDisk.1.Size', type=str,location=['form', 'json'])
         args = parse.add_argument('SecurityGroupId', type=str, action='append', location=['form', 'json'])\
             .parse_args()
-        print(args)
+        if args.get('VSwitchId') is None:args['VSwitchId'] = ''
         data,errors = AssetCreateTemplateSerializer().load(args)
         if errors:
             return jsonify(falseReturn(msg=str(errors)))

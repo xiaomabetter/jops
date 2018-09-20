@@ -17,7 +17,19 @@
         {{ render_field_no_form_group(form.InstanceName,'required') }}
         {{ render_field_no_form_group(form.InstanceChargeType,'required') }}
         {{ render_field_no_form_group(form.amount,'required') }}
+        <div class="form-group">
+            {{ form.PasswordInherit.label(class="col-md-2 control-label",style="width:250px") }}
+            <div class="col-md-2">
+                {{ form.PasswordInherit() }}
+            </div>
+        </div>
+        <label class="col-md-2 control-label" for="Password" id="label-password">新实例密码</label>
+        <div class="col-md-4 row" id="Password" >
+            <input class="form-control" type="password" name="Password" placeholder="新实例的密码" value="">
+                <div class="help-block">* required</div>
+        </div>
     </div>
+
     <div class="hr-line-dashed"></div>
     <h4>是否绑定公网</h4>
     <div class="form-group">
@@ -45,6 +57,16 @@
 <script>
 var zonesdata = JSON.parse({{Zones|tojson}});
 var PublicIpAddress = '#'+'PublicIpAddress';
+function PasswordFieldsDisplay() {
+    if ($('#PasswordInherit').prop('checked')) {
+        $('#Password').addClass('hidden');
+        $('#label-password').addClass('hidden');
+    } else {
+        $('#Password').removeClass('hidden');
+        $('#label-password').removeClass('hidden');
+    }
+}
+
 function bandwidthFieldsDisplay() {
     if ($(PublicIpAddress).prop('checked')) {
         $('#bandwidth-field').removeClass('hidden');
@@ -67,8 +89,12 @@ function AppendZoneId() {
 $(document).ready(function () {
     $('.select2').select2();
     bandwidthFieldsDisplay()
+    PasswordFieldsDisplay()
     $(PublicIpAddress).change(function () {
         bandwidthFieldsDisplay();
+    });
+    $('#PasswordInherit').change(function () {
+        PasswordFieldsDisplay();
     });
     $.get("{{ url_for('assets-api.templates_api') }}",{}, function(result){
         $.each(result['data'], function (key, value) {
@@ -95,6 +121,12 @@ $(document).ready(function () {
     $('#InstanceTemplate').val(template_selected[0]).trigger('change');
     $("#template_list_modal").modal('hide');
 }).on("click",'#submit_button',function(){
+    if ( ! $(PublicIpAddress).prop('checked')) {
+        var instance_password = $("input[name='Password']").val()
+        if ( instance_password == '') {
+            toastr.error("请填写实例密码!");
+        }
+    }
    $('#create_machine').ajaxSubmit({
         url: "{{ url_for('assets-api.asset_create_api') }}",
         type: 'post',

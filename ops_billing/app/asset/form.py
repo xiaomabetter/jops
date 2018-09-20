@@ -10,12 +10,16 @@ class Service_Form(FlaskForm):
     version = StringField(u'版本', widget=TextInput(), render_kw={"class": "form-control","placeholder":"版本"})
     description = TextAreaField('描述', render_kw={"class": "form-control"})
 
-class Aly_Instance_Form(FlaskForm):
+class Aly_Create_Instance_Form(FlaskForm):
     InstanceChargeTypes = [('PrePaid',u'预付费'),('PostPaid',u'按量付费')]
     InternetChargeTypes = [('PayByTraffic',u'按使用流量付费'),('PayByBandwidth',u'按固定带宽付费')]
     InstanceTemplate = SelectMultipleField(u'实例模板',choices=[],
                         render_kw={"class":"form-control select2",
                                             "data-placeholder":"选择创建实例模板"})
+    PasswordInherit = BooleanField(u'是否使用镜像预设密码', widget=CheckboxInput(),
+                                   render_kw={"class": "form-control",'checked':'true'})
+    Password = StringField(u'新实例密码',widget=TextInput(),
+                               render_kw={"class":"form-control","placeholder": u"新实例的密码"})
     InstanceChargeType = SelectField(u'选择计费方式',choices=InstanceChargeTypes,
                                                                     render_kw={"class":"form-control",})
     InstanceName = StringField(u'新实例名称',widget=TextInput(),
@@ -28,7 +32,7 @@ class Aly_Instance_Form(FlaskForm):
     InternetMaxBandwidthOut = IntegerField(u'带宽大小',widget=TextInput(),default=0,
                                 render_kw={"class":"form-control","placeholder": u"带宽大小,单位M"})
 
-class Aly_Instance_Template(FlaskForm):
+class Aly_Create_Instance_Template(FlaskForm):
     image_categorys = [('self',u'自有镜像'),('system',u'系统镜像')]
     disk_categorys = [('cloud_efficiency',u'高效云盘'),('cloud_ssd',u'SSD云盘')]
     InstanceNetworkTypes = [('classic', u'经典网络'), ('vpc', u'专有网络')]

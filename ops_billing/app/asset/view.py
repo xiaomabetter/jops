@@ -7,7 +7,7 @@ from app.models import Node,Bill,Service,Asset,Asset_Create_Template
 from app.models.base import OpsRedis
 from . import asset
 from .serializer import AssetCreateTemplateSerializer
-from .form import Service_Form,Aly_Instance_Form,Aly_Instance_Template
+from .form import Service_Form,Aly_Create_Instance_Form,Aly_Create_Instance_Template
 from app.auth import login_required
 import json
 
@@ -29,21 +29,21 @@ def asset_detail(assetid):
 @asset.route('/asset/create',methods=['GET'])
 @login_required
 def asset_create():
-    form = Aly_Instance_Form()
+    form = Aly_Create_Instance_Form()
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create.html',**locals())
 
 @asset.route('/asset/create/template',methods=['GET'])
 @login_required
 def asset_create_template():
-    form = Aly_Instance_Template()
+    form = Aly_Create_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template.html',**locals())
 
 @asset.route('/asset/create/template/list',methods=['GET'])
 @login_required
 def asset_create_template_list():
-    form = Aly_Instance_Template()
+    form = Aly_Create_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template_list.html',**locals())
 
@@ -57,7 +57,7 @@ def asset_create_template_update(templateid):
         for dataDisk in DataDiskinfo:
             data = dict(templatedata,**dataDisk)
     templatedata['ImageId'] = '{0}-join-{1}'.format(templatedata['ImageId'],templatedata['RegionId'])
-    form = Aly_Instance_Template()
+    form = Aly_Create_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template_update.html',**locals())
 

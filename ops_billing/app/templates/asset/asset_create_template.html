@@ -113,6 +113,9 @@ $(document).ready(function () {
     $("#ImageId").parent().find(".select2").on('click', function (e) {
         $("#image_list_modal").modal();
     });
+    $("#SecurityGroupId").parent().find(".select2").on('click', function (e) {
+        $("#securitygroup_list_modal").modal();
+    })
     $.each(zonesdata, function (key, value) {
             var option = '<option value='+key+'>'+key+'</option>';
             $('#RegionId').append(option);

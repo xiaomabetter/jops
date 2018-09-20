@@ -56,14 +56,17 @@ class UserApi(Resource):
         for arg in arg_names:
             parse.add_argument(arg,type=str,location=['form','json'])
         args = parse.parse_args()
-        print(args)
         user = User.select().where(User.id == userid).get()
         group = Groups.select().where(Groups.id == args.get('groups')).get()
         data,errors = UserSerializer().load(args)
+        is_del_userkey = False
         if errors:
             return jsonify(falseReturn(msg='提交数据验证失败 %s' % errors))
         if args.get('password') :
             data['password'] = encryption_md5(args.get('password'))
+            is_del_userkey = True
+        if args.get('role') and args.get('role') != user.role:
+            is_del_userkey = True
         if user.is_ldap_user:
             if group.value != user.group.get().value and not \
                     ldapconn.ldap_move_user(user.username,group.value):
@@ -80,7 +83,7 @@ class UserApi(Resource):
             if group.value != user.group.get().value:
                 user.group.clear()
                 user.group.add(group.id)
-        if args.get('password'):OpsRedis.delete(userid)
+        if is_del_userkey:OpsRedis.delete(userid)
         return jsonify(trueReturn(msg='更新成功'))
 
     @login_required
