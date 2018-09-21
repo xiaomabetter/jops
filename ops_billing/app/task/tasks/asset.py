@@ -5,7 +5,7 @@ from app.task.user import sync_ldapusers
 from celery.signals import worker_process_init
 from app.models.base import initcelery
 from conf import aliyun
-from app.models.asset import Asset_Create_Record
+from app.models.asset import Create_Asset_History
 from datetime import datetime
 logger = get_logger(__name__)
 
@@ -73,7 +73,7 @@ def create_asset_tryRun(template_data,amount):
 @celery.task(bind=True)
 def create_asset(self,created_by,template_data,amount):
     taskid = self.request.id
-    createtask = Asset_Create_Record.create(
+    createtask = Create_Asset_History.create(
         taskid=taskid,
         amount=amount,AssetType='ecs',InstanceName=template_data['InstanceName'],
         RegionId=template_data['RegionId'],created_by=created_by,

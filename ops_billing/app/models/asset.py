@@ -220,7 +220,7 @@ class Bill(BaseModel):
     day = DateTimeField(null=False)
     cost = FloatField()
 
-class Asset_Create_Record(BaseModel):
+class Create_Asset_History(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
     taskid = CharField(max_length=128, null=False)
     amount = IntegerField(default=1)

@@ -1,4 +1,4 @@
-from ldap3 import Server, Connection, ALL,SUBTREE,ALL_ATTRIBUTES,MODIFY_REPLACE,ASYNC
+from ldap3 import Server, Connection, ALL,SUBTREE,ALL_ATTRIBUTES,MODIFY_REPLACE
 import json
 from app import config
 from app import get_logger
@@ -17,8 +17,8 @@ class LDAPTool(object):
         server =  Server(ldap_uri,get_info=ALL)
         try:
             self.conn = Connection(server,self.manager_dn,
-                                        self.password,auto_bind=True,pool_keepalive=300,
-                                        pool_size=10,pool_name='easemob')
+                                        self.password,auto_bind=True,pool_keepalive=30,
+                                        pool_size=10,pool_name='easemob',pool_lifetime=600)
         except Exception as e:
             self.conn.open();self.conn.bind()
             logger.error('ldap conn失败，原因为: %s' % str(e))

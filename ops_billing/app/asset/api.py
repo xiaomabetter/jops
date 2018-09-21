@@ -30,7 +30,7 @@ class AssetsApi(Resource):
             .add_argument('limit', type = int,location = 'args').add_argument('offset', type = int,location = 'args') \
             .add_argument('search', type=str, location='args').add_argument('asset_type', type=str, location='args')\
             .add_argument('order', type=str, location='args').add_argument('node_id', type = str, location = 'args')\
-            .add_argument('un_node', type=bool, location='args')\
+            .add_argument('un_node', type=str, location='args')\
             .add_argument('hostnames', type = str,action='append',location='args') \
             .add_argument('iplist', type=str, action='append',location='args').parse_args()
         if args.get('hostnames'):
@@ -43,7 +43,7 @@ class AssetsApi(Resource):
             node = Node.filter(Node.id == node_id).get()
             if node.is_root():
                 query_set = Asset.filter((Asset.AssetType == asset_type) & (Asset.Status != 'Destroy'))
-                if args.get('un_node'):
+                if args.get('un_node') == 'true':
                     assetids = node.get_family_assetids(asset_type)
                     query_set = query_set.filter(Asset.id.not_in(assetids))
             else:
