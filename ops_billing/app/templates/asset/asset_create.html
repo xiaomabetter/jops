@@ -121,7 +121,7 @@ $(document).ready(function () {
     $('#InstanceTemplate').val(template_selected[0]).trigger('change');
     $("#template_list_modal").modal('hide');
 }).on("click",'#submit_button',function(){
-    if ( ! $(PublicIpAddress).prop('checked')) {
+    if ( ! $(PasswordInherit).prop('checked')) {
         var instance_password = $("input[name='Password']").val()
         if ( instance_password == '') {
             toastr.error("请填写实例密码!");

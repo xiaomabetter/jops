@@ -23,7 +23,8 @@ class Aly_Create_Asset(object):
         params['SecurityGroupId'] = template_data['SecurityGroupId'][0].split(',')[0]
         params['InstanceName'] = template_data['InstanceName']
         params['PasswordInherit'] = template_data['PasswordInherit']
-        params['Password'] = template_data['Password']
+        if not template_data.get('PasswordInherit'):
+            params['Password'] = template_data['Password']
         params['Description'] = template_data['Description']
         params['HostName'] = template_data['HostName']
         params['SystemDisk.Category'] = template_data['SystemDiskCategory']

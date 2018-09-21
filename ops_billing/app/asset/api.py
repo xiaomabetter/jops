@@ -261,6 +261,7 @@ class AssetCreateApi(Resource):
             .add_argument('PasswordInherit', type=bool, location='form') \
             .add_argument('Password', type=str, location='form', required=True) \
             .add_argument('PublicIpAddress', type=bool, location='form').parse_args()
+        print(args)
         template = Asset_Create_Template.select().where(Asset_Create_Template.id ==
                                                                         args.get('InstanceTemplate'))
         templatedata = dict(json.loads(AssetCreateTemplateSerializer(many=True).dumps(template).data)[0])
@@ -276,7 +277,7 @@ class AssetCreateApi(Resource):
             templatedata['InternetChargeType'] = None
             templatedata['InternetMaxBandwidthOut'] = None
         if args.get('PasswordInherit'):
-            templatedata['PasswordInherit'] = True;templatedata['Password'] = Node
+            templatedata['PasswordInherit'] = True
         else:
             templatedata['PasswordInherit'] = False;templatedata['Password'] = args.get('Password')
         tryrun_msg = create_asset_tryRun(templatedata,args.get('amount'))

@@ -1,6 +1,7 @@
 from app import get_logger
 from app.task.asset import SyncBills,SyncAliAssets,NodeAmount,\
-        Aly_Create_Asset,AliSyncImages,AliSyncZones,AliSyncSecurityGroup,AliSyncInstanceTypes,AliSyncVSwitches
+        Aly_Create_Asset,AliSyncImages,AliSyncZones,AliSyncSecurityGroup,\
+        AliSyncInstanceTypes,AliSyncVSwitches
 from app.task.user import sync_ldapusers
 from celery.signals import worker_process_init
 from app.models.base import initcelery
