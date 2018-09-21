@@ -5,7 +5,6 @@ from celery import Celery,platforms
 from app import global_config
 import json,ldap
 from redis import ConnectionPool,Redis
-from playhouse.pool import MySQLDatabase
 
 config = global_config()
 

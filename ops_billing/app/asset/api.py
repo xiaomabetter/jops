@@ -203,7 +203,7 @@ class NodeApi(Resource):
     @login_required
     def delete(self, nodeid):
         try:
-            Node.delete().where(Node.id == nodeid).query.execute()
+            Node.delete().where(Node.id == nodeid).execute()
             return jsonify(trueReturn(msg='删除成功'))
         except Exception as e:
             return jsonify(falseReturn(msg=f'删除失败{e}'))

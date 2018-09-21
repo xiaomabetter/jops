@@ -402,10 +402,14 @@ function deleteTreeNode() {
 		$.ajax({
             url: url,
             method: "DELETE",
-            success: function () {
-                zTree.removeNode(current_node);
-                $('#rMenu').css({"visibility": "hidden"});
-                toastr.success("删除节点成功");
+            success: function (result) {
+                if (result['status']) {
+                    zTree.removeNode(current_node);
+                    $('#rMenu').css({"visibility": "hidden"});
+                    toastr.success(result['msg']);
+                } else {
+                    toastr.error(result['msg']);
+                }
             }
         });
 	}
