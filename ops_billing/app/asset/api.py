@@ -261,7 +261,6 @@ class AssetCreateApi(Resource):
             .add_argument('PasswordInherit', type=bool, location='form') \
             .add_argument('Password', type=str, location='form', required=True) \
             .add_argument('PublicIpAddress', type=bool, location='form').parse_args()
-        print(args)
         template = Asset_Create_Template.select().where(Asset_Create_Template.id ==
                                                                         args.get('InstanceTemplate'))
         templatedata = dict(json.loads(AssetCreateTemplateSerializer(many=True).dumps(template).data)[0])
@@ -310,11 +309,15 @@ class TemplatesApi(Resource):
                     'SystemDiskCategory','DataDisk.1.Category','ImageId','VSwitchId'):
             parse.add_argument(arg,type=str,location=['form','json'])
         for arg in ('SystemDiskSize','DataDisk.1.Size'):
-            parse.add_argument(arg, type=str, location=['form', 'json'])
+            parse.add_argument(arg, type=str,default='',location=['form', 'json'])
         args = parse.add_argument('SecurityGroupId',type=str,action='append',location=['form','json'])\
             .parse_args()
+        for k,v in args.items():
+            if v is None:args[k] = ''
         data,errors = AssetCreateTemplateSerializer().load(args)
-        if errors:return jsonify(falseReturn(msg=str(errors)))
+        if errors:
+            print(errors)
+            return jsonify(falseReturn(msg=str(errors)))
         data['ImageId'] = data['ImageId'].split('-join-')[0]
         try:
             if not OpsRedis.exists('aly_InstanceTypes') :
@@ -353,7 +356,8 @@ class TemplateApi(Resource):
         parse.add_argument('DataDisk.1.Size', type=str,location=['form', 'json'])
         args = parse.add_argument('SecurityGroupId', type=str, action='append', location=['form', 'json'])\
             .parse_args()
-        if args.get('VSwitchId') is None:args['VSwitchId'] = ''
+        for k,v in args.items():
+            if v is None:args[k] = ''
         data,errors = AssetCreateTemplateSerializer().load(args)
         if errors:
             return jsonify(falseReturn(msg=str(errors)))

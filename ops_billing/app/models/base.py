@@ -25,13 +25,6 @@ url = 'mysql+pool://{0}:{1}@{2}:{3}/{4}?charset=utf8&max_connections=50&stale_ti
 
 db = connect(url=url)
 
-def LdapConnection():
-    conn = ldap.initialize(config.get('LDAP','LDAP_SERVER'))
-    conn.simple_bind_s(config.get('LDAP','ROOT_DN'),config.get('LDAP','ROOT_DN_PASS'))
-    return conn
-
-ldap_conn = LdapConnection()
-
 def initcelery():
     celery = Celery('worker', broker=config.get('CELERY','CELERY_BROKER_URL'),
                                             backend=config.get('CELERY','CELERY_RESULT_BACKEND'))

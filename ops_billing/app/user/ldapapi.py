@@ -18,7 +18,7 @@ class LDAPTool(object):
         try:
             self.conn = Connection(server,self.manager_dn,
                                         self.password,auto_bind=True,pool_keepalive=30,
-                                        pool_size=10,pool_name='easemob',pool_lifetime=600)
+                                        pool_size=10,pool_name='easemob',pool_lifetime=60)
         except Exception as e:
             self.conn.open();self.conn.bind()
             logger.error('ldap conn失败，原因为: %s' % str(e))
