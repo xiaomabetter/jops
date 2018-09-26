@@ -50,7 +50,7 @@ def auth_login():
                 flash(message='密码不正确', category='error')
                 return response
         else:
-            user = User.select().where((User.email == username) | (User.username == username)).first()
+            user = User.select().where((User.is_ldap_user == False) & (User.username == username)).first()
             if user and user.verify_password(password):
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))

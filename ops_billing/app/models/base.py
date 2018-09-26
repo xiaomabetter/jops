@@ -3,7 +3,8 @@ from peewee import  Model
 from playhouse.db_url import connect
 from celery import Celery,platforms
 from app import global_config
-import json,ldap
+from playhouse.pool import PooledMySQLDatabase
+import json
 from redis import ConnectionPool,Redis
 
 config = global_config()
@@ -17,6 +18,10 @@ pool1 = ConnectionPool(host=config.get('DEFAULT','REDIS_HOST'), port=config.get(
 OpsRedis = Redis(connection_pool=pool0)
 OpsCeleryRedis = Redis(connection_pool=pool1)
 
+
+# database = PooledMySQLDatabase(config.get('DEFAULT','DB_DATABASE'), host=config.get('DEFAULT','DB_HOST'),
+#                                user=config.get('DEFAULT','DB_USER'),passwd=config.get('DEFAULT','DB_PASSWD'),
+#                                max_connections=50, stale_timeout=110)
 
 url = 'mysql+pool://{0}:{1}@{2}:{3}/{4}?charset=utf8&max_connections=50&stale_timeout=300'.format(
                             config.get('DEFAULT','DB_USER'),config.get('DEFAULT','DB_PASSWD'),
@@ -36,10 +41,7 @@ def initcelery():
 
 class BaseModel(Model):
     class Meta:
-        try:
-            database = db
-        except :
-            db.connect()
+        database = db
 
     def __str__(self):
         r = {}

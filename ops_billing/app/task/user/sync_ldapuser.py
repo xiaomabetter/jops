@@ -28,9 +28,6 @@ def sync_ldapusers():
             newuser = User.create(**user)
             newuser.group.add(department.id)
 
-
-
-
 '''
 import ldap
 from app.models.base import db

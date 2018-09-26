@@ -32,7 +32,6 @@ def run_ansible_playbook(self,host_list,playbook):
     taskid = self.request.id
     inventory = Inventory(host_list=host_list)
     playbook_file = config.get('DEFAULT','Ansible_Base_Dir') + '/' + playbook
-    print(playbook_file)
     runner = PlayBookRunner(playbook_file=playbook_file,inventory=inventory,taskid=taskid)
     result = runner.run()
     return result

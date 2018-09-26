@@ -246,8 +246,7 @@ class UserLogin(Resource):
             else:
                 return jsonify(falseReturn(msg='password is invalid!'))
         else:
-            user = User.select().where((User.email == args.get('username'))|
-                                                        (User.username == args.get('username'))).first()
+            user = User.select().where((User.is_ldap_user == False)&(User.username == args.get('username'))).first()
             if user and user.verify_password(args.get('password')):
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))

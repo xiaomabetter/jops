@@ -130,10 +130,10 @@ function initTable() {
     var current_node_id = getselectQueryNodeid()
     if (current_node_id) {
         current_table_url = setUrlParam(init_table_url, "node_id", current_node_id);
-        current_table_url = setUrlParam(init_table_url, "un_node", false);
     } else {
         current_table_url = init_table_url
     }
+    console.log(current_table_url);
     var options = {
         ele: $('#asset_list_table'),
         columnDefs:[
