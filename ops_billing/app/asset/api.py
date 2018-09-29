@@ -271,7 +271,7 @@ class AssetCreateApi(Resource):
             templatedata[key] = args.get('InstanceName')
         if args.get('PublicIpAddress'):
             templatedata['InternetChargeType'] = args.get('InternetChargeType') or 'PayByTraffic'
-            templatedata['InternetMaxBandw  idthOut'] = args.get('InternetMaxBandwidthOut') or 10
+            templatedata['InternetMaxBandwidthOut'] = args.get('InternetMaxBandwidthOut') or 10
         else:
             templatedata['InternetChargeType'] = None
             templatedata['InternetMaxBandwidthOut'] = None
