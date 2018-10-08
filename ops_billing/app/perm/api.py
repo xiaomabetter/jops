@@ -38,7 +38,7 @@ class PermissionGroupsApi(Resource):
         try:
             pgroup = PermissionGroups.create(**args)
             if args.get('users'):
-                for uid in args.get('users'): pgroup.user.add(uid)
+                for userid in args.get('users'): pgroup.users.add(userid)
             return jsonify(trueReturn(msg='创建成功'))
         except Exception as e:
             return jsonify(falseReturn(msg=str(e)))
