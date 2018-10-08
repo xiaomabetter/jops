@@ -35,13 +35,16 @@ class PermissionGroupsApi(Resource):
         args = reqparse.RequestParser().add_argument('name', type=str,required=True,location=locations) \
             .add_argument('users', type=str, action='append',required=True, location=locations)\
             .add_argument('comment', type=str, location=locations).parse_args()
+        data, errors = PermissionGroupSerializer(exclude=['users']).load(args)
+        pgroup = PermissionGroups.create(**data)
         try:
-            pgroup = PermissionGroups.create(**args)
             if args.get('users'):
-                for userid in args.get('users'): pgroup.users.add(userid)
+                for userid in args.get('users'):
+                    print(userid)
+                    pgroup.users.add(userid)
             return jsonify(trueReturn(msg='创建成功'))
         except Exception as e:
-            return jsonify(falseReturn(msg=str(e)))
+            return jsonify(falseReturn(msg=e))
 
 class PermissionGroupApi(Resource):
     @login_required
