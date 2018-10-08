@@ -18,22 +18,24 @@ class Perm_Base_Form(FlaskForm):
     comment = TextAreaField('备注', render_kw={"class": "form-control"})
 
 class Perm_Create_Form(Perm_Base_Form):
-    assets_choices = []
-    nodes_choices = [(node.id.hex,node.full_value) for node in Node.select()]
-    systemusers_choices = [(sysuser.id.hex,sysuser.username) for sysuser in SystemUser.select()]
-    users_choices = [(user.id.hex,user.email) for user in User.select()]
-    groups_choices = [(group.id.hex, group.value) for group in Groups.select()]
-    users = SelectMultipleField(u'用户',choices=users_choices,render_kw={"class":"form-control select2","multiple":"multiple",
+    users = SelectMultipleField(u'用户',choices=[],render_kw={"class":"form-control select2","multiple":"multiple",
                                            "data-placeholder":"选择用户"})
-    groups = SelectMultipleField(u'用户组',choices=groups_choices,render_kw={"class":"form-control select2","multiple":"multiple",
-                                           "data-placeholder":"选择用户组"})
-    assets = SelectMultipleField(u'资产',choices=assets_choices,render_kw={"class":"form-control select2",
+    groups = SelectMultipleField(u'授权分组',choices=[],render_kw={"class":"form-control select2","multiple":"multiple",
+                                           "data-placeholder":"选择授权分组"})
+    assets = SelectMultipleField(u'资产',choices=[],render_kw={"class":"form-control select2",
                                             "multiple":"multiple","data-placeholder":"选择资产"})
-    nodes = SelectMultipleField(u'节点',choices=nodes_choices,render_kw={"class":"form-control select2",
+    nodes = SelectMultipleField(u'节点',choices=[],render_kw={"class":"form-control select2",
                                            "multiple":"multiple","data-placeholder":"选择节点"})
-    system_users = SelectMultipleField(u'系统用户', choices=systemusers_choices,validators=[DataRequired()],
+    system_users = SelectMultipleField(u'系统用户', choices=[],validators=[DataRequired()],
                                        render_kw={"class": "form-control select2",
                                            "multiple": "multiple","data-placeholder":"系统用户"})
+
+class Perm_Groups_Form(FlaskForm):
+    name = StringField(u'名称', [DataRequired(message=u'必须填写规则名称')],
+                            widget=TextInput(), render_kw={"class": "form-control","placeholder":"填写规则名称"})
+    users = SelectMultipleField(u'关联用户',choices=[],render_kw={"class":"form-control select2","multiple":"multiple",
+                                           "data-placeholder":"选择用户"})
+    comment = TextAreaField('备注', render_kw={"class": "form-control"})
 
 
 class Systemuser_Create_Form(FlaskForm):

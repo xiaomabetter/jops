@@ -104,7 +104,6 @@ class AssetApi(Resource):
                     data[k] = v
             return jsonify(trueReturn(data))
         else:
-            run_sync_asset.delay(asset.AssetType)
             return jsonify(trueReturn(data,msg='redis详细信息不存在,即将同步'))
 
 class AssetUserApi(Resource):
@@ -115,12 +114,16 @@ class AssetUserApi(Resource):
         related_users = []
         if not asset:
             return jsonify(falseReturn(msg=u'资产不存在'))
-        asset_perms  = asset.asset_permissions.objects()
-        from_asset_datas = json.loads(AssetPermissionSerializer(many=True, only=['users']).
-                                       dumps(asset_perms).data)
-        for users in from_asset_datas:
-            for user in users['users']:
-                related_users.append(user)
+        if asset.asset_permissions:
+            asset_perms  = asset.asset_permissions.objects()
+            from_asset_datas = json.loads(AssetPermissionSerializer(many=True, only=['users','groups']).
+                                           dumps(asset_perms).data)
+            for users in from_asset_datas:
+                for user in users['users']:
+                    if user not in related_users: related_users.append(user)
+                for group in users['groups']:
+                    for user in group['users']:
+                        if user not in related_users: related_users.append(user)
         if asset.node :
             parent_keys = []
             for node in asset.node.objects():
@@ -128,12 +131,13 @@ class AssetUserApi(Resource):
             parent_keys = list(set(parent_keys))
             pids = [n.id.hex for n in Node.select().where(Node.key.in_(parent_keys))]
             node_perms = AssetPermission.select().join(AssetPerm_Nodes).\
-                                where(AssetPerm_Nodes.node_id.in_(pids))
+                                                    where(AssetPerm_Nodes.node_id.in_(pids))
             from_node_datas = json.loads(AssetPermissionSerializer(many=True,only=['users']).
-                               dumps(node_perms).data)
+                                                                dumps(node_perms).data)
             for users in from_node_datas:
                 for user in users['users']:
                     if user not in related_users:related_users.append(user)
+        print(len(related_users))
         return jsonify(trueReturn(related_users))
 
 class NodesApi(Resource):

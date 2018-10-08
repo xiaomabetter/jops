@@ -6,11 +6,23 @@ from .asset import Asset,Node
 from .base import BaseModel
 from .systemuser import SystemUser
 
+class PermissionGroups(BaseModel):
+    id = UUIDField(default=uuid.uuid4, primary_key=True)
+    name = CharField(max_length=128, unique=True)
+    users = ManyToManyField(User,backref='permission_group')
+    date_created = DateTimeField(default=datetime.datetime.now)
+    date_updated = DateTimeField(default=datetime.datetime.now)
+    created_by = CharField(max_length=128, null=True)
+    comment = CharField(max_length=600, null=True)
+
+    class Meta:
+        table_name = 'j_permisssion_groups'
+
 class AssetPermission(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
     name = CharField(max_length=128, unique=True)
     users = ManyToManyField(User,backref='asset_permissions')
-    groups = ManyToManyField(Groups, backref='asset_permissions')
+    groups = ManyToManyField(PermissionGroups, backref='asset_permissions')
     assets = ManyToManyField(Asset, backref='asset_permissions')
     nodes = ManyToManyField(Node, backref='asset_permissions')
     system_users = ManyToManyField(SystemUser, backref='asset_permissions')
@@ -34,6 +46,7 @@ class AssetPermission(BaseModel):
             return True
         return False
 
+PermissionGroups_User = PermissionGroups.users.get_through_model()
 AssetPerm_Nodes = AssetPermission.nodes.get_through_model()
 AssetPerm_Assets = AssetPermission.assets.get_through_model()
 AssetPerm_Users = AssetPermission.users.get_through_model()

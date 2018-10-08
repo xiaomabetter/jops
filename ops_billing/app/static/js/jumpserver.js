@@ -164,6 +164,9 @@ function activeNav() {
             else if (resource === 'asset_permission') {
                     $('#asset_permission_list').addClass('active');
             }
+            else if (resource === 'permission_group') {
+                    $('#permission_group_list').addClass('active');
+            }
         }
         if (app === 'user') {
              $("#User").addClass('active');

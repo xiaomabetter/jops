@@ -34,10 +34,14 @@ api.add_resource(NodesApi,'/api/asset/v1/nodes',endpoint = 'assets-api.nodes_api
 api.add_resource(NodeApi,'/api/asset/v1/node/<nodeid>',endpoint = 'assets-api.node_api')
 api.add_resource(NodeAssetApi,'/api/asset/v1/node/<nodeid>/asset',endpoint = 'assets-api.node_assets_api')
 #perm
-api.add_resource(SystemUsersApi,'/api/asset_permission/v1/system-user/list',
+api.add_resource(SystemUsersApi,'/api/asset_permission/v1/system-users',
                                                                 endpoint = 'perm-api.systemusers_api')
 api.add_resource(SystemUserApi,'/api/asset_permission/v1/system-user/<sysuserid>',
                                                                     endpoint = 'perm-api.systemuser_api')
+api.add_resource(PermissionGroupsApi,'/api/asset_permission/v1/permission_groups',
+                                                            endpoint = 'perm-api.permission_groups_api')
+api.add_resource(PermissionGroupApi,'/api/asset_permission/v1/permission_group/<pgid>',
+                                                            endpoint = 'perm-api.permission_group_api')
 api.add_resource(AssetPermissionsApi,'/api/asset_permission/v1/permissions',
                                                     endpoint = 'perm-api.asset_permissions_api')
 api.add_resource(AssetPermissionApi,'/api/asset_permission/v1/permission/<permissionid>',

@@ -4,9 +4,10 @@ from werkzeug.datastructures import FileStorage
 from flask_restful import Resource,reqparse
 from app.auth import login_required
 from app.models import SystemUser,AssetPermission,AssetPerm_Users,AssetPerm_Groups,\
-                    AssetPerm_SystemUser,AssetPerm_Nodes,AssetPerm_Assets
+                    AssetPerm_SystemUser,AssetPerm_Nodes,AssetPerm_Assets,PermissionGroups,\
+                    PermissionGroups_User
 from app.utils import trueReturn,falseReturn
-from .serializer import AssetPermissionSerializer,SystemUserSerializer
+from .serializer import AssetPermissionSerializer,SystemUserSerializer,PermissionGroupSerializer
 from app.utils.sshkey import ssh_pubkey_gen,ssh_key_gen,validate_ssh_private_key
 from app.auth import get_login_user
 import json
@@ -14,7 +15,59 @@ import json
 logger = get_logger(__name__)
 
 __all__ = ['SystemUsersApi','SystemUserApi','AssetPermissionsApi','AssetPermissionApi',
-           'UserGrantAssets','UserGrantNodes']
+           'UserGrantAssets','UserGrantNodes','PermissionGroupsApi','PermissionGroupApi']
+
+class PermissionGroupsApi(Resource):
+    @login_required
+    def get(self):
+        args = reqparse.RequestParser().add_argument('search', type=str, location='args').parse_args()
+        query_set = PermissionGroups.select()
+        if args.get('search'):
+            search = args.get('search')
+            query_set = PermissionGroups.filter(PermissionGroups.name.contains(search))
+        query_set = query_set.order_by(PermissionGroups.name)
+        data = json.loads(PermissionGroupSerializer(many=True).dumps(query_set).data)
+        return jsonify(trueReturn(data))
+
+    @login_required
+    def post(self):
+        locations = ['form', 'json']
+        args = reqparse.RequestParser().add_argument('name', type=str,required=True,location=locations) \
+            .add_argument('users', type=str, action='append',required=True, location=locations)\
+            .add_argument('comment', type=str, location=locations).parse_args()
+        try:
+            pgroup = PermissionGroups.create(**args)
+            if args.get('users'):
+                for uid in args.get('users'): pgroup.user.add(uid)
+            return jsonify(trueReturn(msg='创建成功'))
+        except Exception as e:
+            return jsonify(falseReturn(msg=str(e)))
+
+class PermissionGroupApi(Resource):
+    @login_required
+    def put(self,pgid):
+        locations = ['form', 'json']
+        args = reqparse.RequestParser().add_argument('name', type=str,required=True,location=locations) \
+            .add_argument('users', type=str, action='append',required=True, location=locations)\
+            .add_argument('comment', type=str, location=locations).parse_args()
+        pgroup = PermissionGroups.select().where(PermissionGroups.id == pgid).get()
+        try:
+            if args.get('name'):
+                pgroup.name = args.get('name')
+            if args.get('comment'):
+                pgroup.name = args.get('comment')
+            if args.get('users'):
+                current_users = set([user.id.hex for user in pgroup.users.objects()])
+                new_users = set(args.get('users'))
+                if current_users - new_users:
+                    for uid in list(current_users - new_users): pgroup.users.remove(uid)
+                elif new_users - current_users:
+                    for uid in list(new_users - current_users):pgroup.users.add(uid)
+            pgroup.save()
+            return jsonify(trueReturn(msg='更新成功'))
+        except Exception as e:
+            print(e)
+            return jsonify(falseReturn(msg='更新失败'))
 
 class SystemUsersApi(Resource):
     @login_required
@@ -112,9 +165,8 @@ class AssetPermissionsApi(Resource):
         for arg in ('users','groups','system_users','assets','nodes'):
             parse.add_argument(arg,type=str,action='append',location=locations)
         args = parse.add_argument('name', type=str,location=locations,required=True) \
-                .add_argument('is_active', type=bool, location=locations) \
+                .add_argument('is_active', type=bool, default=True,location=locations) \
             .add_argument('comment', type=bool, location=locations).parse_args()
-        print(args)
         if not args.get('users') and not args.get('groups'):
             return jsonify(falseReturn(msg=u'用户和用户组，必须选择一项'))
         elif not args.get('assets') and not args.get('nodes'):
@@ -122,10 +174,12 @@ class AssetPermissionsApi(Resource):
         data,errors = AssetPermissionSerializer(only=['name','is_active','comment']).load(args)
         if errors:
             return jsonify(falseReturn(msg=u'参数验证失败%s' % errors))
-        print(data)
         current_user = get_login_user()
         data['created_by'] = current_user.username
-        asset_permission = AssetPermission.create(**data)
+        try:
+            asset_permission = AssetPermission.create(**data)
+        except Exception as e:
+            return jsonify(falseReturn(msg=str(e)))
         for item in ('system_users','users','groups','assets','nodes'):
             if args.get(item):
                 for id in args.get(item):
@@ -137,8 +191,8 @@ class AssetPermissionsApi(Resource):
         args = reqparse.RequestParser().add_argument('id', type=str, location='json').parse_args()
         for model in [AssetPerm_SystemUser, AssetPerm_Users, AssetPerm_Nodes, AssetPerm_Groups, AssetPerm_Assets]:
             model.delete().where(model.assetpermission_id == args.get('id')).execute()
-        result = AssetPermission.delete().where(AssetPermission.id==args.get('id')).execute()
-        return  jsonify(trueReturn(msg='success'))
+        AssetPermission.delete().where(AssetPermission.id==args.get('id')).execute()
+        return  jsonify(trueReturn(msg='删除成功'))
 
 class AssetPermissionApi(Resource):
     @login_required
