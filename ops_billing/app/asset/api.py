@@ -427,12 +427,14 @@ class SecurityGroupsApi(Resource):
         vpcid = None
         for sg in json.loads(OpsRedis.get('aly_security_groups').decode()):
             results.append(
-                {'SecurityGroupId': sg['SecurityGroupId'],
-                 'SecurityGroupName': sg['SecurityGroupName'],
-                 'RegionId': sg['RegionId'],
-                 'CreationTime': sg['CreationTime'],
-                 'NetworkType': 'vpc' if sg.get('VpcId') else 'classic',
-                 'VpcId': sg.get('VpcId')}
+                {
+                    'SecurityGroupId': sg['SecurityGroupId'],
+                    'SecurityGroupName': sg['SecurityGroupName'],
+                    'RegionId': sg['RegionId'],
+                    'CreationTime': sg['CreationTime'],
+                    'NetworkType': 'vpc' if sg.get('VpcId') else 'classic',
+                    'VpcId': sg.get('VpcId')
+                }
             )
         if args.get('VSwitchId'):
             if not OpsRedis.exists('aly_vswitches_vpcs'):
@@ -459,7 +461,6 @@ class VSwitchesApi(Resource):
             return jsonify(falseReturn(msg='先同步交换机信息'))
         result = json.loads(OpsRedis.get('aly_vswitches').decode())
         data = result.get(args.get('ZoneId')) if args.get('ZoneId') else result
-        print(data)
         return jsonify(trueReturn(data))
 
 class AssetAccountsApi(Resource):

@@ -9,7 +9,7 @@ from aliyunsdkrds.request.v20140815 import DescribeDBInstancesRequest,\
 from aliyunsdkr_kvstore.request.v20150101 import DescribeInstancesRequest as kvInstancesRequest
 from aliyunsdkr_kvstore.request.v20150101 import  DescribeInstanceAttributeRequest
 from .sync_node_amount import NodeAmount
-from app.models import Asset,OpsRedis
+from app.models import Asset,OpsRedis,db
 from conf import aliyun
 
 __all__ = ['SyncAliAssets']
@@ -195,11 +195,6 @@ class SyncAliAssets(object):
         return result
 
     def aly_sync_asset(self,asset_type,update=False):
-        insert_many = []
-        new_InstanceIds = []
-        query_set = Asset.filter(Asset.AssetType==asset_type)
-        InstanceIds = [asset.InstanceId for asset in query_set if query_set]
-
         if asset_type == 'ecs':
             instances = self.get_ecs_instances()
         elif asset_type == 'rds':
@@ -213,10 +208,14 @@ class SyncAliAssets(object):
         else:
             return
 
+        insert_many = [];new_InstanceIds = []
+        query_set = Asset.select().where(Asset.AssetType==asset_type)
+        InstanceIds = [asset.InstanceId for asset in query_set if query_set]
         for instance in instances:
             new_InstanceIds.append(instance['InstanceId'])
             if instance['InstanceId'] in InstanceIds and update:
-                Asset.update(**instance).where(Asset.InstanceId ==instance['InstanceId']).execute()
+                with db.atomic() :
+                    Asset.update(**instance).where(Asset.InstanceId ==instance['InstanceId']).execute()
             else:
                 insert_many.append(instance)
         ids = list(set(InstanceIds) - set(new_InstanceIds) )
@@ -224,14 +223,14 @@ class SyncAliAssets(object):
             Asset.update(Status = 'Destroy').where(Asset.InstanceId.in_(ids)).execute()
         last_insert_many = self.pop_duplicate(insert_many)
         if last_insert_many :
-            Asset.insert_many(last_insert_many).execute()
+            with db.atomic():Asset.insert_many(last_insert_many).execute()
         NodeAmount.sync_root_assets()
         NodeAmount.sync_all_node_assets()
 
     def pop_duplicate(self,asset_list):
         new_asset_list = []
         if not asset_list:return new_asset_list
-        for i,item in enumerate(asset_list):
-            if item['InstanceId'] not in [asset['InstanceId'] for asset in new_asset_list]:
+        for item in asset_list:
+            if item not in new_asset_list:
                 new_asset_list.append(item)
         return new_asset_list
