@@ -309,7 +309,7 @@ function onSelected(event, treeNode,reload) {
     var url = asset_table.ajax.url();
     url = setUrlParam(url, "node_id", treeNode.id);
     setCookie('node_selected', treeNode.id);
-    if (typeof(no_reload) == "undefined" || reload ) {
+    if (typeof(reload) == "undefined" || reload ) {
         asset_table.ajax.url(url);
         asset_table.ajax.reload();
     }
