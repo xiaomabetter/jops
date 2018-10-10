@@ -213,9 +213,10 @@ class SyncAliAssets(object):
         InstanceIds = [asset.InstanceId for asset in query_set if query_set]
         for instance in instances:
             new_InstanceIds.append(instance['InstanceId'])
-            if instance['InstanceId'] in InstanceIds and update:
-                with db.atomic() :
-                    Asset.update(**instance).where(Asset.InstanceId ==instance['InstanceId']).execute()
+            if instance['InstanceId'] in InstanceIds:
+                if update:
+                    with db.atomic() :
+                        Asset.update(**instance).where(Asset.InstanceId ==instance['InstanceId']).execute()
             else:
                 insert_many.append(instance)
         ids = list(set(InstanceIds) - set(new_InstanceIds) )
