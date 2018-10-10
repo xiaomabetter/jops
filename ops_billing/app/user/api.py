@@ -141,7 +141,6 @@ class GroupsApi(Resource):
             .add_argument('value', type=str,location=['form'],required=True) \
             .add_argument('is_ldap_group', type=str, location=['form'], required=True) \
             .add_argument('description', type=str, location=['form']).parse_args()
-        print(args)
         data,errors = GroupSerializer().load(args)
         if errors:
             return jsonify(falseReturn(msg=str(errors)))

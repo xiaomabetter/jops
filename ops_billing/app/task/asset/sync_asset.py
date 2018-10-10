@@ -9,7 +9,7 @@ from aliyunsdkrds.request.v20140815 import DescribeDBInstancesRequest,\
 from aliyunsdkr_kvstore.request.v20150101 import DescribeInstancesRequest as kvInstancesRequest
 from aliyunsdkr_kvstore.request.v20150101 import  DescribeInstanceAttributeRequest
 from .sync_node_amount import NodeAmount
-from app.models import Asset,db,OpsRedis
+from app.models import Asset,OpsRedis
 from conf import aliyun
 
 __all__ = ['SyncAliAssets']
@@ -194,7 +194,7 @@ class SyncAliAssets(object):
                 })
         return result
 
-    def aly_sync_asset(self,asset_type,update=True):
+    def aly_sync_asset(self,asset_type,update=False):
         insert_many = []
         new_InstanceIds = []
         query_set = Asset.filter(Asset.AssetType==asset_type)
@@ -216,18 +216,15 @@ class SyncAliAssets(object):
         for instance in instances:
             new_InstanceIds.append(instance['InstanceId'])
             if instance['InstanceId'] in InstanceIds and update:
-                with db.atomic():
-                    Asset.update(**instance).where(Asset.InstanceId ==instance['InstanceId']).execute()
+                Asset.update(**instance).where(Asset.InstanceId ==instance['InstanceId']).execute()
             else:
                 insert_many.append(instance)
         ids = list(set(InstanceIds) - set(new_InstanceIds) )
         if ids:
-            with db.atomic():
-                Asset.update(Status = 'Destroy').where(Asset.InstanceId.in_(ids)).execute()
+            Asset.update(Status = 'Destroy').where(Asset.InstanceId.in_(ids)).execute()
         last_insert_many = self.pop_duplicate(insert_many)
         if last_insert_many :
-            with db.atomic():
-                Asset.insert_many(last_insert_many).execute()
+            Asset.insert_many(last_insert_many).execute()
         NodeAmount.sync_root_assets()
         NodeAmount.sync_all_node_assets()
 

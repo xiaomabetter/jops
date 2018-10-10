@@ -305,12 +305,11 @@ function onBodyMouseDown(event){
 	}
 }
 
-function onSelected(event, treeNode,no_reload) {
+function onSelected(event, treeNode,reload) {
     var url = asset_table.ajax.url();
     url = setUrlParam(url, "node_id", treeNode.id);
-    url = setUrlParam(url, 'un_node',false);
     setCookie('node_selected', treeNode.id);
-    if (typeof(no_reload) == "undefined") {
+    if (typeof(no_reload) == "undefined" || reload ) {
         asset_table.ajax.url(url);
         asset_table.ajax.reload();
     }
@@ -334,7 +333,7 @@ function selectQueryNode() {
     if (node_id) {
         node = zTree.getNodesByParam("id", node_id, null);
         if (node){
-            zTree.selectNode(node[0],no_reload=true);
+            zTree.selectNode(node[0],reload=true);
         }
     }
 }

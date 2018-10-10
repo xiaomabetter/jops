@@ -30,7 +30,7 @@ class AssetsApi(Resource):
             .add_argument('limit', type = int,location = 'args').add_argument('offset', type = int,location = 'args') \
             .add_argument('search', type=str, location='args').add_argument('asset_type', type=str, location='args')\
             .add_argument('order', type=str, location='args').add_argument('node_id', type = str, location = 'args')\
-            .add_argument('un_node', type=str, location='args')\
+            .add_argument('un_node', type=bool, default=False,location='args')\
             .add_argument('hostnames', type = str,action='append',location='args') \
             .add_argument('iplist', type=str, action='append',location='args').parse_args()
         if args.get('hostnames'):
@@ -43,7 +43,7 @@ class AssetsApi(Resource):
             node = Node.filter(Node.id == node_id).get()
             if node.is_root():
                 query_set = Asset.filter((Asset.AssetType == asset_type) & (Asset.Status != 'Destroy'))
-                if args.get('un_node') == 'true':
+                if args.get('un_node'):
                     assetids = node.get_family_assetids(asset_type)
                     query_set = query_set.filter(Asset.id.not_in(assetids))
             else:
@@ -137,7 +137,6 @@ class AssetUserApi(Resource):
             for users in from_node_datas:
                 for user in users['users']:
                     if user not in related_users:related_users.append(user)
-        print(len(related_users))
         return jsonify(trueReturn(related_users))
 
 class NodesApi(Resource):
@@ -425,6 +424,7 @@ class SecurityGroupsApi(Resource):
         if not OpsRedis.exists('aly_security_groups'):
             return jsonify(falseReturn(msg='先同步安全组信息'))
         results = []
+        vpcid = None
         for sg in json.loads(OpsRedis.get('aly_security_groups').decode()):
             results.append(
                 {'SecurityGroupId': sg['SecurityGroupId'],
@@ -434,14 +434,18 @@ class SecurityGroupsApi(Resource):
                  'NetworkType': 'vpc' if sg.get('VpcId') else 'classic',
                  'VpcId': sg.get('VpcId')}
             )
-        if args.get('VSwitchId') and not OpsRedis.exists('aly_vswitches_vpcs'):
-            return jsonify(falseReturn(msg='先同步交换机信息'))
-        swinfos = json.loads(OpsRedis.get('aly_vswitches_vpcs').decode())
-        vpcid = swinfos.get(args.get('VSwitchId'))
         if args.get('VSwitchId'):
-            data = [info for info in results if vpcid == info.get('VpcId')]
+            if not OpsRedis.exists('aly_vswitches_vpcs'):
+                return jsonify(falseReturn(msg='先同步交换机信息'))
+            swinfos = json.loads(OpsRedis.get('aly_vswitches_vpcs').decode())
+            vpcid = swinfos.get(args.get('VSwitchId'))
+        if args.get('RegionId') and args.get('VSwitchId'):
+            data = [info for info in results if args.get('RegionId') == info.get('RegionId')
+                                                                and vpcid == info.get('VpcId')]
         elif args.get('RegionId'):
             data = [info for info in results if args.get('RegionId') == info.get('RegionId')]
+        elif args.get('VSwitchId'):
+            data = [info for info in results if vpcid == info.get('VpcId')]
         else:
             data = results
         return jsonify(trueReturn(data))
