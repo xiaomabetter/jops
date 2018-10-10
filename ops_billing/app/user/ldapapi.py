@@ -24,7 +24,7 @@ class LDAPTool(object):
             logger.error('ldap conn失败，原因为: %s' % str(e))
 
     def ldap_search_user(self, username=None):
-        self.conn.open()
+        self.conn.open();self.conn.bind()
         if username:
             search_filter = f'(&(objectclass=inetOrgPerson)(uid={username}))'
         else:
@@ -48,7 +48,7 @@ class LDAPTool(object):
         return entry_list
 
     def ldap_add_user(self, ou,username, password,email=None,telephoneNumber=None):
-        self.conn.open()
+        self.conn.open();self.conn.bind()
         attributes = {'objectClass': ['inetOrgPerson'],'cn':username,'sn':username}
         attributes['userPassword'] = password
         if email:
@@ -59,28 +59,26 @@ class LDAPTool(object):
         return result
 
     def ldap_update_user(self, username, ou,new_password='',mail='',telephoneNumber=''):
-        self.conn.open()
+        self.conn.open();self.conn.bind()
+        result = False
         if not ou:
             userinfo = self.ldap_search_user(username=username)
-            if userinfo:
-                userinfo = userinfo[0]
-            else:
-                return False
+            if userinfo:userinfo = userinfo[0]
+            else:return False
             ou = userinfo.get('department')
         if new_password:
             result = self.conn.modify(f'uid={username},ou={ou},{self.base_dn}',
-                                 {'userPassword':[(MODIFY_REPLACE,f'{new_password}')]})
-        elif mail:
+                                    {'userPassword':[(MODIFY_REPLACE,f'{new_password}')]})
+        if mail:
             result = self.conn.modify(f'uid={username},ou={ou},{self.base_dn}',
                                       {'mail':[(MODIFY_REPLACE,f'{mail}')]})
-        elif telephoneNumber:
+        if telephoneNumber:
             result = self.conn.modify(f'uid={username},ou={ou},{self.base_dn}',
                                       {'telephoneNumber':[(MODIFY_REPLACE,[f'{telephoneNumber}'])]})
-        else:result = False
         return result
 
     def ldap_modify_user(self,username,newusername):
-        self.conn.open()
+        self.conn.open();self.conn.bind()
         userinfo = self.ldap_search_user(username=username)
         if userinfo:
             userinfo = userinfo[0]
@@ -90,7 +88,7 @@ class LDAPTool(object):
         return result
 
     def ldap_move_user(self,username,newou):
-        self.conn.open()
+        self.conn.open();self.conn.bind()
         userinfo = self.ldap_search_user(username=username)
         if userinfo:
             userinfo = userinfo[0]
@@ -101,27 +99,27 @@ class LDAPTool(object):
         return result
 
     def ldap_test_ou_exist(self,ou):
-        self.conn.open()
+        self.conn.open();self.conn.bind()
         result = self.conn.search(f'{BASE_DN}', f'(&(objectclass=top)(ou={ou}))')
         return result
 
     def ldap_add_ou(self, ou):
-        self.conn.open()
+        self.conn.open();self.conn.bind()
         result = self.conn.add(f'ou={ou},{self.base_dn}','organizationalUnit')
         return result
 
     def ldap_delete_ou(self, ou):
-        self.conn.open()
+        self.conn.open();self.conn.bind()
         result = self.conn.delete(f'ou={ou},{self.base_dn}')
         return result
 
     def ldap_modify_ou(self,ou,newou):
-        self.conn.open()
+        self.conn.open();self.conn.bind()
         result = self.conn.modify_dn(f'ou={ou},{self.base_dn}',f'ou={newou}')
         return result
 
     def ldap_delete_user(self, ou,username):
-        self.conn.open()
+        self.conn.open();self.conn.bind()
         result = self.conn.delete(f'uid={username},ou={ou},{self.base_dn}')
         return result
 
