@@ -55,7 +55,7 @@ def asset_create_template_update(templateid):
     if templatedata['DataDiskinfo']:
         DataDiskinfo = list(json.loads(templatedata['DataDiskinfo']))
         for dataDisk in DataDiskinfo:
-            data = dict(templatedata,**dataDisk)
+            templatedata = dict(templatedata,**dataDisk)
     templatedata['ImageId'] = '{0}-join-{1}'.format(templatedata['ImageId'],templatedata['RegionId'])
     form = Aly_Create_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
