@@ -44,9 +44,10 @@ class PlatformsApi(Resource):
         locations = ['form', 'json']
         args = reqparse.RequestParser().add_argument('description', type=str,required=True,location=locations) \
             .add_argument('platform_url', type=str,required=True, location=locations) \
-            .add_argument('catagory', type=str, required=True, location=locations).parse_args()
+            .add_argument('catagory', type=str, required=True, location=locations) \
+            .add_argument('location', type=str, required=True, location=locations).parse_args()
         try:
-            Platforms.create(description=args.get('description'),
+            Platforms.create(description=args.get('description'),location=args.get('location'),
                                         platform_url=args.get('platform_url'),catagory=args.get('catagory'))
             return trueReturn(msg='创建成功')
         except Exception as e:
@@ -55,8 +56,12 @@ class PlatformsApi(Resource):
 class PlatformApi(Resource):
     @login_required
     def get(self,platformid):
-        query_set = Platforms.select().where(Platforms.id == platformid).get()
-        data = json.loads(PlatformSerializer().dumps(query_set).data)
+        if OpsRedis.exists(platformid):
+            data = OpsRedis.get(platformid).decode()
+        else:
+            query_set = Platforms.select().where(Platforms.id == platformid).get()
+            data = json.loads(PlatformSerializer().dumps(query_set).data)
+            OpsRedis.set(platformid,json.dumps(data))
         return jsonify(trueReturn(data))
 
     @login_required
@@ -64,11 +69,17 @@ class PlatformApi(Resource):
         locations = ['form', 'json']
         args = reqparse.RequestParser().add_argument('description', type=str,required=True,location=locations) \
             .add_argument('platform_url', type=str,required=True, location=locations) \
-            .add_argument('catagory', type=str, required=True, location=locations).parse_args()
+            .add_argument('catagory', type=str, required=True, location=locations) \
+            .add_argument('location', type=str, required=True, location=locations).parse_args()
         try:
             Platforms.update(description=args.get('description'),platform_url=args.get('platform_url'),
-                             catagory=args.get('catagory')).where(Platforms.id == platformid).execute()
+                             catagory=args.get('catagory'),location=args.get('location'))\
+                                .where(Platforms.id == platformid).execute()
+            query_set = Platforms.select().where(Platforms.id == platformid).get()
+            data = json.dumps(json.loads(PlatformSerializer().dumps(query_set).data))
+            OpsRedis.set(platformid,data)
             return jsonify(trueReturn(msg="更新成功"))
+
         except Exception as e:
             return jsonify(trueReturn(msg="更新失败%s" % str(e)))
 

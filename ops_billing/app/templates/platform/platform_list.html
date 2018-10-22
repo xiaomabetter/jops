@@ -15,6 +15,7 @@
         </th>
         <th class="text-center">平台</th>
         <th class="text-center">地址</th>
+        <th class="text-center">所属地区</th>
         <th class="text-center">类型</th>
         <th class="text-center">创建时间</th>
         <th class="text-center">动作</th>
@@ -32,7 +33,7 @@ function initTable() {
     var options = {
         ele: $('#platform_list_table'),
         columnDefs: [
-            {targets: 5, createdCell: function (td, cellData, rowData) {
+            {targets: 6, createdCell: function (td, cellData, rowData) {
                 var transfer_btn = '<a class="btn btn-xs m-l-xs btn-info" id="do_transfer_url" data-uid="PK">跳转</a>'.replace('PK',cellData);
                 {% if g.user.role == 'administrator' %}
                     var update_btn = '<a href="{{ url_for('platform.platform_update',platformid='PK') }}" class="btn btn-xs m-l-xs btn-info">更新</a>'.replace('PK',cellData);
@@ -45,7 +46,7 @@ function initTable() {
         ],
         ajax_url: "{{ url_for('platform-api.platforms_api') }}",
         columns: [
-            {data: "id" },{data: "description" },{data: "platform_url" },{data: "catagory" },
+            {data: "id" },{data: "description" },{data: "platform_url" },{data: "location" },{data: "catagory" },
             {data: "date_created"},{data: "id" }
         ],
         op_html: $('#actions').html()
