@@ -151,10 +151,7 @@ function initTree() {
         },
         callback: {
             onRightClick: OnRightClick,
-            beforeClick: beforeClick,
             onSelected: onSelected,
-            beforeDrag: beforeDrag,
-            onDrag: onDrag
         }
     };
 
@@ -174,13 +171,6 @@ function initTree() {
         zTree = $.fn.zTree.getZTreeObj("assetTree");
         selectQueryNode();
     });
-}
-
-function beforeClick(treeId, treeNode, clickFlag) {
-    return true;
-}
-
-function onDrag(event, treeId, treeNodes) {
 }
 
 function OnRightClick(event, treeId, treeNode) {
@@ -235,10 +225,6 @@ function selectQueryNode() {
     if (node){
         zTree.selectNode(node[0]);
     }
-}
-
-function beforeDrag() {
-    return true
 }
 
 function onSelected(event, treeNode) {

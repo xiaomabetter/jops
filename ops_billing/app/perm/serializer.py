@@ -1,6 +1,7 @@
 from marshmallow import schema,fields,Schema
 from app.asset.serializer import NodeSerializer,AssetSerializer
 from app.user.serializer import UserSerializer
+from app.platform.serializer import PlatformSerializer
 
 class SystemUserSerializer(Schema):
     id = fields.Function(lambda obj: obj.id.hex)
@@ -21,7 +22,7 @@ class PermissionGroupSerializer(Schema):
         fields = ("id","name","users",'date_created','date_updated','created_by','comment')
 
 class AssetPermissionSerializer(Schema):
-    id = fields.Function(lambda obj: str(obj.id))
+    id = fields.Function(lambda obj: obj.id.hex)
     name = fields.String(required=True)
     is_active = fields.Boolean()
     assets = fields.Nested(AssetSerializer,exclude=('node','account'),many=True)
@@ -34,3 +35,15 @@ class AssetPermissionSerializer(Schema):
     class Meta:
         fields = ("id","name","assets","nodes","system_users","users","groups","is_active",
                   "date_start","date_expired","created_by","comment")
+
+class AuthorizationPlatformSerializer(Schema):
+    id = fields.Function(lambda obj: obj.id.hex)
+    name = fields.String(required=True)
+    is_active = fields.Boolean()
+    users = fields.Nested(UserSerializer,many=True,
+                          only=['id','username','phone','wechat','ding','email'])
+    groups = fields.Nested(PermissionGroupSerializer,only=['id','users','name'],many=True)
+    platform_urls = fields.Nested(PlatformSerializer,many=True)
+
+    class Meta:
+        fields = ("id","name","users","groups","platform_urls","is_active")

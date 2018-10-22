@@ -141,7 +141,6 @@ $("#submit_button").on("click",function(){
             type: 'post',
             dataType: 'json',
             success: function (data) {
-                console.log(data);
                 if (data['status']) {
                     toastr.success(data['msg']);
                 } else {

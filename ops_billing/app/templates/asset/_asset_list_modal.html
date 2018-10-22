@@ -107,7 +107,6 @@ $(document).ready(function(){
         asset_type="ecs";
     }
 }).on('click', '#asset_notin_node2', function () {
-    console.log(init_table_url);
     url = setUrlParam(init_table_url, 'un_node','True');
     asset_table2.ajax.url(url);
     asset_table2.ajax.reload();

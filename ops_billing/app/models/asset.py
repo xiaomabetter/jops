@@ -229,7 +229,7 @@ class Create_Asset_History(BaseModel):
     RegionId = CharField(max_length=128, null=False)
     created_by = CharField(max_length=128, null=False)
     isSuccess = BooleanField(default=False,null=False)
-    CreateTime = DateTimeField(null=False)
+    CreateTime = DateTimeField(null=False,default=datetime.datetime.now())
 
 class Asset_Create_Template(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)

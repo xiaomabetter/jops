@@ -26,11 +26,9 @@ class User_Form(FlaskForm):
 class Ldap_User_Form(User_Form):
     groups = SelectField(u'LDAP用户组',choices=[],render_kw={"class":"form-control select2",
                                                     "data-placeholder":"选择用户组"})
-
 class Local_User_Form(User_Form):
     groups = SelectField(u'用户组',choices=[],render_kw={"class":"form-control select2",
                                                     "data-placeholder":"选择用户组"})
-
 class User_Create_Form(User_Form):
     local_group_list = [(ug.id.hex, ug.value) for ug in Groups.select().where(Groups.is_ldap_group == False)]
     ldap_group_list = [(ug.id.hex,ug.value) for ug in Groups.select().where(Groups.is_ldap_group == True)]

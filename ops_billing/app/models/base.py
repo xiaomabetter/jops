@@ -23,7 +23,7 @@ OpsCeleryRedis = Redis(connection_pool=pool1)
 #                                user=config.get('DEFAULT','DB_USER'),passwd=config.get('DEFAULT','DB_PASSWD'),
 #                                max_connections=50, stale_timeout=110)
 
-url = 'mysql+pool://{0}:{1}@{2}:{3}/{4}?charset=utf8&max_connections=50&stale_timeout=300'.format(
+url = 'mysql+pool://{0}:{1}@{2}:{3}/{4}?charset=utf8&max_connections=100&stale_timeout=300'.format(
                             config.get('DEFAULT','DB_USER'),config.get('DEFAULT','DB_PASSWD'),
                             config.get('DEFAULT','DB_HOST'),config.get('DEFAULT','DB_PORT'),
                             config.get('DEFAULT','DB_DATABASE'))

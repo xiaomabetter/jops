@@ -5,6 +5,7 @@ from app.asset.api import *
 from app.perm.api import *
 from app.user.api import *
 from app.task.api import *
+from app.platform.api import *
 from flask_restful import Api
 from app.models.base import db
 import os
@@ -34,22 +35,16 @@ api.add_resource(NodesApi,'/api/asset/v1/nodes',endpoint = 'assets-api.nodes_api
 api.add_resource(NodeApi,'/api/asset/v1/node/<nodeid>',endpoint = 'assets-api.node_api')
 api.add_resource(NodeAssetApi,'/api/asset/v1/node/<nodeid>/asset',endpoint = 'assets-api.node_assets_api')
 #perm
-api.add_resource(SystemUsersApi,'/api/asset_permission/v1/system-users',
-                                                                endpoint = 'perm-api.systemusers_api')
-api.add_resource(SystemUserApi,'/api/asset_permission/v1/system-user/<sysuserid>',
-                                                                    endpoint = 'perm-api.systemuser_api')
-api.add_resource(PermissionGroupsApi,'/api/asset_permission/v1/permission_groups',
-                                                            endpoint = 'perm-api.permission_groups_api')
-api.add_resource(PermissionGroupApi,'/api/asset_permission/v1/permission_group/<pgid>',
-                                                            endpoint = 'perm-api.permission_group_api')
-api.add_resource(AssetPermissionsApi,'/api/asset_permission/v1/permissions',
-                                                    endpoint = 'perm-api.asset_permissions_api')
-api.add_resource(AssetPermissionApi,'/api/asset_permission/v1/permission/<permissionid>',
-                                                                endpoint = 'perm-api.asset_permission_api')
-api.add_resource(UserGrantAssets,'/api/asset_permission/v1/user/<uid>/assets',
-                                                                endpoint = 'perm-api.perm_user_assets')
-api.add_resource(UserGrantNodes,'/api/asset_permission/v1/user/<uid>/nodes-assets',
-                                                                    endpoint = 'perm-api.perm_user_nodes')
+api.add_resource(SystemUsersApi,'/api/permission/v1/system-users',endpoint = 'perm-api.systemusers_api')
+api.add_resource(SystemUserApi,'/api/permission/v1/system-user/<sysuserid>',endpoint = 'perm-api.systemuser_api')
+api.add_resource(PermissionGroupsApi,'/api/permission/v1/permission_groups',endpoint = 'perm-api.permission_groups_api')
+api.add_resource(PermissionGroupApi,'/api/permission/v1/permission_group/<pgid>',endpoint = 'perm-api.permission_group_api')
+api.add_resource(AssetPermissionsApi,'/api/permission/v1/permissions',endpoint = 'perm-api.asset_permissions_api')
+api.add_resource(AssetPermissionApi,'/api/permission/v1/permission/<permissionid>',endpoint = 'perm-api.asset_permission_api')
+api.add_resource(PlatformAuthorizationsApi,'/api/permission/v1/platforms',endpoint = 'perm-api.platforms_api')
+api.add_resource(PlatformAuthorizationApi,'/api/permission/v1/platform/<platform_permission_id>',endpoint = 'perm-api.platform_api')
+api.add_resource(UserGrantAssets,'/api/permission/v1/user/<uid>/assets',endpoint = 'perm-api.perm_user_assets')
+api.add_resource(UserGrantNodes,'/api/permission/v1/user/<uid>/nodes-assets',endpoint = 'perm-api.perm_user_nodes')
 #user
 api.add_resource(UsersApi,'/api/user/v1/users',endpoint = 'user-api.users_api')
 api.add_resource(UserApi,'/api/user/v1/user/<userid>',endpoint = 'user-api.user_api')
@@ -60,6 +55,9 @@ api.add_resource(UserLogin,'/api/user/v1/token',endpoint = 'user-api.user-login-
 api.add_resource(TaskApi,'/api/task/v1/task/<taskid>',endpoint = 'task-api.task_api')
 api.add_resource(AlySyncApi,'/api/task/v1/alysync',endpoint = 'task-api.aly-sync-task')
 api.add_resource(TaskAnsRunApi,'/api/task/v1/ansible/run',endpoint = 'task-api.task_ansrun_api')
-
+#platform
+api.add_resource(PlatformsApi,'/api/platform/v1/platforms',endpoint = 'platform-api.platforms_api')
+api.add_resource(PlatformApi,'/api/platform/v1/platform/<platformid>',endpoint = 'platform-api.platform_api')
+api.add_resource(PlatformsProxyApi,'/api/platform/v1/platformproxy',endpoint = 'platform-api.platforms_proxy_api')
 if __name__ == '__main__':
     app.run(debug=True,host='0.0.0.0',port=5050)

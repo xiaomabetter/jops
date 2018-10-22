@@ -4,17 +4,11 @@ from wtforms import StringField, TextAreaField, BooleanField, SelectField,\
     PasswordField,DateTimeField,IntegerField,FileField,SelectMultipleField
 from wtforms.widgets import CheckboxInput,TextInput,FileInput
 from wtforms.validators import DataRequired
-from app.models import SystemUser
-from app.models import User,Groups
-from app.models import Node
-from datetime import datetime
 
 class Perm_Base_Form(FlaskForm):
     name = StringField(u'名称', [DataRequired(message=u'必须填写规则名称')],
                             widget=TextInput(), render_kw={"class": "form-control","placeholder":"填写规则名称"})
     is_active = BooleanField(u'激活中', widget=CheckboxInput(), render_kw={"class": "form-control", 'checked': 'true'})
-    date_start = DateTimeField('date_start', default=datetime.now().strftime('%Y-%m-%d'))
-    date_expired = DateTimeField('date_expired')
     comment = TextAreaField('备注', render_kw={"class": "form-control"})
 
 class Perm_Create_Form(Perm_Base_Form):
@@ -29,6 +23,14 @@ class Perm_Create_Form(Perm_Base_Form):
     system_users = SelectMultipleField(u'系统用户', choices=[],validators=[DataRequired()],
                                        render_kw={"class": "form-control select2",
                                            "multiple": "multiple","data-placeholder":"系统用户"})
+
+class Perm_Platform_Create_Form(Perm_Base_Form):
+    users = SelectMultipleField(u'用户',choices=[],render_kw={"class":"form-control select2","multiple":"multiple",
+                                           "data-placeholder":"选择用户"})
+    groups = SelectMultipleField(u'授权分组',choices=[],render_kw={"class":"form-control select2","multiple":"multiple",
+                                           "data-placeholder":"选择授权分组"})
+    platform_urls = SelectMultipleField(u'平台urls',choices=[],render_kw={"class":"form-control select2",
+                                            "multiple":"multiple","data-placeholder":"选择平台urls"})
 
 class Perm_Groups_Form(FlaskForm):
     name = StringField(u'名称', [DataRequired(message=u'必须填写规则名称')],

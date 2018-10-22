@@ -36,5 +36,7 @@ def create_app(config_name):
     app.register_blueprint(perm)
     from .task import task
     app.register_blueprint(task)
+    from .platform import platform
+    app.register_blueprint(platform)
 
     return app

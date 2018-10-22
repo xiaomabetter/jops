@@ -44,6 +44,7 @@
 {% include 'task/_result_modal.html' %}
 {% endblock %}
 {% block custom_foot_js %}
+<script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
 <script src="{{ url_for('static', filename='js/plugins/footable/footable.all.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
 <script>

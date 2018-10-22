@@ -5,9 +5,10 @@ from flask_restful import Resource,reqparse
 from app.auth import login_required
 from app.models import SystemUser,AssetPermission,AssetPerm_Users,AssetPerm_Groups,\
                     AssetPerm_SystemUser,AssetPerm_Nodes,AssetPerm_Assets,PermissionGroups,\
-                    PermissionGroups_User
+                    PermissionPlatform
 from app.utils import trueReturn,falseReturn
-from .serializer import AssetPermissionSerializer,SystemUserSerializer,PermissionGroupSerializer
+from .serializer import AssetPermissionSerializer,SystemUserSerializer,\
+                                PermissionGroupSerializer,AuthorizationPlatformSerializer
 from app.utils.sshkey import ssh_pubkey_gen,ssh_key_gen,validate_ssh_private_key
 from app.auth import get_login_user
 import json
@@ -15,7 +16,8 @@ import json
 logger = get_logger(__name__)
 
 __all__ = ['SystemUsersApi','SystemUserApi','AssetPermissionsApi','AssetPermissionApi',
-           'UserGrantAssets','UserGrantNodes','PermissionGroupsApi','PermissionGroupApi']
+           'UserGrantAssets','UserGrantNodes','PermissionGroupsApi','PermissionGroupApi',
+           'PlatformAuthorizationsApi','PlatformAuthorizationApi']
 
 class PermissionGroupsApi(Resource):
     @login_required
@@ -58,7 +60,7 @@ class PermissionGroupApi(Resource):
             if args.get('name'):
                 pgroup.name = args.get('name')
             if args.get('comment'):
-                pgroup.name = args.get('comment')
+                pgroup.comment = args.get('comment')
             if args.get('users'):
                 current_users = set([user.id.hex for user in pgroup.users.objects()])
                 new_users = set(args.get('users'))
@@ -238,6 +240,57 @@ class AssetPermissionApi(Resource):
             for model in [AssetPerm_SystemUser, AssetPerm_Users, AssetPerm_Nodes, AssetPerm_Groups, AssetPerm_Assets]:
                 model.delete().where(model.assetpermission_id == permissionid).execute()
             AssetPermission.delete().where(AssetPermission.id==permissionid).execute()
+            return jsonify(trueReturn(msg='删除成功'))
+        except Exception as e:
+            return jsonify(falseReturn(msg='删除失败'))
+
+class PlatformAuthorizationsApi(Resource):
+    @login_required
+    def get(self):
+        query_set = PermissionPlatform.select()
+        data = json.loads(AuthorizationPlatformSerializer(many=True).dumps(query_set).data)
+        return jsonify(trueReturn(data))
+
+    @login_required
+    def post(self):
+        locations = ['form','json']
+        parse = reqparse.RequestParser()
+        for arg in ('users','groups','platform_urls'):
+            parse.add_argument(arg,type=str,action='append',location=locations)
+        args = parse.add_argument('name', type=str,location=locations,required=True) \
+                .add_argument('is_active', type=bool, default=True,location=locations).parse_args()
+        if not args.get('users') and not args.get('groups'):
+            return jsonify(falseReturn(msg=u'用户和用户组，必须选择一项'))
+        data,errors = AuthorizationPlatformSerializer(only=['name','is_active']).load(args)
+        if errors:
+            return jsonify(falseReturn(msg=u'参数验证失败%s' % errors))
+        try:
+            platform_permission = PermissionPlatform.create(**data)
+        except Exception as e:
+            return jsonify(falseReturn(msg=str(e)))
+        for item in ('platform_urls','users','groups'):
+            if args.get(item):
+                for id in args.get(item):
+                    getattr(platform_permission, item).add(id)
+        return jsonify(trueReturn(msg='授权规则添加成功'))
+
+class PlatformAuthorizationApi(Resource):
+    @login_required
+    def get(self):
+        pass
+
+    @login_required
+    def put(self):
+        pass
+
+    @login_required
+    def delete(self,platform_permission_id):
+        try:
+            platform_perm = PermissionPlatform.select().where(PermissionPlatform.id ==
+                                                                                platform_permission_id).get()
+            platform_perm.users.clear();platform_perm.groups.clear()
+            platform_perm.platform_urls.clear()
+            PermissionPlatform.delete().where(PermissionPlatform.id==platform_permission_id).execute()
             return jsonify(trueReturn(msg='删除成功'))
         except Exception as e:
             return jsonify(falseReturn(msg='删除失败'))

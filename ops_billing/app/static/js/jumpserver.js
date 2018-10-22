@@ -183,6 +183,12 @@ function activeNav() {
                     $('#tasks_list').addClass('active');
             }
         }
+        if (app === 'platform') {
+             $("#Platform").addClass('active');
+            if (resource === 'platform') {
+                    $('#platform_list').addClass('active');
+            }
+        }
         if (app === 'terminal') {
             $("#Terminal").addClass('active');
             if (resource === 'terminal') {
