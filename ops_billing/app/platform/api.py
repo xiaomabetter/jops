@@ -57,7 +57,7 @@ class PlatformApi(Resource):
     @login_required
     def get(self,platformid):
         if OpsRedis.exists(platformid):
-            data = OpsRedis.get(platformid).decode()
+            data = json.loads(OpsRedis.get(platformid).decode())
         else:
             query_set = Platforms.select().where(Platforms.id == platformid).get()
             data = json.loads(PlatformSerializer().dumps(query_set).data)
