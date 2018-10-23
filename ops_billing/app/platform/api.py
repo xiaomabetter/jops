@@ -72,6 +72,7 @@ class PlatformApi(Resource):
             .add_argument('catagory', type=str, required=True, location=locations) \
             .add_argument('location', type=str, required=True, location=locations).parse_args()
         try:
+            print(1111)
             Platforms.update(description=args.get('description'),platform_url=args.get('platform_url'),
                              catagory=args.get('catagory'),location=args.get('location'))\
                                 .where(Platforms.id == platformid).execute()
@@ -79,8 +80,8 @@ class PlatformApi(Resource):
             data = json.dumps(json.loads(PlatformSerializer().dumps(query_set).data))
             OpsRedis.set(platformid,data)
             return jsonify(trueReturn(msg="更新成功"))
-
         except Exception as e:
+            print(22222)
             return jsonify(trueReturn(msg="更新失败%s" % str(e)))
 
     @login_required

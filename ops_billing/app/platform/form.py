@@ -9,3 +9,4 @@ class Platform_Form(FlaskForm):
                             widget=TextInput(), render_kw={"class": "form-control","placeholder":"填写平台描述"})
     platform_url = StringField(u'Platform_url',widget=TextInput(),render_kw={"class":"form-control","placeholder":"填写平台的url"})
     catagory = SelectField('Catagory', choices=[],render_kw={"class": "form-control select2"})
+    location = SelectField('Location', choices=[], render_kw={"class": "form-control select2"})
