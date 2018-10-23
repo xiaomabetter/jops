@@ -60,12 +60,15 @@ $(document).ready(function(){
     var $this = $(this);
     var platform_id = $this.data('uid');
     var current_domain = window.location.hostname
+
+    $.cookie('platform_id',platform_id,{path:'/',domain:current_domain})　
+
     $.get("{{ url_for('platform-api.platforms_proxy_api') }}",{}, function(result){
         if (result['status']) {
             var platform_proxy_port = result['data']
             console.log(platform_proxy_port)
-            var url = "http://" + current_domain + ":" + platform_proxy_port + "?platform_id=" + platform_id;
-            window.open(url,'luna','height=800, width=1000, top=400, left=400,toolbar=no, menubar=no, scrollbars=no,location=no, status=no')
+            var url = "http://" + current_domain + ":" + platform_proxy_port;
+            window.open(url,'luna')
         } else {
             toastr.error(result['msg']);
         }
