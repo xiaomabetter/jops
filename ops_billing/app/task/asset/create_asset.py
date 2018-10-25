@@ -3,7 +3,6 @@ from aliyunsdkcore import client
 from aliyunsdkecs.request.v20140526 import DescribeInstancesRequest,RunInstancesRequest,\
                             JoinSecurityGroupRequest
 from app.models.base import OpsRedis
-from app.models.asset import Asset
 from .sync_node_amount import NodeAmount
 
 class Aly_Create_Asset(object):
@@ -56,6 +55,7 @@ class Aly_Create_Asset(object):
         self.clt = clt
 
     def startInstances(self):
+        from app.models.asset import Asset
         request = RunInstancesRequest.RunInstancesRequest()
         request.set_query_params(self.params)
         request.set_Amount(self.amount)

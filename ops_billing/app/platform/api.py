@@ -10,7 +10,7 @@ import json
 
 logger = get_logger(__name__)
 
-__all__ = ['PlatformsApi','PlatformApi','PlatformsProxyApi']
+__all__ = ['PlatformsApi','PlatformApi','PlatformProxyApi','PlatformUrlMappingPortApi']
 
 class PlatformsApi(Resource):
     @login_required
@@ -72,7 +72,6 @@ class PlatformApi(Resource):
             .add_argument('catagory', type=str, required=True, location=locations) \
             .add_argument('location', type=str, required=True, location=locations).parse_args()
         try:
-            print(1111)
             Platforms.update(description=args.get('description'),platform_url=args.get('platform_url'),
                              catagory=args.get('catagory'),location=args.get('location'))\
                                 .where(Platforms.id == platformid).execute()
@@ -81,7 +80,6 @@ class PlatformApi(Resource):
             OpsRedis.set(platformid,data)
             return jsonify(trueReturn(msg="更新成功"))
         except Exception as e:
-            print(22222)
             return jsonify(trueReturn(msg="更新失败%s" % str(e)))
 
     @login_required
@@ -97,12 +95,42 @@ class PlatformApi(Resource):
         except Exception as e:
             return jsonify(trueReturn(msg="更新失败%s" % str(e)))
 
-class PlatformsProxyApi(Resource):
+
+class PlatformUrlMappingPortApi(Resource):
+    @login_required
+    def get(self,port):
+        data = ''
+        platform_port_dict = json.loads(OpsRedis.get('platform_proxy_port').decode())
+        for platform_id,proxy_port in platform_port_dict.items():
+            if port == proxy_port:
+                if OpsRedis.exists(platform_id):
+                    data = json.loads(OpsRedis.get(platform_id).decode())
+                else:
+                    query_set = Platforms.select().where(Platforms.id == platform_id).get()
+                    data = json.loads(PlatformSerializer().dumps(query_set).data)
+                    OpsRedis.set(platform_id, json.dumps(data))
+                break
+        return jsonify(trueReturn(data))
+
+class PlatformProxyApi(Resource):
     @login_required
     def get(self):
-        proxy_port = OpsRedis.get('platform_proxy_port')
-        if proxy_port:
-            return jsonify(trueReturn(proxy_port.decode()))
+        args = reqparse.RequestParser().\
+            add_argument('platform_id', type=str,required=True, location='args').parse_args()
+        print(args)
+        platform_port = None
+        if OpsRedis.exists('platform_proxy_port'):
+            platform_port_dict = json.loads(OpsRedis.get('platform_proxy_port').decode())
+            if args.get('platform_id') in platform_port_dict:
+                platform_port = platform_port_dict.get(args.get('platform_id'))
+            else:
+                for port,platform_id in platform_port_dict.items():
+                    if port == '':
+                        platform_port = port
+                        break
+            if not platform_port:
+                return jsonify(falseReturn(msg=u'没有富裕的端口'))
+            return jsonify(trueReturn(platform_port))
         else:
             return jsonify(falseReturn(msg=u'请先配置或者启动proxy server'))
 

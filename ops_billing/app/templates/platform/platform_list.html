@@ -61,14 +61,11 @@ $(document).ready(function(){
     var platform_id = $this.data('uid');
     var current_domain = window.location.hostname
 
-    $.cookie('platform_id',platform_id,{path:'/',domain:current_domain})　
-
-    $.get("{{ url_for('platform-api.platforms_proxy_api') }}",{}, function(result){
+    $.get("{{ url_for('platform-api.platforms_proxy_api') }}",{"platform_id":platform_id},function(result){
         if (result['status']) {
             var platform_proxy_port = result['data']
-            console.log(platform_proxy_port)
             var url = "http://" + current_domain + ":" + platform_proxy_port;
-            window.open(url,'luna')
+            window.open(url)
         } else {
             toastr.error(result['msg']);
         }

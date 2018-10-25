@@ -9,7 +9,7 @@ from aliyunsdkrds.request.v20140815 import DescribeDBInstancesRequest,\
 from aliyunsdkr_kvstore.request.v20150101 import DescribeInstancesRequest as kvInstancesRequest
 from aliyunsdkr_kvstore.request.v20150101 import  DescribeInstanceAttributeRequest
 from .sync_node_amount import NodeAmount
-from app.models import Asset,OpsRedis,db
+from app.models import OpsRedis
 from conf import aliyun
 
 __all__ = ['SyncAliAssets']
@@ -139,7 +139,7 @@ class SyncAliAssets(object):
                     'InstanceId': attr['DBInstanceId'],
                     'AssetType': 'rds',
                     'RegionId': attr['RegionId'],
-                    'InstanceName': attr['DBInstanceDescription'],
+                    'InstanceName': attr.get('DBInstanceDescription'),
                     'InnerAddress': attr["ConnectionString"],
                     'Status': attr['DBInstanceStatus']
                 })
@@ -195,6 +195,7 @@ class SyncAliAssets(object):
         return result
 
     def aly_sync_asset(self,asset_type,update=False):
+        from app.models import Asset,db
         if asset_type == 'ecs':
             instances = self.get_ecs_instances()
         elif asset_type == 'rds':
@@ -227,6 +228,7 @@ class SyncAliAssets(object):
             with db.atomic():Asset.insert_many(last_insert_many).execute()
         NodeAmount.sync_root_assets()
         NodeAmount.sync_all_node_assets()
+        db.close()
 
     def pop_duplicate(self,asset_list):
         new_asset_list = []

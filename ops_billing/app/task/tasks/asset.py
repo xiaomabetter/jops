@@ -6,8 +6,6 @@ from app.task.user import sync_ldapusers
 from celery.signals import worker_process_init
 from app.models.base import initcelery
 from conf import aliyun
-from app.models.asset import Create_Asset_History
-import datetime
 logger = get_logger(__name__)
 
 AccessKeyId = aliyun.AccessKeyId
@@ -73,6 +71,7 @@ def create_asset_tryRun(template_data,amount):
 
 @celery.task(bind=True)
 def create_asset(self,created_by,template_data,amount):
+    from app.models.asset import Create_Asset_History
     taskid = self.request.id
     createtask = Create_Asset_History.create(
         taskid=taskid,
