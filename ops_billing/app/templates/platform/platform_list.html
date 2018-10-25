@@ -15,6 +15,7 @@
         </th>
         <th class="text-center">平台</th>
         <th class="text-center">地址</th>
+        <th class="text-center">代理端口</th>
         <th class="text-center">所属地区</th>
         <th class="text-center">类型</th>
         <th class="text-center">创建时间</th>
@@ -33,8 +34,8 @@ function initTable() {
     var options = {
         ele: $('#platform_list_table'),
         columnDefs: [
-            {targets: 6, createdCell: function (td, cellData, rowData) {
-                var transfer_btn = '<a class="btn btn-xs m-l-xs btn-info" id="do_transfer_url" data-uid="PK">跳转</a>'.replace('PK',cellData);
+            {targets: 7, createdCell: function (td, cellData, rowData) {
+                var transfer_btn = '<a class="btn btn-xs m-l-xs btn-info" id="do_transfer_url" data-uid="PK">跳转</a>'.replace('PK',rowData['proxyport']);
                 {% if g.user.role == 'administrator' %}
                     var update_btn = '<a href="{{ url_for('platform.platform_update',platformid='PK') }}" class="btn btn-xs m-l-xs btn-info">更新</a>'.replace('PK',cellData);
                     var del_btn = '<a class="btn btn-xs btn-danger m-l-xs btn_permission_group_delete" data-uid="PK">删除</a>'.replace('PK', cellData);
@@ -46,8 +47,8 @@ function initTable() {
         ],
         ajax_url: "{{ url_for('platform-api.platforms_api') }}",
         columns: [
-            {data: "id" },{data: "description" },{data: "platform_url" },{data: "location" },{data: "catagory" },
-            {data: "date_created"},{data: "id" }
+            {data: "id" },{data: "description" },{data: "platform_url" },{data: "proxyport" },
+            {data: "location" },{data: "catagory" },{data: "date_created"},{data: "id" }
         ],
         op_html: $('#actions').html()
         };
@@ -58,18 +59,10 @@ $(document).ready(function(){
     initTable();
 }).on('click', '#do_transfer_url', function () {
     var $this = $(this);
-    var platform_id = $this.data('uid');
+    var proxyport = $this.data('uid');
     var current_domain = window.location.hostname
-
-    $.get("{{ url_for('platform-api.platforms_proxy_api') }}",{"platform_id":platform_id},function(result){
-        if (result['status']) {
-            var platform_proxy_port = result['data']
-            var url = "http://" + current_domain + ":" + platform_proxy_port;
-            window.open(url)
-        } else {
-            toastr.error(result['msg']);
-        }
-    });
+    var url = "http://" + current_domain + ":" + proxyport;
+    window.open(url)
 })
 
 .on('click', '.btn_permission_group_delete', function () {

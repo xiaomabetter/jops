@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from peewee import CharField,UUIDField,DateTimeField
+from peewee import CharField,UUIDField,DateTimeField,IntegerField
 import uuid,datetime
 from .base import BaseModel
 
@@ -9,6 +9,7 @@ class Platforms(BaseModel):
     platform_url = CharField(max_length=255,unique=True,null=False)
     catagory = CharField(max_length=255,null=False)
     location = CharField(max_length=255,null=False,default="hangzhou")
+    proxyport = IntegerField(null=False,unique=True)
     date_created = DateTimeField(default=datetime.datetime.now)
 
     class Meta:

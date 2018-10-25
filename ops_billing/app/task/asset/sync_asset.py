@@ -136,12 +136,12 @@ class SyncAliAssets(object):
                 r = json.loads(clt.do_action_with_exception(attributeRequest))
                 attr = r['Items']['DBInstanceAttribute'][0]
                 result.append({
-                    'InstanceId': attr['DBInstanceId'],
+                    'InstanceId': attr.get('DBInstanceId'),
                     'AssetType': 'rds',
-                    'RegionId': attr['RegionId'],
+                    'RegionId': attr.get('RegionId'),
                     'InstanceName': attr.get('DBInstanceDescription'),
-                    'InnerAddress': attr["ConnectionString"],
-                    'Status': attr['DBInstanceStatus']
+                    'InnerAddress': attr.get("ConnectionString"),
+                    'Status': attr.get('DBInstanceStatus')
                 })
                 OpsRedis.set(Instance['DBInstanceId'], json.dumps(attr))
         return result
