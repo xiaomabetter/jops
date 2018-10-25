@@ -58,6 +58,7 @@ api.add_resource(TaskAnsRunApi,'/api/task/v1/ansible/run',endpoint = 'task-api.t
 #platform
 api.add_resource(PlatformsApi,'/api/platform/v1/platforms',endpoint = 'platform-api.platforms_api')
 api.add_resource(PlatformApi,'/api/platform/v1/platform/<platformid>',endpoint = 'platform-api.platform_api')
-api.add_resource(PlatformsProxyApi,'/api/platform/v1/platformproxy',endpoint = 'platform-api.platforms_proxy_api')
+api.add_resource(PlatformProxyApi,'/api/platform/v1/platformproxy',endpoint = 'platform-api.platforms_proxy_api')
+api.add_resource(PlatformUrlMappingPortApi,'/api/platform/v1/<port>/platform',endpoint = 'platform-api.platform_url_mapping_api')
 if __name__ == '__main__':
     app.run(debug=True,host='0.0.0.0',port=5050)
