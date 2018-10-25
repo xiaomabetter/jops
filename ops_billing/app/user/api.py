@@ -210,6 +210,10 @@ class GroupApi(Resource):
         return jsonify(trueReturn(msg='更新成功'))
 
 class UserLogin(Resource):
+    @login_required
+    def get(self):
+        return jsonify(trueReturn(1))
+
     def post(self):
         location = ['form','json']
         args = reqparse.RequestParser() \

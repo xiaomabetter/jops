@@ -27,9 +27,9 @@ def run_sync_bill(self,username,day_from,day_to):
     sync_bill.handle()
 
 @celery.task
-def run_sync_asset(asset_type):
+def run_sync_asset(asset_type,is_update):
     sync_asset = SyncAliAssets(AccessKeyId, AccessKeySecret)
-    sync_asset.aly_sync_asset(asset_type)
+    sync_asset.aly_sync_asset(asset_type,is_update)
 
 @celery.task
 def run_sync_images():

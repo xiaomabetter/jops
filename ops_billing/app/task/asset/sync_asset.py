@@ -194,7 +194,7 @@ class SyncAliAssets(object):
                 })
         return result
 
-    def aly_sync_asset(self,asset_type,update=False):
+    def aly_sync_asset(self,asset_type,is_update=False):
         from app.models import Asset,db
         if asset_type == 'ecs':
             instances = self.get_ecs_instances()
@@ -215,7 +215,7 @@ class SyncAliAssets(object):
         for instance in instances:
             new_InstanceIds.append(instance['InstanceId'])
             if instance['InstanceId'] in InstanceIds:
-                if update:
+                if is_update:
                     with db.atomic() :
                         Asset.update(**instance).where(Asset.InstanceId ==instance['InstanceId']).execute()
             else:
