@@ -1,0 +1,402 @@
+{% extends 'base/base.html' %}
+{% block custom_head_css_js %}
+<link href="{{ url_for('static', filename='css/plugins/ztree/awesomeStyle/awesome.css') }}" rel="stylesheet">
+<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/ztree/jquery.ztree.all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/loadingoverlay.min.js') }}"></script>
+<style type="text/css">
+    div#rMenu {
+        position:absolute;
+        visibility:hidden;
+        text-align: left;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        float: left;
+        padding: 5px 0;
+        margin: 2px 0 0;
+        list-style: none;
+        background-clip: padding-box;
+    }
+    div#rMenu li{
+        margin: 1px 0;
+        cursor: pointer;
+        {#list-style: none outside none;#}
+    }
+    .dropdown a:hover {
+        background-color: #f1f1f1
+    }
+    .twoLine {
+        max-width:400px;
+        display:block;
+        text-overflow:ellipsis;
+        overflow:hidden;
+        white-space:nowrap;
+    }
+    .pagination {
+        padding-left:0;
+        width:300px;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="wrapper wrapper-content">
+   <div class="row">
+       <div class="col-lg-3" id="split-left" style="padding-left: 3px">
+           <div class="ibox float-e-margins">
+               <div class="ibox-content mailbox-content" style="padding-top: 0;padding-left: 1px">
+                   <div class="file-manager ">
+                       <div id="userTree" class="ztree">
+                       </div>
+                       <div class="clearfix"></div>
+                   </div>
+               </div>
+           </div>
+       </div>
+       <div class="col-lg-9 animated fadeInRight" id="split-right">
+           <div class="mail-box-header" id="user_list_class">
+               <div class="btn-group uc pull-left m-r-5" >
+                   <div class="pull-left m-r-5"><a href="{{ url_for('user.users_create') }}" class="btn btn-sm btn-primary ">创建用户</a></div>
+               </div>
+               <div class="btn-group pull-left m-r-5">
+                    <button class="btn btn-default btn-sm" id="sync_ldapuser">同步LDAP用户</button>
+               </div>
+                <table class="table table-striped table-bordered table-hover " id="user_list_table" >
+                    <thead>
+                        <tr>
+                            <th class="text-center">
+                                <input  type="checkbox" class="ipt_check_all">
+                            </th>
+                            <th class="text-center">用户名</th>
+                            <th class="text-center">邮箱</th>
+                            <th class="text-center">是否是ldap用户</th>
+                            <th class="text-center">用户角色</th>
+                            <th class="text-center">激活中</th>
+                            <th class="text-center">动作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+           </div>
+       </div>
+   </div>
+</div>
+<div id="rMenu">
+    <ul class="dropdown-menu">
+        <li class="divider"></li>
+        <li id="m_create" tabindex="-1" onclick="addTreeNode(false);"><a><i class="fa fa-plus-square-o"></i>添加用户组</a></li>
+        <li id="m_create_ldap" tabindex="-1" onclick="addTreeNode(true);"><a><i class="fa fa-plus-square-o"></i>添加LDAP用户组</a></li>
+        <li id="m_rename" tabindex="-1" onclick="editTreeNode();"><a><i class="fa fa-pencil-square-o"></i>重命名用户组</a></li>
+        <li id="m_del" tabindex="-1" onclick="deleteTreeNode();"><a><i class="fa fa-minus-square"></i>删除用户组</a></li>
+    </ul>
+</div>
+{% endblock %}
+{% block content_bottom_left %}{% endblock %}
+{% block custom_foot_js %}
+<script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<script>
+var zTree, rMenu,table, show = 0;
+
+function onSelected(event, treeNode) {
+    if (treeNode.isParent) {
+        var url = "{{ url_for('user-api.group_api',groupid='PK') }}".replace('PK',treeNode.node_id);
+        table.ajax.url(url);
+        table.ajax.reload();
+    } else {
+        $('#user_list_class').addClass('');
+    }
+}
+
+function OnRightClick(event, treeId, treeNode) {
+    if (treeNode.id !== "0") {
+        $('#m_create').addClass('hidden');
+        $('#m_create_ldap').addClass('hidden');
+    } else {
+        $('#m_create').removeClass('hidden');
+        $('#m_create_ldap').removeClass('hidden');
+    }
+    if (!treeNode && event.target.tagName.toLowerCase() !== "button" &&
+                                $(event.target).parents("a").length === 0 && treeNode.isParent) {
+		zTree.cancelSelectedNode();
+		showRMenu("root", event.clientX, event.clientY);
+	} else if (treeNode && !treeNode.noR && treeNode.isParent) {
+		zTree.selectNode(treeNode);
+		showRMenu("node", event.clientX, event.clientY);
+	}
+}
+
+function showRMenu(type, x, y) {
+	$("#rMenu ul").show();
+    x -= 220;
+    $('#rMenu').css({"top":y+"px", "left":x+"px", "visibility":"visible"});
+	$("body").bind("mousedown", onBodyMouseDown);
+}
+
+function onBodyMouseDown(event){
+	if (!(event.target.id === "rMenu" || $(event.target).parents("#rMenu").length>0)) {
+		$('#rMenu').css({"visibility" : "hidden"});
+	}
+}
+
+function hideRMenu() {
+	$('#rMenu').css({"visibility": "hidden"});
+	$("body").unbind("mousedown", onBodyMouseDown);
+}
+
+function onRename(event, treeId, treeNode, isCancel){
+    var url = "{{ url_for('user-api.group_api',groupid='PK') }}".replace('PK',treeNode.node_id);
+    var data = {"value": treeNode.name};
+    if (isCancel){
+        return
+    }
+    APIUpdateAttr({
+        url: url,
+        body: JSON.stringify(data),
+        method: "PUT",
+        success:$('#rMenu').css({"visibility": "hidden"})
+    })
+}
+
+function editTreeNode() {
+    hideRMenu();
+	var current_node = zTree.getSelectedNodes()[0];
+	if (!current_node){
+	    return
+    }
+    if (current_node.value) {
+        current_node.name = current_node.value;
+    }
+    zTree.editName(current_node);
+}
+
+function addTreeNode(is_ldap_group) {
+    if (is_ldap_group == true) {
+        var is_ldap_group = true
+    } else {
+        var is_ldap_group = false;
+    }
+	var parentNode = zTree.getSelectedNodes()[0];
+	if (!parentNode){return}
+    function success(result) {
+        $('#rMenu').css({"visibility" : "hidden"});
+        if (result['status']) {
+            var newnode = result['data'];
+            var newNode = {
+                name: newnode["value"] + ' (' + 0 + ')',
+                id: newnode["key"],
+                pId: parentNode.id,
+                user_amount:0
+            };
+            newNode.checked = zTree.getSelectedNodes()[0].checked;
+            zTree.addNodes(parentNode, 0, newNode);
+            toastr.success("创建用户组成功");
+        } else {
+            toastr.error("创建用户组失败");
+        }
+    }
+    APIUpdateAttr({
+        url: "{{ url_for('user-api.group_api',groupid='PK') }}".replace('PK',parentNode.node_id),
+        method: "POST",
+        body:JSON.stringify({'value':'','is_ldap_group':is_ldap_group}),
+        success:success
+    })
+}
+
+function deleteTreeNode() {
+	hideRMenu();
+	var current_node = zTree.getSelectedNodes()[0];
+	if (!current_node){
+	    return
+    }
+	if (current_node.children && current_node.children.length > 0) {
+		toastr.error("该节点有子节点，不能删除");
+	 } else if (current_node.user_amount != 0) {
+        toastr.error("该组下有用户,不能直接删除");
+    } else {
+		$.ajax({
+            url: "{{ url_for('user-api.group_api',groupid='PK') }}".replace('PK',current_node.node_id),
+            method: "DELETE",
+            success: function () {
+                zTree.removeNode(current_node);
+                toastr.success("组删除成功");
+            }
+        });
+	}
+}
+
+function filter(treeId, parentNode, childNodes) {
+    var data = childNodes['data']
+    $.each(data, function (index, value) {
+        value["node_id"] = value["id"];
+        value["id"] = value["key"];
+        if (value["key"] !== value["parent_key"]) {
+            value["pId"] = value["parent_key"];
+        }
+        value["isParent"] = value["open"];
+        value['name'] = 'user->' + ' ' +value["value"];
+        value['open'] = value["open"];
+        value["iconSkin"] = value["is_node"] ? null : 'file';
+    });
+    return data;
+}
+
+function beforeAsync(treeId, treeNode) {
+    return treeNode.is_node
+}
+
+function initTree() {
+    var setting = {
+        view: {
+            dblClickExpand: false,
+            showLine: true
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        },
+        async: {
+			enable: true,
+			url: "{{ url_for('user-api.groups_api') }}",
+			autoParam:["node_id=group_id"],
+			dataFilter: filter,
+            type: 'get'
+		},
+        callback: {
+            onRightClick: OnRightClick,
+            onSelected: onSelected,
+            onRename: onRename,
+            beforeAsync: beforeAsync
+        }
+    };
+
+    var zNodes = [];
+    $.get("{{ url_for('user-api.groups_api') }}", function(result, status){
+        var data = result.data
+        $.each(data, function (index, value) {
+            value["node_id"] = value["id"];
+            value["id"] = value["key"];
+            if (value["key"] !== value["parent_key"]) {
+                value["pId"] = value["parent_key"];
+            }
+            value["isParent"] = value["open"];
+            value['name'] = value["value"] + ' (' + value['user_amount'] + ')';
+            value['open'] = value["open"];
+            value["iconSkin"] = value["is_node"] ? null : 'file';
+        });
+        zNodes = data;
+        $.fn.zTree.init($("#userTree"), setting, zNodes);
+        zTree = $.fn.zTree.getZTreeObj("userTree");
+    });
+}
+
+function initTable() {
+     var options = {
+        ele: $('#user_list_table'),
+        columnDefs: [
+             {targets: 1, createdCell: function (td, cellData, rowData) {
+                var detail_btn = '<a href="{{ url_for('user.users_update',userid='PK')}}">' + cellData + '</a>';
+                $(td).html(detail_btn.replace("PK", rowData.id));
+             }},
+             {targets: 4, createdCell: function (td, cellData, rowData) {
+                if (cellData == 'user') {
+                    $(td).html('普通用户');
+                }  else {
+                    $(td).html('管理员用户');
+                }
+             }},
+             {targets: 5, createdCell: function (td, cellData) {
+                if (cellData) {
+                    $(td).html('<i class="fa fa-check text-navy"></i>')
+                } else {
+                    $(td).html('<i class="fa fa-times text-danger"></i>')
+                }
+             }},
+             {targets: 6, createdCell: function (td, cellData, rowData) {
+                if (rowData.is_active) {
+                    var action = '禁用';
+                } else {
+                    var action = '激活';
+                }
+                var ban_btn = '<a class="btn btn-xs m-l-xs btn-warning btn-forbid" data-uid="PK">ACTION</a>'.replace('PK', cellData);
+                ban_btn = ban_btn.replace('ACTION',action);
+                var del_btn = '<a class="btn btn-xs btn-danger m-l-xs btn-del" data-uid="PK">删除</a>'.replace('PK', cellData);
+                $(td).html(ban_btn + del_btn);
+             }},
+             ],
+        ajax_url: "{{ url_for('user-api.users_api') }}",
+        columns: [
+            {data: "id"},{data: "username" },{data: "email" },{data:"is_ldap_user"},
+            {data: "role" },{data: "is_active" },{data: "id" }
+        ],
+        op_html: $('#actions').html()
+    };
+    table = jumpserver.initDataTable(options);
+    return table
+}
+
+$(document).ready(function(){
+    var table = initTable();
+    initTree()
+    var fields = $('#fm_user_bulk_update .form-group');
+    $.each(fields, function (index, value) {
+        console.log(value)
+    });
+}).on('click', '.btn-forbid', function(){
+    var $this = $(this);
+    var uid = $this.data('uid');
+    var the_url = "{{ url_for('user-api.user_api',userid='PK') }}".replace('PK',uid);
+    APIUpdateAttr({
+        url: the_url,
+        method: "PATCH"
+    })
+}).on('click', '.btn-del', function(){
+    var $this = $(this);
+    var name = $this.data('username');
+    var uid = $this.data('uid');
+    var the_url = "{{ url_for('user-api.user_api',userid='PK') }}".replace('PK',uid);
+    objectDelete($this, name, the_url);
+}).on("click",'#sync_ldapuser',function(){
+    var success = function () {
+        console.log(123);
+    };
+    APIUpdateAttr({
+        'url': "{{ url_for('task-api.aly-sync-task') }}",
+        'method': 'POST',
+        'body': JSON.stringify({'task_name':'sync_ldapusers'}),
+        'success': sync_success
+    })
+});
+
+function sync_success(result){
+    if (result['status']) {
+        $.LoadingOverlay("show", {
+            image       : "",
+            fontawesome : "fa fa-cog fa-spin"
+        });
+        sync_ldapuser(result['data'])
+    } else {
+        toastr.error(result['msg']);
+    }
+}
+function sync_ldapuser(taskid) {
+    $.ajax({
+        url: "{{ url_for('task-api.task_api',taskid='PK') }}".replace('PK',taskid),
+        type: "GET",
+        success: function (result) {
+        if (result['status']) {
+            $.LoadingOverlay("hide");
+            if (result['data']['status'] === 'SUCCESS') {
+                toastr.success('同步成功');
+            } else {
+                toastr.error('同步失败');
+            }
+        } else {
+            setTimeout(function () {
+                sync_ldapuser(taskid);
+            }, 2000);
+        }}})
+}
+</script>
+{% endblock %}

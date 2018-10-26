@@ -1,0 +1,179 @@
+{% extends 'base/_base_create_update.html' %}
+{% from "task/_wtf.html" import render_field,render_field_no_form_group %}
+{% block action %}
+    运行anisble
+{% endblock %}
+{% block ibox_title_right %}
+    <div class="pull-right" style="margin:0px 0px 0px 20px"><a href="" class="btn btn-sm btn-info">运行记录</a></div>
+{% endblock %}
+{% block form %}
+<form id="ansible_form" enctype="multipart/form-data" class="form-horizontal" >
+    <h4>任务名称</h4>
+    <div class="form-group" style="height:50px" >
+        {{ render_field(form.name,'required') }}
+    </div>
+    <div class="hr-line-dashed"></div>
+    <h4>基本</h4>
+    <div class="form-group" >
+       {{ render_field_no_form_group(form.assets,'required') }}
+       {{ render_field_no_form_group(form.run_as,'required') }}
+    </div>
+    <div class="form-group" >
+        {{ render_field_no_form_group(form.run_as_sudo) }}
+    </div>
+    <div class="hr-line-dashed"></div>
+    <h3>ANSIBLE</h3>
+    <div class="form-group">
+       {{ render_field(form.ismodule) }}
+       <div class="form-group" id="module_class">
+           {{ render_field_no_form_group(form.module,'required') }}
+           {{ render_field_no_form_group(form.command,'required') }}
+       </div>
+       <div class="form-group" id="playbook_class">
+           {{ render_field(form.playbook,'required') }}
+       </div>
+    </div>
+   <div class="form-group" style="text-align:right">
+       <div class="col-sm-4 col-sm-offset-3">
+            <button class="btn btn-white" type="reset">重置</button>
+            <button id="submit_button" class="btn btn-primary" type="button">提交</button>
+        </div>
+    </div>
+</form>
+{% include 'asset/_asset_list_modal.html' %}
+{% include 'task/_result_modal.html' %}
+{% endblock %}
+{% block custom_foot_js %}
+<script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
+<script src="{{ url_for('static', filename='js/plugins/footable/footable.all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
+<script>
+var ismodule = '#'+'ismodule';
+var command = '#'+'command';
+var run_as = '#'+'run_as';
+var playbook = '#'+'playbook';
+
+function Display() {
+    if ($(ismodule).prop('checked')) {
+        $(ismodule).val('true');
+        $("#module_class").removeClass('hidden');
+        $("#playbook_class").addClass('hidden');
+    } else {
+        $(ismodule).val('');
+        $("#module_class").addClass('hidden');
+        $("#playbook_class").removeClass('hidden');
+    }
+}
+
+$(document).ready(function () {
+    initTable2();initTree2();get_assets();
+    $('.select2').select2();
+    $("#assets").parent().find(".select2").on('click', function (e) {
+        $("#asset_list_modal").modal();
+    })
+    Display();
+    $(ismodule).change(function () {
+        Display();
+    });
+}).on('click', '#btn_asset_modal_confirm', function () {
+        var assets = asset_table2.selected;
+        $('.select2 option:selected').each(function (i, data) {
+            assets.push($(data).attr('value'))
+        });
+        $.each(assets, function (id, data) {
+            $('#assets').val(assets).trigger('change');
+        });
+        $("#asset_list_modal").modal('hide');
+}).on('click', '#submit_button', function () {
+    $('#stdout_result').html('等待。。。。');
+    var success = function(result) {
+        $('#run_result_modal').modal()
+        if (result.data.ismodule) {
+            $.each(result.data.taskid, function (key, task_id) {
+                get_ansible_module_result(task_id)
+            });
+        } else {
+            $.each(result.data.taskid, function (key, task_id) {
+                get_ansible_playbook_result(task_id,length=0)
+            });
+        }
+    };
+    var fail = function(data) {
+        toastr.error(JSON.stringify(data.responseJSON.message));
+        };
+
+    $('#ansible_form').ajaxSubmit({
+        url: "{{ url_for('task-api.task_ansrun_api') }}",
+        type: 'post',
+        dataType: 'json',
+        success: success,
+        error:fail,
+        clearForm: false,
+        resetForm: false
+    })
+})
+
+function get_assets() {
+    $.get("{{ url_for('assets-api.assets_api') }}",{'asset_type':'ecs'}, function(result){
+        $.each(result['data'], function (key, value) {
+            option = '<option value="ID">"InstanceName"</option>';
+            option = option.replace('ID',value['id']);
+            option = option.replace('InstanceName',value['InstanceName']);
+            $('#assets').append(option);
+        });
+    });
+}
+
+function get_ansible_module_result(taskid) {
+    $.ajax({
+        url: "{{ url_for('task-api.task_api',taskid='PK') }}".replace('PK',taskid),
+        type: "GET",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (result) {
+            if (result['status']) {
+                var json_data = JSON.stringify(result['data']);
+                json_data = json_data.replace(/\\n/g,"\t\n");
+                $('#stdout_result').append(json_data);
+            } else {
+                setTimeout(function () {
+                    get_ansible_module_result(taskid);
+                }, 2000);
+            }
+        }
+    })
+}
+function get_ansible_playbook_result(taskid,length) {
+    var length = length;
+    $.ajax({
+        url: "{{ url_for('task-api.task_api',taskid='PK') }}".replace('PK',taskid),
+        type: "GET",
+        data: {'length':length},
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (result) {
+            length = result.data.length
+            var res = result.data.results
+            if ( res.length != 0 ) {
+                if (res instanceof Array) {
+                    for (var i in res) {
+                        if (res[i] instanceof Object) {
+                            var json_data = JSON.stringify(res[i]);
+                        } else {
+                            var json_data = res[i].replace(/\\n/g,"\t\n");
+                        }
+                        $('#stdout_result').append('\n');
+                        $('#stdout_result').append(json_data);
+                    }
+                }
+            }
+            if ( ! result.data.is_suspended ) {
+                setTimeout(function () {
+                    get_ansible_playbook_result(taskid,length);
+                }, 2000);
+            }
+        }
+    })
+}
+</script>
+{% endblock %}

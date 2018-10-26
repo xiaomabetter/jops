@@ -1,0 +1,18 @@
+{% extends 'base/_base_create_update.html' %}
+{% from "perm/_wtf.html" import render_field,render_field_no_form_group %}
+{% block form %}
+<form  id="permission_group" enctype="multipart/form-data" method="post" class="form-horizontal" autocomplete="off"  action="" >
+    <h4>基本</h4>
+    <div class="form-group">
+        {{ render_field(form.name,'required') }}
+        {{ render_field(form.users,'required') }}
+        {{ render_field(form.comment) }}
+    </div>
+    <div class="form-group">
+        <div class="col-sm-4 col-sm-offset-2">
+            <button class="btn btn-white" type="reset">重置</button>
+            <button id="submit_button" class="btn btn-primary" type="button">提交</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

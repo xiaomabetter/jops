@@ -1,0 +1,482 @@
+127.0.0.1 localhost
+########################################### ali cloud ############################################
+# im instances
+10.171.92.149 ebs-ali-beijing-5 ebs-ali-beijing-5-pri
+10.44.8.31 ebs-ali-beijing-59 ebs-ali-beijing-59-pri
+
+10.163.1.52 ebs-ali-beijing-21 ebs-ali-beijing-21-pri
+10.171.31.164 ebs-ali-beijing-22 ebs-ali-beijing-22-pri
+10.165.113.194 ebs-ali-beijing-23 ebs-ali-beijing-23-pri
+10.171.57.155 ebs-ali-beijing-24 ebs-ali-beijing-24-pri
+10.172.168.158 ebs-ali-beijing-25 ebs-ali-beijing-25-pri
+10.44.15.221 ebs-ali-beijing-26 ebs-ali-beijing-26-pri
+
+10.172.5.190 ebs-ali-beijing-183 ebs-ali-beijing-183-pri
+10.163.2.114 ebs-ali-beijing-184 ebs-ali-beijing-184-pri
+10.173.9.147 ebs-ali-beijing-185 ebs-ali-beijing-185-pri
+10.173.9.181 ebs-ali-beijing-186 ebs-ali-beijing-186-pri
+10.170.194.75 ebs-ali-beijing-187 ebs-ali-beijing-187-pri
+10.172.255.164 ebs-ali-beijing-188 ebs-ali-beijing-188-pri
+
+10.171.135.8 ebs-ali-beijing-320 ebs-ali-beijing-320-pri
+10.171.63.17 ebs-ali-beijing-321 ebs-ali-beijing-321-pri
+10.162.196.185 ebs-ali-beijing-322 ebs-ali-beijing-322-pri
+10.163.1.13 ebs-ali-beijing-323 ebs-ali-beijing-323-pri
+10.165.113.246 ebs-ali-beijing-324 ebs-ali-beijing-324-pri
+10.171.97.16 ebs-ali-beijing-325 ebs-ali-beijing-325-pri
+10.171.32.39 ebs-ali-beijing-326 ebs-ali-beijing-326-pri
+10.170.245.136 ebs-ali-beijing-327 ebs-ali-beijing-327-pri
+10.170.187.73 ebs-ali-beijing-328 ebs-ali-beijing-328-pri
+10.171.135.83 ebs-ali-beijing-329 ebs-ali-beijing-329-pri
+10.171.61.133 ebs-ali-beijing-330 ebs-ali-beijing-330-pri
+10.171.135.71 ebs-ali-beijing-331 ebs-ali-beijing-331-pri
+10.162.198.56 ebs-ali-beijing-332 ebs-ali-beijing-332-pri
+10.163.0.254 ebs-ali-beijing-333 ebs-ali-beijing-333-pri
+10.171.10.102 ebs-ali-beijing-334 ebs-ali-beijing-334-pri
+10.171.98.145 ebs-ali-beijing-335 ebs-ali-beijing-335-pri
+10.171.62.36 ebs-ali-beijing-336 ebs-ali-beijing-336-pri
+
+#msync
+10.165.113.159 ebs-ali-beijing-msync3
+10.171.14.223 ebs-ali-beijing-msync4
+10.171.36.43 ebs-ali-beijing-msync5
+10.44.43.107 ebs-ali-beijing-msync6
+10.44.45.2 ebs-ali-beijing-msync7
+10.44.44.210 ebs-ali-beijing-msync8
+10.172.87.201 ebs-ali-beijing-msync9
+10.171.11.49 ebs-ali-beijing-msync10
+10.163.2.214 ebs-ali-beijing-msync11
+10.163.1.83 ebs-ali-beijing-msync12
+10.163.1.134 ebs-ali-beijing-msync13
+10.172.221.132 ebs-ali-beijing-msync14
+10.44.44.151 ebs-ali-beijing-msync15
+10.171.91.168 ebs-ali-beijing-msync16
+
+10.172.231.77 ebs-ali-beijing-app11
+10.81.233.20 ebs-ali-beijing-app17
+10.66.88.1 ebs-ali-beijing-app18
+10.31.148.205 ebs-ali-beijing-app19
+10.81.233.34 ebs-ali-beijing-app21
+10.80.48.177 ebs-ali-beijing-app31
+10.66.88.99 ebs-ali-beijing-app32
+10.44.33.7 ebs-ali-beijing-app33
+10.44.18.251 ebs-ali-beijing-app34
+10.171.101.7 ebs-ali-beijing-app35
+10.66.89.183 ebs-ali-beijing-app36
+10.171.92.205 ebs-ali-beijing-app44
+10.80.48.63 ebs-ali-beijing-app5
+10.81.232.253 ebs-ali-beijing-app53
+10.66.89.228 ebs-ali-beijing-app58
+10.31.147.146 ebs-ali-beijing-app59
+10.66.89.229 ebs-ali-beijing-app6
+10.66.89.156 ebs-ali-beijing-app7
+10.66.89.63 ebs-ali-beijing-app8
+10.66.89.222 ebs-ali-beijing-app9
+
+10.170.188.161 ebs-ali-beijing-push1
+10.170.180.78 ebs-ali-beijing-push10
+10.170.197.106 ebs-ali-beijing-push13
+10.171.133.209 ebs-ali-beijing-push16
+10.172.239.56 ebs-ali-beijing-push2
+10.171.53.245 ebs-ali-beijing-push3
+10.171.66.108 ebs-ali-beijing-push31
+10.171.65.104 ebs-ali-beijing-push32
+10.165.114.205 ebs-ali-beijing-push33
+10.171.103.120 ebs-ali-beijing-push45
+10.171.11.138 ebs-ali-beijing-push46
+10.171.89.149 ebs-ali-beijing-push47
+10.44.22.28 ebs-ali-beijing-push48
+10.165.112.133 ebs-ali-beijing-push49
+10.171.103.34 ebs-ali-beijing-push56
+10.165.114.231 ebs-ali-beijing-push57
+10.44.19.62 ebs-ali-beijing-push58
+10.170.249.121 ebs-ali-beijing-push6
+10.172.91.50 ebs-ali-beijing-push65
+10.171.17.131 ebs-ali-beijing-push66
+10.171.93.35 ebs-ali-beijing-push67
+10.171.119.41 ebs-ali-beijing-push68
+10.162.216.167 ebs-ali-beijing-push8
+10.173.10.160 ebs-ali-beijing-push9
+
+10.171.98.239 ebs-ali-beijing-storm1
+10.173.19.193 ebs-ali-beijing-storm2
+10.171.103.208 ebs-ali-beijing-storm3
+10.171.52.200 ebs-ali-beijing-storm4
+
+10.171.51.31 ebs-ali-beijing-dnsconfig-1
+10.44.10.149 ebs-ali-beijing-dnsconfig-2
+10.172.162.7 ebs-ali-beijing-dnsconfig-3
+10.44.31.15 ebs-ali-beijing-dnsconfig-4
+
+10.170.168.250 ebs-ali-beijing-thrift4
+10.171.80.119 ebs-ali-beijing-thrift5
+10.172.229.225 ebs-ali-beijing-thrift8
+
+10.173.34.242 ebs-ali-beijing-thrift-group1
+10.171.79.13 ebs-ali-beijing-thrift-group2
+10.172.220.166 ebs-ali-beijing-thrift-group3
+10.172.5.250 ebs-ali-beijing-thrift-group4
+
+10.171.67.5 ebs-ali-beijing-tools-registuser2
+10.171.62.107 ebs-ali-beijing-tools-registuser3
+
+10.172.188.214 ebs-ali-beijing-antispam1
+10.162.202.197 ebs-ali-beijing-antispam2
+10.165.113.15 ebs-ali-beijing-antispam-web
+
+10.162.220.233 ebs-ali-beijing-cmserver1
+10.171.91.53 ebs-ali-beijing-cmserver2
+
+10.173.1.7 ebs-ali-beijing-support
+10.66.88.67 ebs-ali-beijing-config-server1
+10.171.84.238 ebs-ali-beijing-console
+10.171.25.185 ebs-ali-beijing-console2
+10.171.25.246 ebs-ali-beijing-console3
+10.171.43.82 ebs-ali-beijing-console4
+10.30.58.178 ebs-ali-beijing-docker
+10.165.126.26 ebs-ali-beijing-elk1
+10.31.150.113 ebs-ali-beijing-elk11
+10.31.148.122 ebs-ali-beijing-elk12
+10.30.45.7 ebs-ali-beijing-elk13
+10.171.21.12 ebs-ali-beijing-etcd-2
+10.171.79.115 ebs-ali-beijing-etcd-3
+10.46.170.80 ebs-ali-beijing-harbor1
+10.172.239.90 ebs-ali-beijing-log
+10.172.153.147 ebs-ali-beijing-log4
+10.44.23.230 ebs-ali-beijing-log5
+10.81.11.200 ebs-ali-beijing-mig-msync-master
+10.163.146.201 ebs-ali-beijing-mig-msync-node1
+10.163.146.236 ebs-ali-beijing-mig-msync-node2
+10.171.65.164 ebs-ali-beijing-restmg
+10.170.199.117 ebs-ali-beijing-salt-1
+10.170.199.72 ebs-ali-beijing-server-dns1
+10.170.199.79 ebs-ali-beijing-server-dns2
+10.66.88.221 ebs-ali-beijing-monitor-platform1
+10.170.211.210 ebs-ali-beijing-opc
+10.162.201.128 ebs-ali-beijing-opc2
+10.170.168.24 ebs-ali-beijing-ping1
+10.30.58.186 ebs-ali-beijing-prometheus-1
+10.163.0.92 ebs-ali-beijing-proxy1
+10.171.48.13 ops-ali-beijing-monitor-slave1
+
+10.30.52.199 ebs-ali-beijing-daas-flume-im
+10.30.136.199 vip6-ali-beijing-daas-flume-im
+10.66.39.107 ebs-ali-beijing-data-spark1
+10.66.38.222 ebs-ali-beijing-data-spark2
+
+10.31.140.183 ebs-ali-beijing-db12
+10.31.140.151 ebs-ali-beijing-db14
+10.31.140.134 ebs-ali-beijing-db15
+10.31.140.192 ebs-ali-beijing-db16
+10.81.133.80 ebs-ali-beijing-db19
+10.135.216.51 ebs-ali-beijing-db20
+10.31.140.180 ebs-ali-beijing-db22
+10.31.150.174 ebs-ali-beijing-db28
+10.31.150.92 ebs-ali-beijing-db29
+10.80.54.240 ebs-ali-beijing-db30
+10.30.46.101 ebs-ali-beijing-db31
+10.80.54.239 ebs-ali-beijing-db32
+
+10.31.24.143 ebs-ali-beijing-killbill2
+10.173.25.250 ebs-ali-beijing-payment-1
+10.251.192.134 ebs-ali-beijing-emp-server1
+10.172.197.198 ebs-ali-beijing-win01
+
+10.172.216.198 ebs-ali-beijing-kafka23
+10.171.75.127 ebs-ali-beijing-kafka24
+10.171.31.49 ebs-ali-beijing-kafka25
+10.172.216.241 ebs-ali-beijing-kafka26
+10.251.192.21 ebs-ali-beijing-kafka27
+10.171.54.171 ebs-ali-beijing-kafka28
+10.171.52.122 ebs-ali-beijing-kafka29
+10.251.192.36 ebs-ali-beijing-kafka30
+10.251.192.20 ebs-ali-beijing-kafka31
+10.251.192.37 ebs-ali-beijing-kafka32
+10.44.30.152 ebs-ali-beijing-kafka-new-1
+10.165.119.9 ebs-ali-beijing-kafka-new-2
+10.165.115.146 ebs-ali-beijing-kafka-new-3
+10.44.21.32 ebs-ali-beijing-kafka-new-4
+
+
+10.163.147.18 ebs-ali-beijing-mesos-master1
+10.163.146.150 ebs-ali-beijing-mesos-master2
+10.163.147.4 ebs-ali-beijing-mesos-master3
+10.81.11.85 ebs-ali-beijing-mesos-slave1
+10.163.146.244 ebs-ali-beijing-mesos-slave2
+
+10.171.49.19 ebs-ali-beijing-mserver1
+10.165.114.19 ebs-ali-beijing-mserver2
+10.251.192.40 ebs-ali-beijing-mserver4
+
+10.24.191.7 ebs-ali-beijing-pika-mb-c01
+10.24.200.43 ebs-ali-beijing-pika-mb-c02
+10.46.184.202 ebs-ali-beijing-pika-mb-c03
+10.26.33.36 ebs-ali-beijing-pika-mb-c04
+10.26.32.3 ebs-ali-beijing-pika-mb-c05
+10.26.66.153 ebs-ali-beijing-pika-mb-c06
+10.24.190.18 ebs-ali-beijing-pika-mb-c07
+10.26.32.161 ebs-ali-beijing-pika-mb-c08
+10.26.104.210 ebs-ali-beijing-pika-proxymb-c1
+10.26.104.207 ebs-ali-beijing-pika-proxymb-c2
+10.24.193.234 ebs-ali-beijing-pika-roster-c11
+10.26.34.177 ebs-ali-beijing-pika-roster-c12
+10.25.89.65 ebs-ali-beijing-pika-roster-proxy-c1
+10.24.160.127 ebs-ali-beijing-pika-roster-proxy-c2
+
+10.171.28.48 ebs-ali-beijing-web1
+10.162.215.54 ebs-ali-beijing-web2
+10.171.88.20 ebs-ali-beijing-web3
+10.163.10.28 ebs-ali-beijing-web4
+10.171.47.201 ebs-ali-beijing-web5
+10.162.207.168 ebs-ali-beijing-web6
+10.162.202.78 ebs-ali-beijing-web7
+10.162.205.177 ebs-ali-beijing-web8
+10.173.153.64 ebs-ali-beijing-web9
+
+10.171.9.76 ebs-ali-beijing-zk1
+10.251.208.34 ebs-ali-beijing-zk11
+10.251.212.105 ebs-ali-beijing-zk12
+10.251.212.10 ebs-ali-beijing-zk13
+10.172.232.200 ebs-ali-beijing-zk14
+10.251.4.173 ebs-ali-beijing-zk15
+10.172.172.44 ebs-ali-beijing-zk16
+10.163.4.77 ebs-ali-beijing-zk17
+10.171.121.125 ebs-ali-beijing-zk18
+10.163.4.47 ebs-ali-beijing-zk19
+10.172.168.144 ebs-ali-beijing-zk2
+10.252.40.89 ebs-ali-beijing-zk3
+10.171.49.29 ebs-ali-beijing-zk-4
+10.165.123.202 ebs-ali-beijing-zk-5
+10.44.11.168 ebs-ali-beijing-zk-6
+
+#hk
+47.90.56.129 hk-docker2
+47.89.26.6  hk-docker1
+47.90.77.2 hk-im1-proxy1
+203.88.174.30 hk-im1-proxy2
+52.29.153.55  aws-eu-proxy1
+52.210.3.163  aws-eu-proxy10
+47.90.10.117  hk-hyphenate-proxy1
+
+#slb
+100.114.31.150 ebs-ali-beijing-slb-pika-mb-c
+100.114.31.150 ebs-ali-beijing-slb-ssdb-mb-c
+100.114.30.139  ebs-ali-beijing-slb-kafka3
+100.114.241.19  ebs-ali-beijing-slb-kafka-new-1
+100.98.225.134  ebs-ali-beijing-slb-web-imapi
+100.114.65.134  ebs-ali-beijing-slb-pika-roster
+100.114.31.185  ebs-ali-beiijng-slb-cmserver-msync
+100.114.31.184  ebs-ali-beijing-slb-msync-cmserver
+
+#--------------------- vip6 -----------------------------
+10.24.196.51 vip6-ali-beijing-app13
+10.24.193.139 vip6-ali-beijing-app14
+10.24.202.119 vip6-ali-beijing-app15
+10.25.196.177 vip6-ali-beijing-app16
+10.25.196.160 vip6-ali-beijing-app17
+10.25.198.14 vip6-ali-beijing-app18
+10.25.156.234 vip6-ali-beijing-app21
+10.26.171.208 vip6-ali-beijing-app22
+10.26.171.212 vip6-ali-beijing-app23
+10.26.80.120 vip6-ali-beijing-app26
+10.26.66.129 vip6-ali-beijing-app27
+10.26.80.102 vip6-ali-beijing-app30
+10.45.38.218 vip6-ali-beijing-app36
+10.26.81.68 vip6-ali-beijing-app37
+10.24.194.142 vip6-ali-beijing-app45
+10.26.33.50 vip6-ali-beijing-app46
+10.26.67.189 vip6-ali-beijing-app47
+10.24.188.221 vip6-ali-beijing-app48
+10.24.189.253 vip6-ali-beijing-app49
+10.24.195.189 vip6-ali-beijing-app50
+10.26.46.62 vip6-ali-beijing-cmserver1
+10.26.32.228 vip6-ali-beijing-cmserver10
+10.24.198.171 vip6-ali-beijing-cmserver11
+10.24.194.177 vip6-ali-beijing-cmserver12
+10.25.244.85 vip6-ali-beijing-cmserver13
+10.46.188.45 vip6-ali-beijing-cmserver14
+10.26.98.116 vip6-ali-beijing-cmserver2
+10.26.104.33 vip6-ali-beijing-cmserver5
+10.25.88.78 vip6-ali-beijing-cmserver6
+10.26.104.104 vip6-ali-beijing-cmserver7
+10.45.41.58 vip6-ali-beijing-cmserver8
+10.26.34.79 vip6-ali-beijing-cmserver9
+10.24.162.226 vip6-ali-beijing-console
+10.46.175.152 vip6-ali-beijing-db1
+10.46.175.151 vip6-ali-beijing-db2
+10.46.175.145 vip6-ali-beijing-db3
+10.25.89.108 vip6-ali-beijing-db4
+10.25.90.184 vip6-ali-beijing-db7
+10.25.90.179 vip6-ali-beijing-db8
+10.25.196.235 vip6-ali-beijing-ejabberd-33
+10.25.199.99 vip6-ali-beijing-ejabberd-34
+10.30.140.62 vip6-ali-beijing-ejabberd-35
+10.30.140.18 vip6-ali-beijing-ejabberd-36
+10.28.204.40 vip6-ali-beijing-ejabberd-37
+10.47.138.221 vip6-ali-beijing-ejabberd51
+10.47.138.228 vip6-ali-beijing-ejabberd52
+10.47.138.190 vip6-ali-beijing-ejabberd55
+10.47.138.178 vip6-ali-beijing-ejabberd56
+10.28.207.39 vip6-ali-beijing-ejabberd57
+10.46.185.250 vip6-ali-beijing-ejabberd-61
+10.46.185.226 vip6-ali-beijing-ejabberd-62
+10.25.89.94 vip6-ali-beijing-ejabberdmg
+10.25.158.7 vip6-ali-beijing-elk1
+10.25.159.42 vip6-ali-beijing-elk2
+10.25.159.26 vip6-ali-beijing-elk3
+10.25.158.223 vip6-ali-beijing-elk4
+10.80.85.200 vip6-ali-beijing-flume10
+10.81.8.2 vip6-ali-beijing-flume11
+10.81.28.114 vip6-ali-beijing-flume12
+10.81.8.40 vip6-ali-beijing-flume13
+10.81.8.4 vip6-ali-beijing-flume14
+10.81.9.13 vip6-ali-beijing-flume15
+10.25.94.47 vip6-ali-beijing-kafka1
+10.24.188.245 vip6-ali-beijing-kafka2
+10.47.218.18 vip6-ali-beijing-kafka3
+10.47.218.30 vip6-ali-beijing-kafka4
+10.47.215.101 vip6-ali-beijing-kafka5
+10.30.250.116 vip6-ali-beijing-kafka51
+10.30.137.148 vip6-ali-beijing-kafka52
+10.47.218.177 vip6-ali-beijing-kafka6
+10.47.217.223 vip6-ali-beijing-kafka7
+10.47.215.214 vip6-ali-beijing-kafka8
+10.24.160.220 vip6-ali-beijing-kafka-new-1
+10.26.105.100 vip6-ali-beijing-kafka-new-2
+10.25.89.149 vip6-ali-beijing-log
+10.26.104.25 vip6-ali-beijing-log2
+10.163.148.142 vip6-ali-beijing-mesos-master1
+10.163.148.254 vip6-ali-beijing-mesos-master2
+10.163.149.12 vip6-ali-beijing-mesos-master3
+10.163.148.243 vip6-ali-beijing-mesos-slave1
+10.163.148.11 vip6-ali-beijing-mesos-slave2
+10.24.190.175 vip6-ali-beijing-msync-21
+10.26.82.22 vip6-ali-beijing-msync-22
+10.24.195.176 vip6-ali-beijing-msync-23
+10.24.195.171 vip6-ali-beijing-msync-24
+10.25.93.119 vip6-ali-beijing-msync-25
+10.24.191.60 vip6-ali-beijing-msync-26
+10.24.190.45 vip6-ali-beijing-msync-27
+10.241.109.157 vip6-ali-beijing-msync-28
+10.241.109.175 vip6-ali-beijing-msync-29
+10.241.109.170 vip6-ali-beijing-msync-30
+10.25.97.96 vip6-ali-beijing-msync-38
+10.24.198.98 vip6-ali-beijing-msync-39
+10.26.101.11 vip6-ali-beijing-msync-40
+10.26.67.236 vip6-ali-beijing-msync-41
+10.24.194.191 vip6-ali-beijing-msync-42
+10.24.189.2 vip6-ali-beijing-msync-43
+10.26.35.22 vip6-ali-beijing-msync-44
+10.24.194.169 vip6-ali-beijing-msync-45
+10.26.33.76 vip6-ali-beijing-msync-46
+10.24.201.128 vip6-ali-beijing-msync-47
+10.25.244.57 vip6-ali-beijing-msync-48
+10.66.176.114 vip6-ali-beijing-msync-49
+10.66.176.230 vip6-ali-beijing-msync-50
+10.66.176.37 vip6-ali-beijing-msync-51
+10.66.176.173 vip6-ali-beijing-msync-52
+10.66.176.184 vip6-ali-beijing-msync-53
+10.66.176.3 vip6-ali-beijing-msync-54
+10.66.176.213 vip6-ali-beijing-msync-55
+10.66.88.223 vip6-ali-beijing-payment-1
+10.25.96.135 vip6-ali-beijing-pika-mb01
+10.25.247.230 vip6-ali-beijing-pika-mb02
+10.26.164.160 vip6-ali-beijing-pika-mb03
+10.25.92.246 vip6-ali-beijing-pika-mb04
+10.25.96.250 vip6-ali-beijing-pika-mb05
+10.25.97.174 vip6-ali-beijing-pika-mb06
+10.26.164.223 vip6-ali-beijing-pika-mb07
+10.24.198.157 vip6-ali-beijing-pika-mb08
+10.27.218.212 vip6-ali-beijing-pika-proxymb1
+10.27.218.238 vip6-ali-beijing-pika-proxymb2
+10.24.195.47 vip6-ali-beijing-pika-roster-c1
+10.24.194.123 vip6-ali-beijing-pika-roster-c2
+10.46.168.83 vip6-ali-beijing-pika-roster-proxy-c1
+10.46.169.147 vip6-ali-beijing-pika-roster-proxy-c2
+10.47.137.149 vip6-ali-beijing-push14
+10.25.159.210 vip6-ali-beijing-push15
+10.46.171.173 vip6-ali-beijing-push16
+10.26.66.117 vip6-ali-beijing-push17
+10.27.66.112 vip6-ali-beijing-push20
+10.27.220.19 vip6-ali-beijing-push22
+10.26.78.106 vip6-ali-beijing-push23
+10.27.220.29 vip6-ali-beijing-push24
+10.26.79.173 vip6-ali-beijing-push25
+10.27.219.66 vip6-ali-beijing-push26
+10.24.198.18 vip6-ali-beijing-push51
+10.30.142.39 vip6-ali-beijing-push52
+10.24.198.9 vip6-ali-beijing-push53
+10.46.175.179 vip6-ali-beijing-redis14
+10.46.175.130 vip6-ali-beijing-redis15
+10.46.175.140 vip6-ali-beijing-redis16
+10.46.175.110 vip6-ali-beijing-redis17
+10.47.136.23 vip6-ali-beijing-redis2
+10.24.193.75 vip6-ali-beijing-redis24
+10.24.202.93 vip6-ali-beijing-redis25
+10.45.38.8 vip6-ali-beijing-redis31
+10.26.81.71 vip6-ali-beijing-redis32
+10.25.89.10 vip6-ali-beijing-restmg
+10.26.168.182 vip6-ali-beijing-rtcserver1
+10.30.140.221 vip6-ali-beijing-rtcserver2
+10.25.91.216 vip6-ali-beijing-rtcserver3
+10.45.42.94 vip6-ali-beijing-rtcserver4
+10.45.40.212 vip6-ali-beijing-rtcserver5
+10.45.42.16 vip6-ali-beijing-rtcserver6
+10.24.190.38 vip6-ali-beijing-rtcserver7
+10.26.69.114 vip6-ali-beijing-rtcserver8
+10.24.189.183 vip6-ali-beijing-rtcserver9
+10.24.160.40 vip6-ali-beijing-xswitch1
+10.24.196.163 vip6-ali-beijing-storm1
+10.24.202.138 vip6-ali-beijing-storm2
+10.46.183.12 vip6-ali-beijing-storm3
+10.46.182.233 vip6-ali-beijing-storm4
+10.24.162.51 vip6-ali-beijing-storm-offline1
+10.24.193.79 vip6-ali-beijing-thrift1
+10.24.202.114 vip6-ali-beijing-thrift2
+10.45.38.85 vip6-ali-beijing-thrift-group1
+10.26.81.78 vip6-ali-beijing-thrift-group2
+10.25.156.162 vip6-ali-beijing-tools-registuser1
+10.25.156.130 vip6-ali-beijing-tools-registuser2
+10.46.174.228 vip6-ali-beijing-web1
+10.46.174.167 vip6-ali-beijing-web2
+10.26.85.71 vip6-ali-beijing-web3
+10.26.80.155 vip6-ali-beijing-web4
+10.25.88.155 vip6-ali-beijing-web-imapi1
+10.25.88.246 vip6-ali-beijing-web-imapi2
+10.24.188.232 vip6-ali-beijing-zk1
+10.24.193.101 vip6-ali-beijing-zk11
+10.24.193.153 vip6-ali-beijing-zk12
+10.24.194.167 vip6-ali-beijing-zk13
+10.24.202.74 vip6-ali-beijing-zk2
+10.24.193.39 vip6-ali-beijing-zk3
+10.47.208.204 vip6-ali-beijing-zk4
+10.47.210.72 vip6-ali-beijing-zk5
+10.46.164.83 vip6-ali-beijing-zk6
+10.26.50.6 vip6-ali-beijing-zk-7
+10.25.89.113 vip6-ali-beijing-zk-8
+10.45.42.97 vip6-ali-beijing-zk-9
+
+# slb
+100.114.66.63 vip6-ali-beijing-slb-pika-mb
+100.98.226.162 vip6-ali-beijing-slb-codis-flowlimit
+100.98.226.164 vip6-ali-beijing-slb-codis-uone
+100.98.225.31 vip6-ali-beijing-slb-kafka1
+100.114.31.49 vip6-ali-beijing-slb-kafka2
+100.98.225.35 vip6-ali-beijing-slb-codis-mi1
+100.98.225.44 vip6-ali-beijing-slb-web-imapi
+
+100.98.225.134  ebs-ali-beijing-slb-web-imapi
+100.115.97.21  vip6-ali-beijing-slb-kafka-new-1
+100.114.66.49  vip6-ali-beijing-slb-pika-roster-messagebody
+100.114.66.57  vip6-ali-beijing-slb-rtcserver1
+100.114.65.188 vip6-ali-beijing-slb-msync-cmserver
+
+
+#spark
+10.66.39.107   ebs-ali-beijing-daas-slave1
+10.66.38.222   ebs-ali-beijing-daas-slave2
+10.30.52.170   ebs-ali-beijing-daas-master1
+10.31.154.89   ebs-ali-beijing-daas-master2
+10.66.97.91    ebs-ali-beijing-daas-master3
+10.31.25.210   ebs-ali-beijing-daas-slave3
+10.31.140.199  ebs-ali-beijing-daas-slave4

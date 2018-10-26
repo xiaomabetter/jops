@@ -1,0 +1,51 @@
+---
+- name: Put on the system options files
+  copy: src=etc/sysctl.conf dest=/etc/sysctl.conf owner=root group=root mode=644
+
+- name: Put on the limit file
+  copy: src=etc/security/limits.d/99-easemob.conf dest=/etc/security/limits.d/99-easemob.conf owner=root group=root mode=644
+
+
+
+- name: Put on the ntp file
+  copy: src=etc/ntp.conf dest=/etc/ntp.conf owner=root group=root mode=644
+  notify:
+     - restart ntpd
+
+- name: Run the command sysctl -p
+  command: /sbin/sysctl -p
+  ignore_errors: yes
+
+
+- name: Put on the selinux file
+  copy: src=etc/selinux/config dest=/etc/selinux/config owner=root group=root mode=644
+
+
+- name: set /etc/motd
+  template: src=etc/motd dest=/etc/motd owner=root group=root mode=644
+
+- name: Copy the file /etc/ssh/sshd_config
+  copy: src=etc/ssh/sshd_config dest=/etc/ssh/sshd_config owner=root group=root mode=600
+  notify:
+     - restart sshd
+
+- name: Put on the sudoer file
+  copy: src=etc/sudoers dest=/etc/sudoers owner=root group=root mode=440
+
+- name: Run the commands
+  command: /sbin/modprobe nf_conntrack_ipv4
+
+- name: Run the commands
+  command: /sbin/modprobe tcp_htcp
+
+- name: install erlang screen,tmux,expect,dstat,nc,telnet,glances
+  yum: name={{ item }} state=installed
+  with_items:
+    - erlang
+    - screen
+    - tmux
+    - expect
+    - dstat
+    - nc
+    - telnet
+    - glances

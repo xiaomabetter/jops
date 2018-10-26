@@ -1,0 +1,169 @@
+127.0.0.1 localhost
+########################################### ali cloud ############################################
+#app
+10.168.232.233 sdb-ali-hangzhou-app1
+10.168.202.143 sdb-ali-hangzhou-app2
+10.132.5.48 sdb-ali-hangzhou-app3
+10.117.44.60 sdb-ali-hangzhou-app4
+#tools
+10.175.201.129 sdb-ali-hangzhou-tools1
+10.117.5.114 sdb-ali-hangzhou-push1
+10.117.6.119  sdb-ali-hangzhou-tools-registuser1
+
+#ejabberd
+10.252.211.129 sdb-ali-hangzhou-ejabberd1
+10.168.235.1   sdb-ali-hangzhou-ejabberd2
+10.252.213.88  sdb-ali-hangzhou-ejabberd3
+10.252.212.154 sdb-ali-hangzhou-ejabberd4
+10.252.220.208 sdb-ali-hangzhou-ejabberd5
+#webserver
+10.168.205.43    sdb-ali-hangzhou-web1
+
+#storm
+10.168.186.235 sdb-ali-hangzhou-storm1
+10.168.209.105 sdb-ali-hangzhou-storm2
+10.161.217.48  sdb-ali-hangzhou-storm3
+10.174.179.172 sdb-ali-hangzhou-storm4
+10.117.15.16 sdb-ali-hangzhou-storm5
+
+#thrift
+10.168.236.217 sdb-ali-hangzhou-thrift1
+10.168.234.212 sdb-ali-hangzhou-thrift2
+
+#thrift-group
+10.252.208.89 sdb-ali-hangzhou-thrift-group1
+
+
+#redis
+10.252.210.222 sdb-ali-hangzhou-redis1
+10.252.212.48  sdb-ali-hangzhou-redis2
+10.252.208.171 sdb-ali-hangzhou-redis3
+10.174.179.70  sdb-ali-hangzhou-redis4
+10.117.39.220 sdb-ali-hangzhou-redis10
+
+#session_storage
+10.173.230.101 sdb-ali-hangzhou-ss1
+
+#codis
+10.173.227.51   sdb-ali-hangzhou-codis1
+10.173.230.132  sdb-ali-hangzhou-codis2
+10.173.232.171  sdb-ali-hangzhou-codis3
+10.173.225.184  sdb-ali-hangzhou-codis4
+10.173.231.115  sdb-ali-hangzhou-codis5
+
+#db
+10.168.225.152 sdb-ali-hangzhou-db1
+10.168.201.110 sdb-ali-hangzhou-db2
+10.168.192.194 sdb-ali-hangzhou-db3
+10.117.31.197  sdb-ali-hangzhou-db10
+
+#mdb
+10.117.31.197 sdb-ali-hangzhou-db10
+
+# ops
+10.168.207.14 sdb-ali-hangzhou-support smtp.exmail.qq.com
+10.168.178.231 sdb-ali-hangzhou-console
+10.168.200.207 sdb-ali-hangzhou-log
+10.160.22.199   hz-ali-ops-yum
+10.45.22.104  sdb-ali-hangzhou-dns1
+10.45.51.73  sdb-ali-hangzhou-dns2
+10.45.50.254 sdb-ali-hangzhou-zabbix
+10.47.76.179 ops-ali-hangzhou-ci1
+10.252.211.133 ops-ali-hangzhou-zk1
+10.252.222.237 ops-ali-hangzhou-zk2
+10.252.125.35  ops-ali-hangzhou-zk3
+10.252.126.222 ops-ali-hangzhou-kafka1
+10.252.116.166 ops-ali-hangzhou-kafka2
+10.252.123.48  ops-ali-hangzhou-kafka3
+10.252.117.74  ops-ali-hangzhou-ela1
+10.252.112.227 ops-ali-hangzhou-ela2
+10.252.120.77  ops-ali-hangzhou-ela3
+10.252.251.166 ops-ali-hangzhou-logindex
+10.168.184.109 ops-ali-hangzhou-logindexShipper
+
+10.117.12.40   ops-ali-hangzhou-cislave1
+121.43.58.221  ops-ali-hangzhou-cislave1.easemob.com
+
+#kafka
+10.168.207.70 sdb-ali-hangzhou-kafka1
+10.168.228.244 sdb-ali-hangzhou-kafka2
+
+#zookeeper
+10.168.224.220 sdb-ali-hangzhou-zk1
+10.168.197.230 sdb-ali-hangzhou-zk2
+10.168.224.150 sdb-ali-hangzhou-zk3
+10.252.118.107 sdb-ali-hangzhou-zk4
+
+#SLB
+10.157.130.158 sdb-ali-hangzhou-slb-ebs2
+10.157.92.247 sdb-ali-hangzhou-slb-thrift
+10.157.129.241 sdb-ali-hangzhou-slb-kafka
+10.157.95.134 sdb-ali-hangzhou-slb-app
+100.98.114.43 sdb-ali-hangzhou-slb-redis1
+100.98.30.155 im1.sandbox.easemob.com
+100.98.114.64 sdb-ali-hangzhou-slb-codis2
+
+#turn server
+10.168.234.236 prod-ali-hangzhou-turn1
+10.168.249.91 sdb-ali-hangzhou-turn2
+10.168.249.56 sdb-ali-hangzhou-turn3
+
+#dp
+10.252.211.39  sdb-ali-hangzhou-dp1
+10.252.217.144 sdb-ali-hangzhou-dp2
+10.252.219.83 sdb-ali-hangzhou-imbd-hadoop1
+#test
+10.168.242.49  sdb-ali-hangzhou-test1
+
+#prod resolver
+10.252.221.11  prod-ali-hangzhou-resolver1
+10.252.211.206 prod-ali-hangzhou-resolver2
+
+#tsdb
+10.252.224.123 sdb-ali-hangzhou-tsdb1
+10.252.219.78  sdb-ali-hangzhou-tsdb2
+
+#hadoop
+10.252.123.133 sdb-ali-hangzhou-hadoop1
+10.252.217.32  sdb-ali-hangzhou-hadoop2
+10.117.9.15 sdb-ali-hangzhou-hadoop3
+
+#monitor
+10.165.99.224   vip1-ali-hangzhou-monitor
+
+#antispam
+10.47.55.4 sdb-ali-hangzhou-antispam1
+
+#message track
+10.117.45.8 sdb-ali-hangzhou-mt1
+10.117.17.17 sdb-ali-hangzhou-mt2
+
+#dnsconfig
+10.132.2.224    vip1-ali-hangzhou-dnsconfig1
+10.132.33.220   vip1-ali-hangzhou-dnsconfig2
+10.174.184.26  sdb-ali-hangzhou-dnsconfig-rest1
+
+
+#yum
+10.116.206.221	cn1.yum.op.easemob.com
+
+10.174.184.49 sdb-ali-hangzhou-mongo1
+10.174.184.60 sdb-ali-hangzhou-mongo2
+10.174.184.47 sdb-ali-hangzhou-mongo3
+
+10.174.184.87 sdb-ali-hangzhou-parse1
+10.174.184.80 sdb-ali-hangzhou-parse2
+
+100.114.49.236 docker-registry-cn.easemob.com
+#build
+10.252.213.197 sdb-ali-hangzhou-build
+
+#docker Test
+10.252.222.88 sdb-ali-hangzhou-benchi-web
+10.252.208.29 sdb-ali-hangzhou-benchi-db
+10.252.222.101 sdb-ali-hangzhou-benchi-app
+10.252.222.129 sdb-ali-hangzhou-docker-swarm
+10.252.222.167 sdb-ali-hangzhou-docker-swarm2
+10.252.220.124 ops-ali-hangzhou-docker-swarm1
+10.252.224.87 ops-ali-hangzhou-docker-swarm2
+10.252.224.91 ops-ali-hangzhou-docker-swarm3

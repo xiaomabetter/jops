@@ -1,0 +1,44 @@
+[easemob-contrib]
+name=Centos $releasever - $basearch - contrib
+baseurl=http://{{ all_yum_server }}/centos/$releasever/$basearch/contrib
+gpgcheck=0
+
+[easemob-epel]
+name=Centos $releasever - $basearch - epel
+baseurl=http://{{ all_yum_server }}/centos/$releasever/$basearch/epel
+gpgcheck=0
+
+[easemob-erlang]
+name=Centos $releasever - $basearch - erlang
+baseurl=http://{{ all_yum_server }}/centos/$releasever/$basearch/erlang
+gpgcheck=0
+
+[easemob-extras]
+name=Centos $releasever - $basearch - extras
+baseurl=http://{{ all_yum_server }}/centos/$releasever/$basearch/extras
+gpgcheck=0
+
+[easemob-os]
+name=Centos $releasever - $basearch - os
+baseurl=http://{{ all_yum_server }}/centos/$releasever/$basearch/os
+gpgcheck=0
+
+[easemob-rpmforge]
+name=Centos $releasever - $basearch - rpmforge
+baseurl=http://{{ all_yum_server }}/centos/$releasever/$basearch/rpmforge
+gpgcheck=0
+
+[easemob-update]
+name=Centos $releasever - $basearch - update
+baseurl=http://{{ all_yum_server }}/centos/$releasever/$basearch/update
+gpgcheck=0
+
+[easemob-applications]
+name=Centos $releasever - $basearch - easemob-applications
+baseurl=http://{{ all_yum_server }}/centos/$releasever/$basearch/easemob-applications
+gpgcheck=0
+
+[easemob-base]
+name=Easemob base $releasever - $basearch - easemob-base
+baseurl=http://{{ all_yum_server }}/centos/$releasever/$basearch/easemob-base
+gpgcheck=0

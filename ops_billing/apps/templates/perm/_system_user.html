@@ -1,0 +1,42 @@
+{% extends 'base/_base_create_update.html' %}
+{% from "perm/_wtf.html" import render_field,render_field_no_form_group %}
+{% block form %}
+<form  id="system_user" enctype="multipart/form-data" method="post" class="form-horizontal" autocomplete="off" enctype="multipart/form-data" action="" >
+    <h4>基本</h4>
+    <div class="form-group">
+        {{ render_field_no_form_group(form.username,'required') }}
+        {{ render_field_no_form_group(form.priority,'required') }}
+        {{ render_field_no_form_group(form.protocol,'required') }}
+        {{ render_field_no_form_group(form.comment) }}
+    </div>
+    <div class="hr-line-dashed"></div>
+    <h4>认证</h4>
+    {{ render_field(form.auto_generate_key) }}
+    <div class="auth-fields">
+        <div class="form-group">
+            {{ form.password.label(class="col-md-2 control-label") }}
+            <div class="col-md-4">
+                {{ form.password }}
+                <div class="help-block">密码或密钥密码</div>
+            </div>
+            {{ form.private_key.label(class="col-md-2 control-label") }}
+            <div class="col-md-2">
+                {{ form.private_key }}
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        {{ render_field_no_form_group(form.auto_push) }}
+    </div>
+    <div class="hr-line-dashed"></div>
+    <h4>权限</h4>
+    {{ render_field(form.sudo) }}
+    {{ render_field(form.shell) }}
+    <div class="form-group">
+        <div class="col-sm-4 col-sm-offset-2">
+            <button class="btn btn-white" type="reset">重置</button>
+            <button id="submit_button" class="btn btn-primary" type="button">提交</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

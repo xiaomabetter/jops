@@ -1,0 +1,18 @@
+#[easemob]
+#name=easemob repository
+#baseurl=http://{{ yum_server }}/packages/easemob/rpms
+#gpgcheck=0
+#gpgkey=http://{{ yum_server }}/packages/easemob/GPG-KEY-easemob
+#enabled=1
+
+[easemob-base]
+name=easemob base repository
+baseurl=http://yum.op.easemob.com/yum/easemob/$releasever/base/$basearch/
+gpgcheck=0
+enabled=1
+
+[easemob-3rd]
+name=easemob 3rd repository
+baseurl=http://yum.op.easemob.com/yum/easemob/$releasever/3rd/$basearch/
+gpgcheck=0
+enabled=1

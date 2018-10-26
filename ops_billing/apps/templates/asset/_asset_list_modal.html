@@ -1,0 +1,119 @@
+{% extends 'base/_modal.html' %}
+
+{% block modal_class %}modal-lg{% endblock %}
+{% block modal_id %}asset_list_modal{% endblock %}
+{% block modal_title%}资产列表{% endblock %}
+{% block modal_body %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/ztree/jquery.ztree.all.min.js') }}"></script>
+<style>
+.inmodal .modal-header {
+    padding: 5px 5px;
+    text-align: center;
+}
+
+#assetTree2.ztree * {
+    background-color: #f8fafb;
+}
+</style>
+
+<div class="wrapper wrapper-content">
+   <div class="row">
+       <div class="col-lg-3" style="padding-left: 3px;background-color: #f8fafb;">
+           <div >
+               <div id="assetTree2" class="ztree">
+               </div>
+           </div>
+       </div>
+       <div class="col-lg-9 animated fadeInRight" id="split-right">
+               <div class="btn-group" style="float: right">
+                    <button class="btn btn-default btn-sm" id="asset_notin_node2">点击查看未分组资产</button>
+               </div>
+               <table class="table table-striped table-bordered table-hover " id="asset_list_modal_table" style="width: 100%">
+                   <thead>
+                       <tr>
+                           <th class="text-center"><input type="checkbox" class="ipt_check_all"></th>
+                           <th class="text-center">Hostname</th>
+                           <th class="text-center">IP</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                   </tbody>
+               </table>
+       </div>
+   </div>
+</div>
+
+<script>
+var zTree2, asset_table2 = 0,asset_type;
+var init_table_url = "{{ url_for('assets-api.assets_api') }}";
+function initTable2() {
+    var options = {
+        ele: $('#asset_list_modal_table'),
+        columnDefs:[
+           ],
+        ajax_url: init_table_url,
+        columns: [
+            {data: "id"}, {data: "InstanceName" },{data: "Address" }
+        ],
+        pageLength: 10
+    };
+    asset_table2 = jumpserver.initServerSideDataTable(options);
+    return asset_table2
+}
+
+function onSelected2(event, treeNode) {
+    var url = asset_table2.ajax.url();
+    url = setUrlParam(url, "node_id", treeNode.id);
+    asset_table2.ajax.url(url);
+    asset_table2.ajax.reload();
+}
+
+function initTree2() {
+    var setting = {
+        view: {
+            dblClickExpand: false,
+            showLine: true
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        },
+        callback: {
+            onSelected: onSelected2
+        }
+    };
+
+    var zNodes = [];
+    var data = {'asset_type': asset_type};
+    $.get("{{ url_for('assets-api.nodes_api') }}",data, function(data, status){
+        var result = data['data'];
+        $.each(result, function (index, value) {
+            value["pId"] = value["parent"];
+            value["open"] = value["open"];
+            value["isParent"] = value["is_node"];
+            value["name"] = value["value"] + ' (' + value['assets_amount'] + ')';
+        });
+        zNodes = result;
+        $.fn.zTree.init($("#assetTree2"), setting, zNodes);
+        zTree2 = $.fn.zTree.getZTreeObj("assetTree2");
+    });
+}
+
+$(document).ready(function(){
+    if ("{{asset_type}}") {
+        asset_type="{{asset_type}}";
+    } else {
+        asset_type="ecs";
+    }
+}).on('click', '#asset_notin_node2', function () {
+    url = setUrlParam(init_table_url, 'un_node','True');
+    asset_table2.ajax.url(url);
+    asset_table2.ajax.reload();
+})
+</script>
+{% endblock %}
+
+{% block modal_button %}
+{% endblock %}
+{% block modal_confirm_id %}btn_asset_modal_confirm{% endblock %}

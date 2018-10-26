@@ -1,0 +1,65 @@
+{% if g.user.role == 'administrator' %}
+    <li id="index">
+        <a href="/">
+            <i class="fa fa-dashboard" style="width: 16px"></i> <span class="nav-label"> 全局信息</span>
+            <span class="label label-info pull-right"></span>
+        </a>
+    </li>
+    <li id="User">
+        <a>
+            <i class="fa fa-group" style="width: 14px"></i> <span class="nav-label">用户管理</span><span class="fa arrow"></span>
+        </a>
+        <ul class="nav nav-second-level">
+            <li id="users_list"><a href="{{ url_for('user.users_list') }}">用户列表</a></li>
+            <li id="user_login_log"><a href="{{ url_for('user.userlogin_log_list') }}">登录日志</a></li>
+        </ul>
+    </li>
+    <li id="Asset">
+        <a>
+            <i class="fa fa-inbox" style="width: 14px"></i> <span class="nav-label">资产管理</span><span class="fa arrow"></span>
+        </a>
+        <ul class="nav nav-second-level">
+            <li id="asset_list"><a href="{{ url_for('asset.asset_list',asset_type='ecs') }}">资产列表</a></li>
+            <li id="asset_create"><a href="{{ url_for('asset.asset_create') }}">创建资产</a></li>
+            <li id="service_list"><a href="{{ url_for('asset.service_list') }}">服务列表</a></li>
+            <li id="bill_list"><a href="{{ url_for('asset.bill_list') }}">费用列表</a></li>
+        </ul>
+    </li>
+    <li id="Perm">
+        <a>
+            <i class="fa fa-edit" style="width: 14px"></i> <span class="nav-label">授权管理</span><span class="fa arrow"></span>
+        </a>
+        <ul class="nav nav-second-level">
+            <li id="asset_permission_list"><a href="{{ url_for('perm.asset_permission_list') }}">资产授权</a></li>
+            <li id="platform_permission_list"><a href="{{ url_for('perm.platform_list') }}">平台接入授权</a></li>
+            <li id="systemuser_list"><a href="{{ url_for('perm.system_user_list') }}">系统用户</a></li>
+            <li id="permission_group_list"><a href="{{ url_for('perm.permission_group_list') }}">授权分组</a></li>
+        </ul>
+    </li>
+    <li id="Task">
+        <a>
+            <i class="fa fa-coffee" style="width: 14px"></i> <span class="nav-label">任务中心</span><span class="fa arrow"></span>
+        </a>
+        <ul class="nav nav-second-level">
+            <li id="ansible_run"><a href="{{ url_for('task.ansible_run') }}">Ansible任务</a></li>
+        </ul>
+    </li>
+    <li id="Platform">
+        <a>
+            <i class="fa fa-rocket" style="width: 14px"></i> <span class="nav-label">平台接入</span><span class="fa arrow"></span>
+        </a>
+        <ul class="nav nav-second-level">
+            <li id="platform_list"><a href="{{ url_for('platform.platform_list') }}">平台列表</a></li>
+        </ul>
+    </li>
+{% elif g.user.role == 'user' %}
+    <li id="Platform">
+        <a>
+            <i class="fa fa-rocket" style="width: 14px"></i> <span class="nav-label">平台接入</span><span class="fa arrow"></span>
+        </a>
+        <ul class="nav nav-second-level">
+            <li id="platform_list"><a href="{{ url_for('platform.platform_list') }}">平台列表</a></li>
+        </ul>
+    </li>
+{% endif %}
+

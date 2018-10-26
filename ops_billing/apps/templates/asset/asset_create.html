@@ -1,0 +1,182 @@
+{% extends 'base/_base_create_update.html' %}
+{% from "asset/_wtf.html" import render_field,render_field_no_form_group %}
+{% block action %}
+    创建机器
+{% endblock %}
+{% block ibox_title_right %}
+    <div class="pull-right" style="margin:0px 0px 0px 10px"><a href="{{ url_for('asset.asset_create_template')}}" class="btn btn-sm btn-default">创建模板</a></div>
+    <div class="pull-right"><a href="{{ url_for('asset.asset_create_template_list')}}" class="btn btn-sm btn-default">查看模板</a></div>
+{% endblock %}
+{% block form %}
+<form  method="post" id="create_machine" class="form-horizontal" autocomplete="off" enctype="multipart/form-data" action="" >
+    <h4>模板</h4>
+        {{ render_field(form.InstanceTemplate,'required') }}
+    <div class="hr-line-dashed"></div>
+    <h4>基本</h4>
+    <div class="form-group">
+        {{ render_field_no_form_group(form.InstanceName,'required') }}
+        {{ render_field_no_form_group(form.InstanceChargeType,'required') }}
+        {{ render_field_no_form_group(form.amount,'required') }}
+        <div class="form-group">
+            {{ form.PasswordInherit.label(class="col-md-2 control-label",style="width:250px") }}
+            <div class="col-md-2">
+                {{ form.PasswordInherit() }}
+            </div>
+        </div>
+        <label class="col-md-4 control-label" for="Password" id="label-password">新实例密码</label>
+        <div class="col-md-5 row" id="Password" >
+            <input class="form-control" type="password" name="Password" placeholder="新实例的密码" value="">
+                <div class="help-block">* required</div>
+        </div>
+    </div>
+
+    <div class="hr-line-dashed"></div>
+    <h4>是否绑定公网</h4>
+    <div class="form-group">
+        {{ render_field(form.PublicIpAddress) }}
+        <div class="form-group" id="bandwidth-field">
+            {{ render_field_no_form_group(form.InternetChargeType) }}
+            {{ render_field_no_form_group(form.InternetMaxBandwidthOut) }}
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-4 col-sm-offset-2">
+            <button class="btn btn-white" type="reset">重置</button>
+            <button id="submit_button" class="btn btn-primary" type="button">创建</button>
+        </div>
+    </div>
+
+</form>
+{% include 'asset/_asset_template_modal.html' %}
+{% include 'asset/_progress_modal.html' %}
+{% endblock %}
+{% block custom_foot_js %}
+<script src="{{ url_for('static', filename='js/plugins/select2/select2.full.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/loadingoverlay.min.js') }}"></script>
+<script>
+var zonesdata = JSON.parse({{Zones|tojson}});
+var PublicIpAddress = '#'+'PublicIpAddress';
+function PasswordFieldsDisplay() {
+    if ($('#PasswordInherit').prop('checked')) {
+        $('#Password').addClass('hidden');
+        $('#label-password').addClass('hidden');
+    } else {
+        $('#Password').removeClass('hidden');
+        $('#label-password').removeClass('hidden');
+    }
+}
+
+function bandwidthFieldsDisplay() {
+    if ($(PublicIpAddress).prop('checked')) {
+        $('#bandwidth-field').removeClass('hidden');
+    } else {
+        $('#bandwidth-field').addClass('hidden');
+    }
+}
+
+function AppendZoneId() {
+    $("#ZoneId_select").empty();
+    var regionid = $('#RegionId_select').val();
+    if (regionid) {
+        $.each(zonesdata[regionid], function (key, value) {
+            option = '<option value=' + value.ZoneId + '>' + value.LocalName + '</option>';
+            $('#ZoneId_select').append(option);
+        })
+    }
+}
+
+$(document).ready(function () {
+    $('.select2').select2();
+    bandwidthFieldsDisplay()
+    PasswordFieldsDisplay()
+    $(PublicIpAddress).change(function () {
+        bandwidthFieldsDisplay();
+    });
+    $('#PasswordInherit').change(function () {
+        PasswordFieldsDisplay();
+    });
+    $.get("{{ url_for('assets-api.templates_api') }}",{}, function(result){
+        $.each(result['data'], function (key, value) {
+            option = '<option value=' + value['id'] + '>' + value['name'] + '</option>';
+            $('#InstanceTemplate').append(option);
+        });
+    });
+    $("#InstanceTemplate").parent().find(".select2").on('click', function (e) {
+        $("#template_list_modal").modal();
+    })
+    $.each(zonesdata, function (key, value) {
+            option = '<option value=' + key + '>' + key + '</option>';
+            $('#RegionId_select').append(option);
+    });
+    AppendZoneId();
+}).on('change', '#RegionId_select', function () {
+    AppendZoneId();
+}).on('click', '#btn_template_modal_confirm', function () {
+    var template_selected = template_table.selected;
+    if ( template_selected.length !== 1 ) {
+        toastr.error("请选择模板,并选择一个!");
+        return
+    }
+    $('#InstanceTemplate').val(template_selected[0]).trigger('change');
+    $("#template_list_modal").modal('hide');
+}).on("click",'#submit_button',function(){
+    if ( ! $(PasswordInherit).prop('checked')) {
+        var instance_password = $("input[name='Password']").val()
+        if ( instance_password == '') {
+            toastr.error("请填写实例密码!");
+        }
+    }
+   $('#create_machine').ajaxSubmit({
+        url: "{{ url_for('assets-api.asset_create_api') }}",
+        type: 'post',
+        dataType: 'json',
+        success: function (data) {
+            if (data['status']) {
+                $.LoadingOverlay("show", {
+                    image       : "",
+                    progress    : true,
+                    progressColor:'#87CEFA',
+                    progressFixedPosition:''
+                });
+                get_create_asset_result(data['data'],2);
+            } else {
+                toastr.error(data['msg'])
+            }
+        },
+        error:function (XmlHttpRequest, textStatus, errorThrown) {
+            error_msg = JSON.stringify(XmlHttpRequest.responseJSON.message);
+            toastr.error(error_msg);
+        },
+        clearForm: false,
+        resetForm: false
+    })
+});
+
+function get_create_asset_result(taskid,count) {
+    count += 1.5;
+    $.LoadingOverlay("progress", count);
+    $.ajax({
+        url: "{{ url_for('task-api.task_api',taskid='PK') }}".replace('PK',taskid),
+        type: "GET",
+        success: function (result) {
+        if (result['status']) {
+            console.log(11111111);
+            $.LoadingOverlay("hide");
+            if (result['data']['status'] === 'SUCCESS') {
+                toastr.success("机器创建成功")
+            } else {
+                toastr.error("机器创建失败")
+                $('#create_progress').modal('show');
+                $('#stdout_result').text(JSON.stringify(result['data']));
+            }
+
+        } else {
+            setTimeout(function () {
+                get_create_asset_result(taskid,count);
+            }, 2000);
+        }}})
+}
+
+</script>
+{% endblock %}

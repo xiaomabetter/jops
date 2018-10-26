@@ -1,0 +1,45 @@
+{% extends 'base/_modal.html' %}
+{% block modal_class %}modal-lg{% endblock %}
+{% block modal_id %}run_result_modal{% endblock %}
+{% block modal_title%}执行结果{% endblock %}
+{% block modal_body %}
+<link href="{{ url_for('static', filename='css/plugins/ztree/awesomeStyle/awesome.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/ztree/jquery.ztree.all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<style>
+.inmodal .modal-header {
+    padding: 5px 5px;
+    text-align: center;
+}
+.test_box {
+    min-height: 500px;
+    max-height: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 4px;
+    outline: 0;
+    border: 1px solid #a0b3d6;
+    font-size: 12px;
+    word-wrap: break-word;
+    overflow-x: hidden;
+    overflow-y: auto;
+    /*white-space:pre;*/
+    white-space: pre-line;
+    font-family: "Bitstream Vera Sans Mono", Monaco, "Courier New", Courier, monospace;
+    -webkit-user-modify: read-write-plaintext-only;
+    background-color: #161616;
+    color:#1fe01f;
+}
+</style>
+<div class="wrapper wrapper-content">
+    <div class="ibox float-e-margins">
+          <div >
+              <div  class="ibox-content test_box"  id="stdout_result"  style="height:420px;overflow-y:scroll">
+                  等待....
+              </div>
+          </div>
+    </div>
+</div>
+{% endblock %}
+{% block modal_confirm_id %}btn_run_result_confirm{% endblock %}

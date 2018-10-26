@@ -1,0 +1,13 @@
+---
+- name: dsa authorized_keys 
+  copy: src=authorized_keys dest=/home/easemob/.ssh/authorized_keys owner=easemob group=easemob mode=600 
+
+
+
+- name: dsa id_dsa
+  copy: src=id_dsa dest=/home/easemob/.ssh/id_dsa owner=easemob group=easemob mode=600 
+
+
+- name: dsa know_hosts
+  copy: src=known_hosts dest=/home/easemob/.ssh/known_hosts owner=easemob group=easemob mode=644
+
