@@ -20,7 +20,7 @@ TMP_DIR = os.path.join(BASE_DIR, 'tmp')
 HTTP_HOST = config.get('DEFAULT','HTTP_BIND_HOST') or '127.0.0.1'
 HTTP_PORT = config.get('DEFAULT','HTTP_LISTEN_PORT') or 5050
 LOG_LEVEL = config.get('DEFAULT','LOG_LEVEL') or 'info'
-
+DEFAULT_QUEUE = config.get('CELERY', 'CELERY_DEFAULT_QUEUE')
 START_TIMEOUT = 10
 WORKERS = 8
 DAEMON = False
@@ -117,6 +117,7 @@ def start_celery():
     cmd = [
         'celery', 'worker',
         '-A',  'apps.task',
+        '-Q', 'apps.task',
         '-l', LOG_LEVEL.lower(),
         '--pidfile', pid_file,
         '-c', str(WORKERS),
@@ -214,7 +215,7 @@ def show_service_status(s):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="""
-        Jumpserver service control tools;
+        Easemob Ops service control tools;
 
         Example: \r\n
 
