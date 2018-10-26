@@ -1,7 +1,0 @@
----
-lvm_pkgs:
-- lvm2
-disklist: "{{ansible_devices.keys()}}"
-vg: "data"
-lv: "apps"
-mount_point: "/data"

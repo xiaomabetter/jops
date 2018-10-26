@@ -1,3 +1,0 @@
-{lookup,["file","native"]}.
-{host,{{'{'}}{{ansible_eth0.ipv4.address | regex_replace('\\.', ',') }}{{'}'}}, ["localhost","{{ansible_hostname}}"]}.
-{file, resolv, "/etc/resolv.conf"}.

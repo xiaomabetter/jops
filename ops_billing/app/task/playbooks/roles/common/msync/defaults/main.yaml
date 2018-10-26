@@ -1,4 +1,0 @@
-#cluster: "{{hostname | regex_replace('^(?P<cluster>[a-z0-9]+)-([a-z0-9]+)-([a-z0-9]+)-([a-z0-9]+)$','\\g<cluster>')}}"
-#nodenum: "{{hostname | regex_replace('^([a-z0-9]+)-([a-z0-9]+)-([a-z0-9]+)-([a-z]+)(?P<nodenum>\\d+)$','\\g<nodenum>')}}"
-#
-nodenum: "{{hostname | regex_replace('^(?P<cluster>[a-z0-9]+).+?(?P<nodenum>\\d+)$','\\g<cluster>,\\g<nodenum>')}}"
