@@ -20,7 +20,7 @@ def get_basedir():
     return os.path.abspath(os.path.dirname(__file__))
 
 def create_app(config_name):
-    handler = logging.FileHandler('log/flask.log', encoding='UTF-8')
+    handler = logging.FileHandler('logs/flask.log', encoding='UTF-8')
     handler.setLevel(logging.DEBUG)
     logging_format = logging.Formatter(
         '%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)s - %(message)s')

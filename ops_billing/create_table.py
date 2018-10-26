@@ -1,4 +1,4 @@
-from app.models import *
+from apps.models import *
 
 def create_table():
     db.connect()
