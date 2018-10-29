@@ -117,7 +117,7 @@ def start_celery():
     cmd = [
         'celery', 'worker',
         '-A',  'apps.task',
-        '-Q', 'apps.task',
+        '-Q', DEFAULT_QUEUE,
         '-l', LOG_LEVEL.lower(),
         '--pidfile', pid_file,
         '-c', str(WORKERS),

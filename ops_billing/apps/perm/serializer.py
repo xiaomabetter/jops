@@ -34,7 +34,7 @@ class AssetPermissionSerializer(Schema):
 
     class Meta:
         fields = ("id","name","assets","nodes","system_users","users","groups","is_active",
-                  "date_start","date_expired","created_by","comment")
+                  "created_by","comment")
 
 class AuthorizationPlatformSerializer(Schema):
     id = fields.Function(lambda obj: obj.id.hex)

@@ -156,15 +156,18 @@ function activeNav() {
                 $('#service_list').addClass('active');
             }
         }
-        if (app === 'perm') {
+        if (app === 'permission') {
              $("#Perm").addClass('active');
             if (resource === 'systemuser') {
                     $('#systemuser_list').addClass('active');
             }
-            else if (resource === 'asset_permission') {
+            else if (resource === 'asset') {
                     $('#asset_permission_list').addClass('active');
             }
-            else if (resource === 'permission_group') {
+            else if (resource === 'platform') {
+                    $('#platform_permission_list').addClass('active');
+            }
+            else if (resource === 'group') {
                     $('#permission_group_list').addClass('active');
             }
         }
@@ -185,7 +188,7 @@ function activeNav() {
         }
         if (app === 'platform') {
              $("#Platform").addClass('active');
-            if (resource === 'platform') {
+            if (resource === 'platforms') {
                     $('#platform_list').addClass('active');
             }
         }

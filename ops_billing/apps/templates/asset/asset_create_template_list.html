@@ -28,15 +28,53 @@
 {% block content_bottom_left %}{% endblock %}
 {% block custom_foot_js %}
 <script>
+var table, show = 0;
+
+function format(d) {
+    var data = "";
+    if (d.DataDiskinfo.length > 0 ) {
+        var result = []
+        d.DataDiskinfo.forEach(function(e) {
+           result.push(JSON.stringify(e));
+        })
+        data += makeLabel(["数据盘信息", result.join(", ")])
+    }
+    return data
+}
+
+function makeLabel(data) {
+    return "<label class='detail-key'><b>" + data[0] + ": </b></label>" + data[1] + "</br>"
+}
+
+function toggle() {
+    if (show === 0) {
+        $("#split-left").hide(500, function () {
+            $("#split-right").attr("class", "col-lg-12");
+            $("#toggle-icon").attr("class", "fa fa-angle-right fa-x");
+            show = 1;
+        });
+    } else {
+        $("#split-right").attr("class", "col-lg-9");
+        $("#toggle-icon").attr("class", "fa fa-angle-left fa-x");
+        $("#split-left").show(500);
+        show = 0;
+    }
+}
+
 $(document).ready(function() {
     var options = {
         ele: $('#template_list_table'),
         buttons: [],
         columnDefs: [
+            {targets: 0, createdCell: function (td, cellData, rowData) {
+                $(td).addClass("toggle");
+                $(td).html("<i class='fa fa-angle-right'></i>");
+            }},
             {targets: 8, createdCell: function (td, cellData, rowData) {
+                var create_btn = '<a href={{ url_for("asset.asset_create",templateid="PK") }} class="btn btn-xs m-l-xs btn-success">创建</a>'.replace('PK', cellData);
                 var update_btn = '<a href={{ url_for("asset.asset_create_template_update",templateid="PK") }} class="btn btn-xs m-l-xs btn-info">更新</a>'.replace('PK', cellData);
                 var del_btn = '<a class="btn btn-xs btn-danger m-l-xs btn_delete_template_group" data-uid="PK">删除</a>'.replace('PK', cellData);
-                $(td).html(update_btn + del_btn)
+                $(td).html(create_btn + update_btn + del_btn)
             }}
         ],
         ajax_url: "{{ url_for('assets-api.templates_api') }}",
@@ -45,7 +83,8 @@ $(document).ready(function() {
         order: [],
         op_html: $('#actions').html()
     };
-    jumpserver.initDataTable(options);
+    table = jumpserver.initDataTable(options);
+    return table
 
 }).on('click', '.btn_delete_template_group', function(){
     var $this = $(this);
@@ -55,6 +94,29 @@ $(document).ready(function() {
     setTimeout( function () {
         $('#template_list_table').DataTable().ajax.reload();
     }, 1000);
+}).on('click', '.toggle', function (e) {
+    e.preventDefault();
+    var detailRows = [];
+    var tr = $(this).closest('tr');
+    var row = table.row(tr);
+    var idx = $.inArray(tr.attr('id'), detailRows);
+
+    if (row.child.isShown()) {
+        tr.removeClass('details');
+        row.child.hide();
+        // Remove from the 'open' array
+        detailRows.splice(idx, 1);
+    }
+    else {
+        tr.addClass('details');
+        $('.toggle i').removeClass('fa-angle-right').addClass('fa-angle-down');
+        row.child(format(row.data())).show();
+        // Add to the 'open' array
+        if ( idx === -1 ) {
+            detailRows.push(tr.attr('id'));
+        }
+    }
 })
+
 </script>
 {% endblock %}

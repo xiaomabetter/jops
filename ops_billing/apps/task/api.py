@@ -49,6 +49,7 @@ class AlySyncApi(Resource):
             .add_argument('day_to', type=str, location=['json', 'form']) \
             .add_argument('is_update', type=str,default='no',location=['json', 'form']) \
             .add_argument('asset_type', type=str, location=['json','form']).parse_args()
+        r = None
         task_name = args.get('task_name')
         default_queue = config.get('CELERY', 'CELERY_DEFAULT_QUEUE')
         if task_name == 'syncasset':
@@ -79,7 +80,10 @@ class AlySyncApi(Resource):
             r = run_sync_vswitches.apply_async(queue=default_queue)
         elif task_name == 'sync_ldapusers':
             r = sync_ldap_user.apply_async(queue=default_queue)
-        return jsonify(trueReturn(r.id,msg='任务提交成功'))
+        if r:
+            return jsonify(trueReturn(r.id,msg='任务提交成功'))
+        else:
+            return jsonify(falseReturn(msg='任务提交失败'))
 
 class TaskAnsRunApi(Resource):
     @login_required

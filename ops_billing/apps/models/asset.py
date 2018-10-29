@@ -13,6 +13,7 @@ class Service(BaseModel):
         indexes = (
             (('servicename', 'version'), True),
         )
+        table_name = 'assets_service'
 
 class Account(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
@@ -27,6 +28,7 @@ class Account(BaseModel):
             (('username', 'password','databases'), True),
             (('username', 'password','buckets'), True),
         )
+        table_name = 'assets_account'
 
 class Node(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
@@ -171,6 +173,9 @@ class Node(BaseModel):
         )
         return obj
 
+    class Meta:
+        table_name = 'assets_node'
+
 class Asset(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
     AssetType = CharField(max_length=128, null=False)
@@ -211,6 +216,9 @@ class Asset(BaseModel):
         else:
             return False
 
+    class Meta:
+        table_name = 'assets_asset'
+
 class Bill(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
     instance_id = CharField(max_length=64,null=False)
@@ -219,6 +227,22 @@ class Bill(BaseModel):
     type_alias_name = CharField(max_length=64, null=True)
     day = DateTimeField(null=False)
     cost = FloatField()
+
+    class Meta:
+        table_name = 'assets_bill'
+
+class Sync_Bill_History(BaseModel):
+    id = UUIDField(default=uuid.uuid4, primary_key=True)
+    username = CharField(max_length=32)
+    day = DateTimeField(null=False)
+    filename = CharField(max_length=256,null=False)
+
+    def __str__(self):
+        return '{0.username}({0.day})'.format(self)
+
+    class Meta:
+        table_name = 'assets_bill_sync_history'
+
 
 class Create_Asset_History(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
@@ -230,6 +254,9 @@ class Create_Asset_History(BaseModel):
     created_by = CharField(max_length=128, null=False)
     isSuccess = BooleanField(default=False,null=False)
     CreateTime = DateTimeField(null=False,default=datetime.datetime.now())
+
+    class Meta:
+        table_name = 'assets_create_history'
 
 class Asset_Create_Template(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
@@ -247,6 +274,9 @@ class Asset_Create_Template(BaseModel):
     SystemDiskSize = IntegerField(null=False)
     DataDiskinfo = CharField(max_length=600, null=False,default=[])
     CreateTime = DateTimeField(null=False,default=datetime.datetime.now())
+
+    class Meta:
+        table_name = 'assets_create_templates'
 
 Asset_Node = Asset.node.get_through_model()
 Asset_Service = Asset.service.get_through_model()

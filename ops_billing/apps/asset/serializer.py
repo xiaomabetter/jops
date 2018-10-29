@@ -86,12 +86,13 @@ class AssetCreateTemplateSerializer(Schema):
     SystemDiskCategory = fields.String(required=True)
     SystemDiskSize = fields.Integer(required=True)
     DataDiskinfo = fields.String(required=True,dump_only=True)
-    SecurityGroupId  = fields.List(fields.String(),)
-    SystemDiskCategorySize = fields.Function(lambda obj:'类型:{0};大小:{1}'.
+    SecurityGroupId  = fields.List(fields.String())
+    DataDiskinfo = fields.Function(lambda obj:json.loads(obj.DataDiskinfo))
+    SystemDiskCategorySize = fields.Function(lambda obj:'{0};{1}'.
                             format(obj.SystemDiskCategory,obj.SystemDiskSize),dump_only=True)
 
     class Meta:
-        fields = ("id","name","RegionId", "ZoneId", "ImageId",'VSwitchId',"InstanceNetworkType", "instance_type",
+        fields = ("id","name","RegionId", "ZoneId", "ImageId","VSwitchId","InstanceNetworkType", "instance_type",
                   "SystemDiskCategory", "SecurityGroupId","SystemDiskCategorySize","SystemDiskSize",
-                  "DataDiskinfo","CreateTime","cpu","memory"
+                  "DataDiskinfo","CreateTime","cpu","memory","DataDiskinfo"
                   )

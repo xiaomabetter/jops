@@ -9,7 +9,7 @@ from apps.auth import login_required
 from apps import config
 import time,json,datetime
 
-@user.route('/user/login',methods=['GET','POST'])
+@user.route('/login',methods=['GET','POST'])
 def auth_login():
     if request.method == 'GET':
         return render_template('user/login_user.html')
@@ -61,19 +61,19 @@ def auth_login():
                 flash(message='用户名或者密码不正确', category='error')
                 return response
 
-@user.route('/user/logout',methods=['GET','POST'])
+@user.route('/logout',methods=['GET','POST'])
 @login_required
 def auth_logout():
     response = make_response(redirect(config.get('DEFAULT','SECURITY_LOGIN_URL')))
     response.delete_cookie("access_token")
     return response
 
-@user.route('/user/users/list',methods=['GET','POST'])
+@user.route('/users/list',methods=['GET','POST'])
 @login_required
 def users_list():
     return render_template('user/user_list.html')
 
-@user.route('/user/users/detail/<userid>',methods=['GET','POST'])
+@user.route('/users/detail/<userid>',methods=['GET','POST'])
 @login_required
 def users_detail(userid):
     userid = userid
@@ -82,7 +82,7 @@ def users_detail(userid):
     ug_object = User.select().join(User_Group).join(Groups).where(User.id==userid).get()
     return render_template('user/user_detail.html',**locals())
 
-@user.route('/user/users/create',methods=['GET','POST'])
+@user.route('/users/create',methods=['GET','POST'])
 @login_required
 def users_create():
     form = User_Create_Form()
@@ -92,7 +92,7 @@ def users_create():
                                 where(Groups.is_ldap_group == False) if ug != Groups.root()]
     return render_template('user/user_create.html', form=form)
 
-@user.route('/user/users/update/<userid>',methods=['GET'])
+@user.route('/users/update/<userid>',methods=['GET'])
 @login_required
 def users_update(userid):
     user = User.select().where(User.id == userid)
@@ -108,19 +108,19 @@ def users_update(userid):
     form.groups.data = user.get().group.get().id.hex
     return render_template('user/user_update.html',form=form,userid=userid)
 
-@user.route('/user/groups/list',methods=['GET','POST'])
+@user.route('/groups/list',methods=['GET','POST'])
 @login_required
 def groups_list():
     return render_template('user/group_list.html')
 
-@user.route('/user/groups/create',methods=['GET','POST'])
+@user.route('/groups/create',methods=['GET','POST'])
 @login_required
 def groups_create():
     action = u"创建用户组"
     form = Groups_Form(request.form)
     return render_template('user/user_group_create.html',**locals())
 
-@user.route('/user/groups/update/<gid>',methods=['GET','POST'])
+@user.route('/groups/update/<gid>',methods=['GET','POST'])
 @login_required
 def groups_update(gid):
     groupid = gid
@@ -130,7 +130,7 @@ def groups_update(gid):
     model_to_form(group,form)
     return render_template('user/user_group_update.html', **locals())
 
-@user.route('/user/userlog/list',methods=['GET','POST'])
+@user.route('/userlog/list',methods=['GET','POST'])
 @login_required
 def userlogin_log_list():
     return  redirect('/auth/login')

@@ -5,21 +5,22 @@ from .form import Perm_Create_Form,Systemuser_Create_Form,Perm_Groups_Form,Perm_
 from .serializer import AssetPermissionSerializer,AuthorizationPlatformSerializer
 from . import perm
 from apps.auth import login_required
+import datetime
 import json
 
-@perm.route('/perm/permission_group/list',methods=['GET'])
+@perm.route('/group/list',methods=['GET'])
 @login_required
 def permission_group_list():
     return render_template('perm/permission_group_list.html')
 
-@perm.route('/perm/permission_group/create',methods=['GET','POST'])
+@perm.route('/group/create',methods=['GET','POST'])
 @login_required
 def permission_group_create():
     form = Perm_Groups_Form(request.form)
     form.users.choices = [(user.id.hex,user.username) for user in User.select()]
     return render_template('perm/permission_group_create.html',form=form)
 
-@perm.route('/perm/permission_group/update/<pgid>',methods=['GET','POST'])
+@perm.route('/group/update/<pgid>',methods=['GET','POST'])
 @login_required
 def permission_group_update(pgid):
     pg = PermissionGroups.select().where(PermissionGroups.id == pgid)
@@ -29,18 +30,18 @@ def permission_group_update(pgid):
     form.users.data = [user.id.hex for user in pg.get().users.objects()]
     return render_template('perm/permission_group_update.html',**locals())
 
-@perm.route('/perm/systemuser/list',methods=['GET'])
+@perm.route('/systemuser/list',methods=['GET'])
 @login_required
 def system_user_list():
     return render_template('perm/system_user_list.html')
 
-@perm.route('/perm/systemuser/create',methods=['GET','POST'])
+@perm.route('/systemuser/create',methods=['GET','POST'])
 @login_required
 def system_user_create():
     form = Systemuser_Create_Form(request.form)
     return render_template('perm/system_user_create.html',form=form)
 
-@perm.route('/perm/systemuser/update/<sysuserid>',methods=['GET','POST'])
+@perm.route('/systemuser/update/<sysuserid>',methods=['GET','POST'])
 @login_required
 def system_user_update(sysuserid):
     sysuserid = sysuserid
@@ -49,12 +50,12 @@ def system_user_update(sysuserid):
     model_to_form(sysuser,form)
     return render_template('perm/system_user_update.html',**locals())
 
-@perm.route('/perm/asset_permission/list',methods=['GET'])
+@perm.route('/asset/list',methods=['GET'])
 @login_required
 def asset_permission_list():
     return render_template('perm/asset_permission_list.html')
 
-@perm.route('/perm/asset_permission/create',methods=['GET','POST'])
+@perm.route('/asset/create',methods=['GET','POST'])
 @login_required
 def asset_permission_create():
     template_name = 'perm/asset_permission_create.html'
@@ -67,7 +68,7 @@ def asset_permission_create():
     form.groups.choices = [(group.id.hex, group.name) for group in PermissionGroups.select()]
     return render_template(template_name,form=form)
 
-@perm.route('/perm/asset_permission/update/<permissionid>',methods=['GET','POST'])
+@perm.route('/asset/update/<permissionid>',methods=['GET','POST'])
 @login_required
 def asset_permission_update(permissionid):
     template_name = 'perm/asset_permission_update.html'
@@ -76,16 +77,17 @@ def asset_permission_update(permissionid):
     form.system_users.choices = [(sysuser.id.hex,sysuser.username) for sysuser in SystemUser.select()]
     form.users.choices = [(user.id.hex,user.username) for user in User.select()]
     form.groups.choices = [(group.id.hex, group.name) for group in PermissionGroups.select()]
+    form.date_start.data = datetime.datetime.now()
     asset_perm = AssetPermission.select().where(AssetPermission.id == permissionid).get()
     perm_data = json.loads(AssetPermissionSerializer().dumps(asset_perm).data)
     return render_template(template_name, **locals())
 
-@perm.route('/perm/platform/list',methods=['GET'])
+@perm.route('/platform/list',methods=['GET'])
 @login_required
 def platform_list():
     return render_template('perm/platform_permission_list.html')
 
-@perm.route('/perm/platform/create',methods=['GET','POST'])
+@perm.route('/platform/create',methods=['GET','POST'])
 @login_required
 def platform_permission_create():
     template_name = 'perm/platform_permission_create.html'
@@ -95,7 +97,7 @@ def platform_permission_create():
     form.groups.choices = [(group.id.hex, group.name) for group in PermissionGroups.select()]
     return render_template(template_name,form=form)
 
-@perm.route('/perm/platform/update/<platform_permission_id>',methods=['GET','POST'])
+@perm.route('/platform/update/<platform_permission_id>',methods=['GET','POST'])
 @login_required
 def platform_permission_update(platform_permission_id):
     template_name = 'perm/platform_permission_update.html'

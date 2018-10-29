@@ -30,14 +30,14 @@ def create_app(config_name):
     app.config['WTF_CSRF_SECRET_KEY'] = config.get('DEFAULT', 'SECRET_KEY')
     login_manager.init_app(app)
     from .asset import asset
-    app.register_blueprint(asset)
+    app.register_blueprint(asset,url_prefix='/asset')
     from .user import user
-    app.register_blueprint(user)
+    app.register_blueprint(user,url_prefix='/user')
     from .perm import perm
-    app.register_blueprint(perm)
+    app.register_blueprint(perm,url_prefix='/permission')
     from .task import task
-    app.register_blueprint(task)
+    app.register_blueprint(task,url_prefix='/task')
     from .platform import platform
-    app.register_blueprint(platform)
+    app.register_blueprint(platform,url_prefix='/platform')
 
     return app

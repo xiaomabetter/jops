@@ -5,12 +5,12 @@ from .form import Platform_Form
 from apps.models.platform import Platforms
 import json
 
-@platform.route('/platform/platform/list',methods=['GET'])
+@platform.route('/platforms/list',methods=['GET'])
 @login_required
 def platform_list():
     return render_template('platform/platform_list.html')
 
-@platform.route('/platform/platform/update/<platformid>',methods=['GET'])
+@platform.route('/platforms/update/<platformid>',methods=['GET'])
 @login_required
 def platform_update(platformid):
     form = Platform_Form(request.form)

@@ -12,12 +12,12 @@ from apps.auth import login_required
 import json
 
 
-@asset.route('/asset/<asset_type>/list',methods=['GET'])
+@asset.route('/<asset_type>/list',methods=['GET'])
 @login_required
 def asset_list(asset_type):
     return render_template('asset/asset_list.html',asset_type=asset_type)
 
-@asset.route('/asset/<assetid>/detail',methods=['GET'])
+@asset.route('/<assetid>/detail',methods=['GET'])
 @login_required
 def asset_detail(assetid):
     asset = Asset.select().where(Asset.id == assetid).get()
@@ -25,28 +25,32 @@ def asset_detail(assetid):
     services = asset.service.objects()
     return render_template('asset/asset_detail.html',**locals())
 
-@asset.route('/asset/create',methods=['GET'])
+@asset.route('/create',methods=['GET'])
 @login_required
 def asset_create():
+    templateid = request.args.get('templateid')
     form = Aly_Create_Instance_Form()
+    form.InstanceTemplate.choices = [(tp.id.hex,tp.name) for tp in Asset_Create_Template]
+    if templateid:
+        form.InstanceTemplate.data = templateid
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create.html',**locals())
 
-@asset.route('/asset/create/template',methods=['GET'])
+@asset.route('/create/template',methods=['GET'])
 @login_required
 def asset_create_template():
     form = Aly_Create_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template.html',**locals())
 
-@asset.route('/asset/create/template/list',methods=['GET'])
+@asset.route('/create/template/list',methods=['GET'])
 @login_required
 def asset_create_template_list():
     form = Aly_Create_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template_list.html',**locals())
 
-@asset.route('/asset/create/template/update/<templateid>',methods=['GET'])
+@asset.route('/create/template/update/<templateid>',methods=['GET'])
 @login_required
 def asset_create_template_update(templateid):
     template = Asset_Create_Template.select().where(Asset_Create_Template.id == templateid)
@@ -60,12 +64,12 @@ def asset_create_template_update(templateid):
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template_update.html',**locals())
 
-@asset.route('/asset/service/list',methods=['GET'])
+@asset.route('/service/list',methods=['GET'])
 @login_required
 def service_list():
     return render_template('asset/service_list.html')
 
-@asset.route('/asset/service/create',methods=['GET','POST'])
+@asset.route('/service/create',methods=['GET','POST'])
 @login_required
 def service_create():
     form = Service_Form(request.form)
@@ -79,7 +83,7 @@ def service_create():
             flash(u'服务创建失败!', category='error')
     return render_template('asset/service_create.html',form=form)
 
-@asset.route('/asset/service/update/<serviceid>',methods=['GET','POST'])
+@asset.route('/service/update/<serviceid>',methods=['GET','POST'])
 @login_required
 def service_update(serviceid):
     serviceid = serviceid
@@ -90,7 +94,7 @@ def service_update(serviceid):
     form.description.data = service.description
     return render_template('asset/service_update.html',**locals())
 
-@asset.route('/asset/bill/list',methods=['GET'])
+@asset.route('/bill/list',methods=['GET'])
 @login_required
 def bill_list():
     limit = config.get('DEFAULT','ITEMS_PER_PAGE')

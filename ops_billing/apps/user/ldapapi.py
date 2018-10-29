@@ -13,12 +13,9 @@ class LDAPTool(object):
         self.password = password
         self.base_dn = base_dn
         server =  Server(ldap_uri,get_info=ALL)
-        try:
-            self.conn = Connection(server,self.manager_dn,
-                                        self.password,auto_bind=True,pool_keepalive=30,
-                                        pool_size=10,pool_name='easemob',pool_lifetime=60)
-        except Exception as e:
-            self.conn.open();self.conn.bind()
+        self.conn = Connection(server,self.manager_dn,
+                                    self.password,auto_bind=True,pool_keepalive=30,
+                                    pool_size=10,pool_name='easemob',pool_lifetime=60)
 
     def ldap_search_user(self, username=None):
         self.conn.open();self.conn.bind()
