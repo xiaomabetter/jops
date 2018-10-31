@@ -5,6 +5,7 @@ from apps.models import Platforms,OpsRedis
 from apps.platform.serializer import PlatformSerializer
 from apps.perm.serializer import AuthorizationPlatformSerializer
 from apps.utils import trueReturn,falseReturn
+from peewee import fn
 import json
 
 __all__ = ['PlatformsApi','PlatformApi','PlatformProxyApi','PlatformUrlMappingPortApi']
@@ -43,8 +44,9 @@ class PlatformsApi(Resource):
             .add_argument('catagory', type=str, required=True, location=locations) \
             .add_argument('location', type=str, required=True, location=locations).parse_args()
         try:
+            maxport = Platforms.select(fn.Max(Platforms.proxyport)).scalar()
             Platforms.create(description=args.get('description'),location=args.get('location'),
-                                        platform_url=args.get('platform_url'),catagory=args.get('catagory'))
+                        platform_url=args.get('platform_url'),catagory=args.get('catagory'),proxyport=int(maxport) + 1)
             return trueReturn(msg='创建成功')
         except Exception as e:
             return falseReturn(msg=str(e))
