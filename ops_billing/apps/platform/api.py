@@ -33,6 +33,7 @@ class PlatformsApi(Resource):
                                          dumps(platform_auth_query_set).data)
                         for permission_data in permission_datas:
                             data = data + permission_data['platform_urls']
+        print(data)
         return jsonify(trueReturn(data))
 
     @login_required
@@ -68,12 +69,11 @@ class PlatformApi(Resource):
         args = reqparse.RequestParser().add_argument('description', type=str,required=True,location=locations) \
             .add_argument('platform_url', type=str,required=True, location=locations) \
             .add_argument('catagory', type=str, required=True, location=locations) \
-            .add_argument('proxyport', type=str, required=True, location=locations) \
             .add_argument('location', type=str, required=True, location=locations).parse_args()
         try:
             Platforms.update(description=args.get('description'),platform_url=args.get('platform_url'),
-                            catagory=args.get('catagory'),location=args.get('location'),
-                        proxyport=args.get('proxyport')).where(Platforms.id == platformid).execute()
+                            catagory=args.get('catagory'),location=args.get('location'))\
+                            .where(Platforms.id == platformid).execute()
             query_set = Platforms.select().where(Platforms.id == platformid).get()
             data = json.dumps(json.loads(PlatformSerializer().dumps(query_set).data))
             OpsRedis.set(platformid,data)

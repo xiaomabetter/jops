@@ -112,9 +112,3 @@ def generate_rsa_keys():
     public_key = pub_key.exportKey("PEM")
     private_key = key.exportKey("PEM")
     return public_key, private_key
-
-def get_usertoken_from_cookies():
-    token = None
-    if 'access_token' in request.cookies:
-        token = request.cookies.get('access_token')
-    return token

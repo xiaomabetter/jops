@@ -28,12 +28,6 @@ class Task_Ansible_Form(FlaskForm):
                                        render_kw={"class": "form-control select2"})
     run_as_sudo = BooleanField(u'sudo执行', widget=CheckboxInput(),render_kw={"class":"form-control",'checked':'true'})
 
-class Task_Create_Form(FlaskForm):
-    taskname = StringField(u'任务名称', [DataRequired(message=u'任务名称')],widget=TextInput(),
-                           render_kw={"class": "form-control","placeholder":"任务名称"})
-    comment = TextAreaField('备注', render_kw={"class": "form-control"})
-
-
 class Syncbill_Form(FlaskForm):
     asset_types = [(t,t) for t in ('ecs','slb','rds','redis','oss')]
     task_name = StringField(u'任务名称', render_kw={"class": "form-control", "placeholder": "任务名称"})
