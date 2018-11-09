@@ -33,7 +33,6 @@ class PlatformsApi(Resource):
                                          dumps(platform_auth_query_set).data)
                         for permission_data in permission_datas:
                             data = data + permission_data['platform_urls']
-        print(data)
         return jsonify(trueReturn(data))
 
     @login_required

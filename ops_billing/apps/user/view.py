@@ -44,7 +44,9 @@ def auth_login():
                 UserLoginLog.create(username=user.username,login_at=datetime.datetime.now(),
                                     login_ip=remote_addr)
                 token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
-                success.set_cookie('access_token', token.decode() if isinstance(token, bytes) else token)
+                token = token.decode() if isinstance(token, bytes) else token
+                success.set_cookie('access_token', token)
+                success.headers['"AuthorizationToken"'] = token
                 return success
             else:
                 flash(message='密码不正确', category='error')

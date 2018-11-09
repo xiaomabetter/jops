@@ -14,10 +14,9 @@
             <input type="checkbox" id="check_all" class="ipt_check_all" >
         </th>
         <th class="text-center">平台</th>
-        <th class="text-center">地址</th>
+        <th class="text-center">平台Url</th>
+        <th class="text-center">业务分类</th>
         <th class="text-center">代理端口</th>
-        <th class="text-center">所属地区</th>
-        <th class="text-center">类型</th>
         <th class="text-center">创建时间</th>
         <th class="text-center">动作</th>
     </tr>
@@ -30,11 +29,34 @@
 {% block custom_foot_js %}
 <script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
 <script>
+var table, show = 0;
+
+function format(d) {
+    var data = "";
+    data += makeLabel(["平台URL", d.platform_url])
+    data += makeLabel(["平台位于", d.location])
+    data += makeLabel(["平台代理端口", d.proxyport])
+    data += makeLabel(["平台代理类型", d.catagory])
+    return data
+}
+
+function makeLabel(data) {
+    return "<label class='detail-key'><b>" + data[0] + ":   </b></label>" + data[1] + "</br>"
+}
+
 function initTable() {
     var options = {
         ele: $('#platform_list_table'),
         columnDefs: [
-            {targets: 7, createdCell: function (td, cellData, rowData) {
+           { "width": "18%", "targets": 1 },
+           { "width": "25%", "targets": 2 },
+           { "width": "10%", "targets": 3 },
+           { "width": "10%", "targets": 4 },
+            {targets: 0, createdCell: function (td, cellData, rowData) {
+                $(td).addClass("toggle");
+                $(td).html("<i class='fa fa-angle-right'></i>");
+            }},
+            {targets: 6, createdCell: function (td, cellData, rowData) {
                 var transfer_btn = '<a class="btn btn-xs m-l-xs btn-info" id="do_transfer_url" data-uid="PK">跳转</a>'.replace('PK',rowData['proxyport']);
                 {% if g.user.role == 'administrator' %}
                     var update_btn = '<a href="{{ url_for('platform.platform_update',platformid='PK') }}" class="btn btn-xs m-l-xs btn-info">更新</a>'.replace('PK',cellData);
@@ -47,12 +69,28 @@ function initTable() {
         ],
         ajax_url: "{{ url_for('platform-api.platforms_api') }}",
         columns: [
-            {data: "id" },{data: "description" },{data: "platform_url" },{data: "proxyport" },
-            {data: "location" },{data: "catagory" },{data: "date_created"},{data: "id" }
+            {data: "id" },{data: "description" },{data: "platform_url",searching: false },{data: "catagory" },{data: "proxyport" },
+            {data: "date_created"},{data: "id" }
         ],
         op_html: $('#actions').html()
         };
-    jumpserver.initDataTable(options);
+    table = jumpserver.initDataTable(options);
+    return table
+}
+
+function toggle() {
+    if (show === 0) {
+        $("#split-left").hide(500, function () {
+            $("#split-right").attr("class", "col-lg-12");
+            $("#toggle-icon").attr("class", "fa fa-angle-right fa-x");
+            show = 1;
+        });
+    } else {
+        $("#split-right").attr("class", "col-lg-9");
+        $("#toggle-icon").attr("class", "fa fa-angle-left fa-x");
+        $("#split-left").show(500);
+        show = 0;
+    }
 }
 
 $(document).ready(function(){
@@ -75,6 +113,30 @@ $(document).ready(function(){
     setTimeout( function () {
         $data_table.ajax.reload();
     }, 1000);
+}).on('click', '.toggle', function (e) {
+    e.preventDefault();
+    var detailRows = [];
+    var tr = $(this).closest('tr');
+    var row = table.row(tr);
+    var idx = $.inArray(tr.attr('id'), detailRows);
+
+    if (row.child.isShown()) {
+        tr.removeClass('details');
+        $(this).children('i:first-child').removeClass('fa-angle-down').addClass('fa-angle-right');
+        row.child.hide();
+        // Remove from the 'open' array
+        detailRows.splice(idx, 1);
+    }
+    else {
+        tr.addClass('details');
+        $(this).children('i:first-child').removeClass('fa-angle-right').addClass('fa-angle-down');
+        row.child(format(row.data())).show();
+        // Add to the 'open' array
+        if ( idx === -1 ) {
+            detailRows.push(tr.attr('id'));
+        }
+    }
+
 })
 
 $("#platform_create").on("click",function(){
