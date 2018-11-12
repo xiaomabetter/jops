@@ -105,7 +105,7 @@ function initTable() {
 				}
             }},
             {targets: 6, createdCell: function (td, cellData, rowData) {
-                var update_btn = '<a href="{{ url_for('perm.platform_permission_update',platform_permission_id='PK') }}" class="btn btn-xs m-l-xs btn-info">更新</a>'.replace('PK',rowData['id']);
+                var update_btn = '<a href="{{ url_for('perm.platform_permission_update',permissionid='PK') }}" class="btn btn-xs m-l-xs btn-info">更新</a>'.replace('PK',rowData['id']);
                 var del_btn = '<a class="btn btn-xs btn-danger m-l-xs btn-del" data-uid="PK">删除</a>'.replace('PK', cellData);
 				$(td).html(update_btn + del_btn);
             }}
@@ -144,7 +144,7 @@ $(document).ready(function(){
     var $data_table = $('#permission_list_table').DataTable();
     var name = $(this).closest("tr").find(":nth-child(2)").children('a').html();
     var permissionid = $this.data('uid');
-    var the_url = "{{ url_for('perm-api.platform_api',platform_permission_id='PK') }}".replace('PK',permissionid);
+    var the_url = "{{ url_for('perm-api.platform_api',permissionid='PK') }}".replace('PK',permissionid);
     objectDelete({}, name, the_url);
     $data_table.ajax.reload();
 }).on('click', '.btn-create-permission', function () {

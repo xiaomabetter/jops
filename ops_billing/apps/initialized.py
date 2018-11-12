@@ -48,7 +48,7 @@ def initialize():
     api.add_resource(AssetPermissionsApi,'/api/permission/v1/permissions',endpoint = 'perm-api.asset_permissions_api')
     api.add_resource(AssetPermissionApi,'/api/permission/v1/permission/<permissionid>',endpoint = 'perm-api.asset_permission_api')
     api.add_resource(PlatformAuthorizationsApi,'/api/permission/v1/platforms',endpoint = 'perm-api.platforms_api')
-    api.add_resource(PlatformAuthorizationApi,'/api/permission/v1/platform/<platform_permission_id>',endpoint = 'perm-api.platform_api')
+    api.add_resource(PlatformAuthorizationApi,'/api/permission/v1/platform/<permissionid>',endpoint = 'perm-api.platform_api')
     api.add_resource(UserGrantAssets,'/api/permission/v1/user/<uid>/assets',endpoint = 'perm-api.perm_user_assets')
     api.add_resource(UserGrantNodes,'/api/permission/v1/user/<uid>/nodes-assets',endpoint = 'perm-api.perm_user_nodes')
     #user

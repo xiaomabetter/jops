@@ -273,21 +273,44 @@ class PlatformAuthorizationsApi(Resource):
 
 class PlatformAuthorizationApi(Resource):
     @login_required
-    def get(self):
-        pass
+    def get(self,permissionid):
+        platform_permission = PermissionPlatform.select().where(PermissionPlatform.id == permissionid)
+        data = json.loads(AuthorizationPlatformSerializer(many=True).dumps(platform_permission).data)
+        return jsonify(trueReturn(data=data))
 
     @login_required
-    def put(self):
-        pass
-
-    @login_required
-    def delete(self,platform_permission_id):
+    def put(self,permissionid):
+        locations = ['form','json']
+        parse = reqparse.RequestParser()
+        for arg in ('users','groups','platform_urls'):
+            parse.add_argument(arg,type=str,action='append',location=locations)
+        args = parse.add_argument('name', type=str,location=locations,required=True) \
+                .add_argument('is_active', type=bool, default=True,location=locations).parse_args()
+        if not args.get('users') and not args.get('groups'):
+            return jsonify(falseReturn(msg=u'用户和用户组，必须选择一项'))
+        data,errors = AuthorizationPlatformSerializer(only=['name','is_active']).load(args)
+        if errors:
+            return jsonify(falseReturn(msg=u'参数验证失败%s' % errors))
         try:
-            platform_perm = PermissionPlatform.select().where(PermissionPlatform.id ==
-                                                                                platform_permission_id).get()
+            platform_permission = PermissionPlatform.select().where(PermissionPlatform.id == permissionid).get()
+            platform_permission.update(**data).where(PermissionPlatform.id == permissionid).execute()
+        except Exception as e:
+            return jsonify(falseReturn(msg=str(e)))
+        for item in ('platform_urls','users','groups'):
+            if hasattr(platform_permission,item):
+                getattr(platform_permission,item).clear()
+            if args.get(item):
+                for id in args.get(item):
+                    getattr(platform_permission, item).add(id)
+        return jsonify(trueReturn(msg='授权规则添加成功'))
+
+    @login_required
+    def delete(self,permissionid):
+        try:
+            platform_perm = PermissionPlatform.select().where(PermissionPlatform.id ==permissionid).get()
             platform_perm.users.clear();platform_perm.groups.clear()
             platform_perm.platform_urls.clear()
-            PermissionPlatform.delete().where(PermissionPlatform.id==platform_permission_id).execute()
+            PermissionPlatform.delete().where(PermissionPlatform.id==permissionid).execute()
             return jsonify(trueReturn(msg='删除成功'))
         except Exception as e:
             return jsonify(falseReturn(msg='删除失败'))

@@ -97,17 +97,17 @@ def platform_permission_create():
     form.groups.choices = [(group.id.hex, group.name) for group in PermissionGroups.select()]
     return render_template(template_name,form=form)
 
-@perm.route('/platform/update/<platform_permission_id>',methods=['GET','POST'])
+@perm.route('/platform/update/<permissionid>',methods=['GET','POST'])
 @login_required
-def platform_permission_update(platform_permission_id):
+def platform_permission_update(permissionid):
     template_name = 'perm/platform_permission_update.html'
     form = Perm_Platform_Create_Form(request.form)
     form.platform_urls.choices = [(platform.id.hex,platform.description) for platform in Platforms.select()]
     form.users.choices = [(user.id.hex,user.username) for user in User.select()]
     form.groups.choices = [(group.id.hex, group.name) for group in PermissionGroups.select()]
-    platform_perm= PermissionPlatform.select().where(PermissionPlatform.id == platform_permission_id).get()
+    platform_perm= PermissionPlatform.select().where(PermissionPlatform.id == permissionid).get()
     form.name.data = platform_perm.name
     form.platform_urls.data = [platform_url.id.hex for platform_url in platform_perm.platform_urls.objects()]
     form.groups.data = [group.id.hex for group in platform_perm.groups.objects() if platform_perm.groups]
     form.users.data = [user.id.hex for user in platform_perm.users.objects() if platform_perm.users]
-    return render_template(template_name,form=form,platform_permission_id=platform_permission_id)
+    return render_template(template_name,form=form,permissionid=permissionid)
