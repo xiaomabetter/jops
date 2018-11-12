@@ -14,23 +14,23 @@
                     <div class="" id="content_start">
                         {% block content_left_head %} {% endblock %}
                         {% block table_search %}
-                        <form id="search_form" method="get" action="" class="pull-right mail-search form-inline">
-                            {% block search_form %}
-                            {% endblock %}
-                        </form>
+                            <form id="search_form" method="get" action="" class="pull-right mail-search form-inline">
+                                {% block search_form %}
+                                {% endblock %}
+                            </form>
                         {% endblock %}
                     </div>
                     {% block table_container %}
-                    <table class="table table-striped table-bordered table-hover" id="editable" >
-                        <thead>
-                            <tr>
-                                {% block table_head %} {% endblock %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% block table_body %} {% endblock %}
-                        </tbody>
-                    </table>
+                        <table class="table table-striped table-bordered table-hover" id="editable" >
+                            <thead>
+                                <tr>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% block table_body %} {% endblock %}
+                            </tbody>
+                        </table>
                     {% endblock %}
                     <div class="row">
                         <div class="col-sm-4">

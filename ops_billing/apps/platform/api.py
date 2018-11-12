@@ -13,6 +13,9 @@ __all__ = ['PlatformsApi','PlatformApi','PlatformProxyApi','PlatformUrlMappingPo
 class PlatformsApi(Resource):
     @login_required
     def get(self):
+        args = reqparse.RequestParser() \
+            .add_argument('limit', type = int,location = 'args') \
+            .add_argument('search', type=str, location='args').parse_args()
         current_user = get_login_user()
         if current_user.role == 'administrator':
             query_set = Platforms.select().order_by(Platforms.description)
