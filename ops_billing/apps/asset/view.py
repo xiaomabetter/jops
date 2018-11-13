@@ -95,15 +95,21 @@ def service_update(serviceid):
     form.description.data = service.description
     return render_template('asset/service_update.html',**locals())
 
-@asset.route('/bill/list',methods=['GET'])
+@asset.route('/bill/list',methods=['GET','POST'])
 @login_required
 def bill_list():
     limit = config.get('DEFAULT','ITEMS_PER_PAGE')
-    page = int(request.args.get('page',1))
-    nodeid = request.args.get('nodeid','')
-    date_from = request.args.get('date_from','')
-    date_to = request.args.get('date_to', '')
-    asset_type = request.args.get('asset_type','ALL')
+    page = 1;nodeid = instanceid = date_from = date_to = ''
+    asset_type = 'ALL'
+    if request.method == 'POST':
+        formdata = request.form.to_dict()
+        print(formdata)
+        page = int(formdata.get('page',1))
+        nodeid = formdata.get('nodeid','')
+        instanceid = formdata.get('instanceid','')
+        date_from = formdata.get('date_from','')
+        date_to = formdata.get('date_to', '')
+        asset_type = formdata.get('asset_type','ALL')
     query_set = Bill.select()
     if not date_from or not date_to:
         date_to = datetime.now().strftime('%Y-%m-%d')
@@ -112,13 +118,19 @@ def bill_list():
     if query_set.count() != 0:
         if asset_type != 'ALL':
             query_set = query_set.filter(Bill.instance_type.contains(asset_type))
-        if nodeid :
-            node = Node.filter(Node.id==nodeid).get()
-            if not node.is_root():
-                instance_ids = [q.InstanceId for q in node.get_all_assets(asset_type.lower())]
-                query_set = query_set.filter(Bill.instance_id.in_(instance_ids))
+        if instanceid:
+            query_set = query_set.filter(Bill.instance_id == instanceid)
+        else:
+            if nodeid :
+                node = Node.select().where(Node.id == nodeid).get()
+                if not node.is_root():
+                    instance_ids = [q.InstanceId for q in node.get_all_assets(asset_type.lower())]
+                    query_set = query_set.filter(Bill.instance_id.in_(instance_ids))
+
     bill_list = query_set.order_by(Bill.day.desc()).paginate(page, int(limit))
     total_count = query_set.count()
     sumcost = query_set.select(fn.SUM(Bill.cost)).scalar()
     page_obj = Pagination(page,limit,total_count)
+
     return render_template('asset/bill_list.html',**locals())
+

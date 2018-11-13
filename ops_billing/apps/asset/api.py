@@ -3,21 +3,22 @@ from flask_restful import Resource,reqparse
 from apps.auth import login_required,adminuser_required,get_login_user
 from apps.utils import trueReturn,falseReturn
 from apps.models import Asset,Node,Service,Account,Asset_Account,AssetPermission,\
-                AssetPerm_Nodes,Asset_Create_Template,Asset_Node,Asset_Service
+                AssetPerm_Nodes,Asset_Create_Template,Asset_Node,Asset_Service,Bill
 from .serializer import AssetSerializer,NodeSerializer,ServiceSerializer,\
-                                    AssetCreateTemplateSerializer,AccountSerializer
+                            AssetCreateTemplateSerializer,AccountSerializer,BillSerializer
 from apps.perm.serializer import AssetPermissionSerializer
 from apps.task import run_sync_asset_amount,create_asset,create_asset_tryRun
 from apps.utils.encrypt import ChaEncrypt
 from apps import config
 from conf import aliyun
+from datetime import datetime,timedelta
 from apps.models.base import OpsRedis
 import json
 
 __all__ = ['AssetsApi','AssetApi','AssetUserApi','AssetCreateApi',
            'TemplatesApi','TemplateApi','ImagesApi','SecurityGroupsApi','AssetAccountsApi',
            'AssetAccountApi','NodesApi','NodeApi','NodeAssetApi',
-           'ServicesApi','ServiceApi','ServiceAssetApi','VSwitchesApi'
+           'ServicesApi','ServiceApi','ServiceAssetApi','VSwitchesApi','BillsApi'
            ]
 
 default_queue = config.get('CELERY', 'CELERY_DEFAULT_QUEUE')
@@ -26,9 +27,12 @@ class AssetsApi(Resource):
     @login_required
     def get(self):
         args = reqparse.RequestParser() \
-            .add_argument('limit', type = int,location = 'args').add_argument('offset', type = int,location = 'args') \
-            .add_argument('search', type=str, location='args').add_argument('asset_type', type=str, location='args')\
-            .add_argument('order', type=str, location='args').add_argument('node_id', type = str, location = 'args')\
+            .add_argument('limit', type = int,location = 'args')\
+            .add_argument('offset', type = int,location = 'args') \
+            .add_argument('search', type=str, location='args')\
+            .add_argument('asset_type', type=str, default='ecs',location='args')\
+            .add_argument('order', type=str, location='args')\
+            .add_argument('node_id', type = str, location = 'args')\
             .add_argument('un_node', type=bool, default=False,location='args')\
             .add_argument('hostnames', type = str,action='append',location='args') \
             .add_argument('iplist', type=str, action='append',location='args').parse_args()
@@ -137,6 +141,44 @@ class AssetUserApi(Resource):
                 for user in users['users']:
                     if user not in related_users:related_users.append(user)
         return jsonify(trueReturn(related_users))
+
+class BillsApi(Resource):
+    @login_required
+    def get(self):
+        args = reqparse.RequestParser()\
+            .add_argument('date_from',type=str,location='args') \
+            .add_argument('date_to', type=str, location='args') \
+            .add_argument('node_id', type=str, location='args') \
+            .add_argument('asset_type', type=str, default='ecs',location='args') \
+            .add_argument('limit', type=int, location='args') \
+            .add_argument('offset', type=int, location='args') \
+            .add_argument('search', type=str, location='args') \
+            .add_argument('instanceid', type=str,location='args').parse_args()
+        print(args)
+        data = []
+        query_set = Bill.select()
+        date_from = args.get('date_from')
+        date_to = args.get('date_to')
+        if not date_from or not date_to:
+            date_to = datetime.now().strftime('%Y-%m-%d')
+            date_from = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        query_set = query_set.filter(Bill.day.between(date_from, date_to))
+        if query_set.count() != 0:
+            query_set = query_set.filter(Bill.instance_type.contains(args.get('asset_type')))
+            if args.get('node_id'):
+                node = Node.filter(Node.id == args.get('node_id')).get()
+                if not node.is_root():
+                    instance_ids = [q.InstanceId for q in node.get_all_assets(args.get('asset_type').lower())]
+                    query_set = query_set.filter(Bill.instance_id.in_(instance_ids))
+            if args.get('instanceid'):
+                query_set = query_set.filter(Bill.instance_id == args.get('instanceid'))
+            if args.get('limit') or args.get('offset'):
+                page = (args.get('offset') + args.get('limit')) / args.get('limit')
+                query_set = query_set.order_by(Bill.day.desc()).paginate(page, int(args.get('limit')))
+            else:
+                query_set = query_set.order_by(Bill.day.desc())
+            data = json.loads(BillSerializer(many=True).dumps(query_set).data)
+        return jsonify(trueReturn(data))
 
 class NodesApi(Resource):
     @login_required

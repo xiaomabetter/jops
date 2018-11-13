@@ -46,7 +46,6 @@ def auth_login():
                 token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
                 token = token.decode() if isinstance(token, bytes) else token
                 success.set_cookie('access_token', token)
-                success.headers['"AuthorizationToken"'] = token
                 return success
             else:
                 flash(message='密码不正确', category='error')

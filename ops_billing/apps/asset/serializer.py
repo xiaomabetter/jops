@@ -8,9 +8,10 @@ class NodeSerializer(Schema):
     full_value = fields.Function(lambda obj: obj.full_value)
     parent = fields.Function(lambda obj: obj.parent.id.hex)
     open = fields.Function(lambda obj: True if obj.level <= 2 else False)
+    is_node = True
 
     class Meta:
-        fields = ("id","key", "value", "full_value", "parent","open")
+        fields = ("id","key", "value", "full_value", "parent","open","is_node")
 
 class AccountSerializer(Schema):
     id = fields.Function(lambda obj: obj.id.hex)
@@ -85,14 +86,18 @@ class AssetCreateTemplateSerializer(Schema):
     instance_type = fields.String(validate=lambda s:' ' not in s,required=True)
     SystemDiskCategory = fields.String(required=True)
     SystemDiskSize = fields.Integer(required=True)
-    DataDiskinfo = fields.String(required=True,dump_only=True)
     SecurityGroupId  = fields.List(fields.String())
-    DataDiskinfo = fields.Function(lambda obj:json.loads(obj.DataDiskinfo))
+    DataDiskinfo = fields.Function(lambda obj:json.loads(obj.DataDiskinfo),dump_only=True)
     SystemDiskCategorySize = fields.Function(lambda obj:'{0};{1}'.
                             format(obj.SystemDiskCategory,obj.SystemDiskSize),dump_only=True)
 
     class Meta:
         fields = ("id","name","RegionId", "ZoneId", "ImageId","VSwitchId","InstanceNetworkType", "instance_type",
                   "SystemDiskCategory", "SecurityGroupId","SystemDiskCategorySize","SystemDiskSize",
-                  "DataDiskinfo","CreateTime","cpu","memory","DataDiskinfo"
-                  )
+                  "DataDiskinfo","CreateTime","cpu","memory","DataDiskinfo")
+
+class BillSerializer(Schema):
+    id = fields.Function(lambda obj: obj.id.hex)
+
+    class Meta:
+        fields = ("id","instance_id","instance_name", "day", "cost")

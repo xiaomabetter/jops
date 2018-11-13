@@ -61,7 +61,7 @@
                <div class="btn-group pull-left m-r-5">
                     <button class="btn btn-default btn-sm" id="sync_ldapuser">同步LDAP用户</button>
                </div>
-                <table class="table table-striped table-bordered table-hover " id="user_list_table" >
+                <table class="table table-striped table-bordered table-hover " id="user_list_table" style="width: 100%">
                     <thead>
                         <tr>
                             <th class="text-center">
@@ -242,6 +242,7 @@ function filter(treeId, parentNode, childNodes) {
 }
 
 function beforeAsync(treeId, treeNode) {
+    console.log(treeNode);
     return treeNode.is_node
 }
 
@@ -339,10 +340,6 @@ function initTable() {
 $(document).ready(function(){
     var table = initTable();
     initTree()
-    var fields = $('#fm_user_bulk_update .form-group');
-    $.each(fields, function (index, value) {
-        console.log(value)
-    });
 }).on('click', '.btn-forbid', function(){
     var $this = $(this);
     var uid = $this.data('uid');

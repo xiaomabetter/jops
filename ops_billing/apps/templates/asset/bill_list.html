@@ -25,22 +25,20 @@
             <div class="ibox float-e-margins">
                 <div class="ibox-content">
                     <div class="" id="content_start">
-                        <form id="search_form" method="get" action=""  autocomplete="off" enctype="multipart/form-data" class="form-inline">
+                        <form id="search_form" method="post" action=""  autocomplete="off" enctype="multipart/form-data" class="form-inline">
                             <div class="pull-left" style="margin:0px 0px 0px">
                                 <input class="btn btn-default btn-sm" id="sync_aly_bill" type="button" value="同步阿里云费用">
                             </div>
                             <div class="input-group">
                                 <input type="text"  class="form-control input-sm" style="display:none" name="nodeid"  value="">
                             </div>
-                            <div class="input-group pull-right">
-                                <div class="input-group-btn">
-                                    <button id='search_btn' style="height:34px" type="submit" class="btn btn-sm btn-primary">
-                                        搜索
-                                    </button>
-                                </div>
+                            <div class="input-group">
+                                <input type="text"  class="form-control input-sm" style="display:none" name="instanceid"  value="">
                             </div>
                             <div class="input-group pull-right">
-                                <input type="text"  class="form-control input-sm" style="height:34px" name="keyword" placeholder="搜索" value="">
+                                    <button id='search_btn' style="height:34px" type="submit" class="btn btn-sm btn-primary">
+                                        查询
+                                    </button>
                             </div>
                             <div class="form-group pull-right">
                                 <div class="input-group input-daterange">
@@ -107,28 +105,6 @@
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/loadingoverlay.min.js') }}"></script>
 <script>
-$(document).ready(function() {
-    $('table').DataTable({
-        "searching": false,
-        "paging": false,
-        "bInfo" : false,
-        "order": []
-    });
-   $('.select2').select2({
-        dropdownAutoWidth : true,
-        width: 'auto'
-    });
-    $('.input-daterange').datepicker({
-        format: "yyyy-mm-dd",
-        todayBtn: "linked",
-        keyboardNavigation: false,
-        forceParse: false,
-        calendarWeeks: true,
-        autoclose: true
-    });
-    initTree();
-})
-
 function initTree() {
     var setting = {
         view: {
@@ -140,6 +116,13 @@ function initTree() {
                 enable: true
             }
         },
+        async: {
+			enable: true,
+			url: "{{ url_for('assets-api.assets_api') }}",
+			autoParam:["id=node_id"],
+			dataFilter: filter,
+            type: 'get'
+		},
         edit: {
             enable: true,
 			showRemoveBtn: false,
@@ -150,8 +133,8 @@ function initTree() {
             }
         },
         callback: {
-            onRightClick: OnRightClick,
             onSelected: onSelected,
+            beforeAsync: beforeAsync
         }
     };
 
@@ -164,6 +147,7 @@ function initTree() {
             value["open"] = value["open"];
             value["isParent"] = value["is_node"];
             value["name"] = value["value"] + ' (' + value['assets_amount'] + ')';
+            value["iconSkin"] = value["is_node"] ? null : 'file';
         });
         zNodes = result;
         {#$.fn.zTree.init($("#assetTree"), setting);#}
@@ -173,38 +157,19 @@ function initTree() {
     });
 }
 
-function OnRightClick(event, treeId, treeNode) {
-    if (!treeNode && event.target.tagName.toLowerCase() !== "button" && $(event.target).parents("a").length === 0) {
-		zTree.cancelSelectedNode();
-		showRMenu("root", event.clientX, event.clientY);
-	} else if (treeNode && !treeNode.noR) {
-		zTree.selectNode(treeNode);
-		showRMenu("node", event.clientX, event.clientY);
-	}
-}
-
-function showRMenu(type, x, y) {
-	$("#rMenu ul").show();
-    x -= 220;
-    $('#rMenu').css({"top":y+"px", "left":x+"px", "visibility":"visible"});
-
-	$("body").bind("mousedown", onBodyMouseDown);
-}
-
-function onBodyMouseDown(event){
-	if (!(event.target.id === "rMenu" || $(event.target).parents("#rMenu").length>0)) {
-		$('#rMenu').css({"visibility" : "hidden"});
-	}
+function beforeAsync(treeId, treeNode) {
+    return treeNode.is_node
 }
 
 function filter(treeId, parentNode, childNodes) {
-    $.each(childNodes, function (index, value) {
-        value["pId"] = value["parent"];
-        value["name"] = value["value"];
-        value["isParent"] = value["is_node"];
+    var data = childNodes['data']
+    $.each(data, function (index, value) {
+        value["pId"] = parentNode.id;
+        value["name"] = value["InstanceName"];
+        value["isParent"] = value["is_node"] ? null : false ;
         value["iconSkin"] = value["is_node"] ? null : 'file';
     });
-    return childNodes;
+    return data;
 }
 
 function selectQueryNode() {
@@ -228,10 +193,36 @@ function selectQueryNode() {
 }
 
 function onSelected(event, treeNode) {
-    setCookie('bill_node_selected', treeNode.id);
-    $("input[name='nodeid']").val(treeNode.id);
-
+    if (treeNode.is_node) {
+        setCookie('bill_node_selected', treeNode.id);
+        $("input[name='nodeid']").val(treeNode.id);
+    } else {
+        $("input[name='instanceid']").val(treeNode.InstanceId);
+        setCookie('bill_node_selected', treeNode.pId);
+    }
 }
+
+$(document).ready(function() {
+    $('table').DataTable({
+        "searching": false,
+        "paging": false,
+        "bInfo" : false,
+        "order": []
+    });
+   $('.select2').select2({
+        dropdownAutoWidth : true,
+        width: 'auto'
+    });
+    $('.input-daterange').datepicker({
+        format: "yyyy-mm-dd",
+        todayBtn: "linked",
+        keyboardNavigation: false,
+        forceParse: false,
+        calendarWeeks: true,
+        autoclose: true
+    });
+    initTree();
+})
 
 $("#sync_aly_bill").on("click",function(){
    $('#sync-bill-modal').modal('show');
