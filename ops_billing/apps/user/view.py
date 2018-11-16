@@ -18,7 +18,7 @@ def auth_login():
         username = request.form.get('username',False)
         password = request.form.get('password',False)
         is_ldap_login = request.form.get('is_ldap_login',False)
-        success = make_response(redirect(url_for('asset.asset_list', asset_type='ecs')))
+        success = make_response(redirect('/'))
         if is_ldap_login:
             ldapuser = ldapconn.ldap_search_user(username)
             if not ldapuser:

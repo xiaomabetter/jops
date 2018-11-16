@@ -242,8 +242,8 @@ class UserLogin(Resource):
                     user.group.add(group.id)
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
-                UserLoginLog.create(username=user.username,login_at=datetime.datetime.now(),
-                                    login_ip=remote_addr)
+                """UserLoginLog.create(username=user.username,login_at=datetime.datetime.now(),
+                                    login_ip=remote_addr)"""
                 token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
                 return jsonify(trueReturn(dict(token=token.decode() if isinstance(token, bytes) else token)))
             else:

@@ -39,5 +39,7 @@ def create_app(config_name):
     app.register_blueprint(task,url_prefix='/task')
     from .platform import platform
     app.register_blueprint(platform,url_prefix='/platform')
+    from .index import index
+    app.add_url_rule('/',index)
 
     return app
