@@ -151,7 +151,8 @@ class BillApi(Resource):
             .add_argument('date_to', type=str, location='args') \
             .add_argument('node_id', type=str, location='args') \
             .add_argument('asset_type', type=str, default='ecs',location='args') \
-            .add_argument('instanceid', type=str,location='args').parse_args()
+            .add_argument('instance_name', type=str, location='args') \
+            .add_argument('instance_id', type=str,location='args').parse_args()
         data = {}
         query_set = Bill.select()
         date_from = args.get('date_from')
@@ -169,10 +170,17 @@ class BillApi(Resource):
                     query_set = query_set.filter(Bill.instance_id.in_(instance_ids))
                 sumcost = query_set.select(fn.SUM(Bill.cost)).scalar()
                 data = {"nodeid":args.get('node_id'),"sumcost":sumcost}
-            if args.get('instanceid'):
+            if args.get('instance_id'):
                 query_set = query_set.filter(Bill.instance_id == args.get('instanceid'))
                 sumcost = query_set.select(fn.SUM(Bill.cost)).scalar()
-                data = {"instanceid":args.get('instanceid'),"sumcost":sumcost}
+                data = {"instance_id":args.get('instance_id'),"sumcost":sumcost}
+            if args.get('instance_name'):
+                instance = Asset.select().where(Asset.InstanceName == args.get('instance_name')).first()
+                if not instance:
+                    return jsonify(falseReturn(msg='没有此实例'))
+                query_set = query_set.filter(Bill.instance_id == instance.InstanceId)
+                sumcost = query_set.select(fn.SUM(Bill.cost)).scalar()
+                data = {"instance_name":args.get('instance_name'),"sumcost":sumcost}
         return jsonify(trueReturn(data))
 
 class BillsApi(Resource):
