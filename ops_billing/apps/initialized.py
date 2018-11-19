@@ -23,6 +23,7 @@ def initialize():
     api.add_resource(AssetsApi,'/api/asset/v1/assets',endpoint = 'assets-api.assets_api')
     api.add_resource(AssetApi,'/api/asset/v1/asset/<assetid>',endpoint = 'assets-api.asset_api')
     api.add_resource(AssetCreateApi,'/api/asset/v1/create',endpoint = 'assets-api.asset_create_api')
+    api.add_resource(BillApi,'/api/asset/v1/bill',endpoint = 'assets-api.bill_api')
     api.add_resource(BillsApi,'/api/asset/v1/bills',endpoint = 'assets-api.bills_api')
     api.add_resource(ImagesApi,'/api/asset/v1/images',endpoint = 'assets-api.images_api')
     api.add_resource(VSwitchesApi,'/api/asset/v1/vswitches',endpoint = 'assets-api.vswitches_api')

@@ -13,12 +13,13 @@ from apps import config
 from conf import aliyun
 from datetime import datetime,timedelta
 from apps.models.base import OpsRedis
+from peewee import fn
 import json
 
 __all__ = ['AssetsApi','AssetApi','AssetUserApi','AssetCreateApi',
            'TemplatesApi','TemplateApi','ImagesApi','SecurityGroupsApi','AssetAccountsApi',
            'AssetAccountApi','NodesApi','NodeApi','NodeAssetApi',
-           'ServicesApi','ServiceApi','ServiceAssetApi','VSwitchesApi','BillsApi'
+           'ServicesApi','ServiceApi','ServiceAssetApi','VSwitchesApi','BillsApi',"BillApi"
            ]
 
 default_queue = config.get('CELERY', 'CELERY_DEFAULT_QUEUE')
@@ -141,6 +142,38 @@ class AssetUserApi(Resource):
                 for user in users['users']:
                     if user not in related_users:related_users.append(user)
         return jsonify(trueReturn(related_users))
+
+class BillApi(Resource):
+    @login_required
+    def get(self):
+        args = reqparse.RequestParser()\
+            .add_argument('date_from',type=str,location='args') \
+            .add_argument('date_to', type=str, location='args') \
+            .add_argument('node_id', type=str, location='args') \
+            .add_argument('asset_type', type=str, default='ecs',location='args') \
+            .add_argument('instanceid', type=str,location='args').parse_args()
+        data = {}
+        query_set = Bill.select()
+        date_from = args.get('date_from')
+        date_to = args.get('date_to')
+        if not date_from or not date_to:
+            date_to = datetime.now().strftime('%Y-%m-%d')
+            date_from = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        query_set = query_set.filter(Bill.day.between(date_from, date_to))
+        if query_set.count() != 0:
+            query_set = query_set.filter(Bill.instance_type.contains(args.get('asset_type')))
+            if args.get('node_id'):
+                node = Node.filter(Node.id == args.get('node_id')).get()
+                if not node.is_root():
+                    instance_ids = [q.InstanceId for q in node.get_all_assets(args.get('asset_type').lower())]
+                    query_set = query_set.filter(Bill.instance_id.in_(instance_ids))
+                sumcost = query_set.select(fn.SUM(Bill.cost)).scalar()
+                data = {"nodeid":args.get('node_id'),"sumcost":sumcost}
+            if args.get('instanceid'):
+                query_set = query_set.filter(Bill.instance_id == args.get('instanceid'))
+                sumcost = query_set.select(fn.SUM(Bill.cost)).scalar()
+                data = {"instanceid":args.get('instanceid'),"sumcost":sumcost}
+        return jsonify(trueReturn(data))
 
 class BillsApi(Resource):
     @login_required
