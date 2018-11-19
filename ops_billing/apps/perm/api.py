@@ -10,6 +10,7 @@ from .serializer import AssetPermissionSerializer,SystemUserSerializer,\
                                 PermissionGroupSerializer,AuthorizationPlatformSerializer
 from apps.utils.sshkey import ssh_pubkey_gen,ssh_key_gen,validate_ssh_private_key
 from apps.auth import get_login_user
+from apps.models.base import OpsRedis
 import json
 
 __all__ = ['SystemUsersApi','SystemUserApi','AssetPermissionsApi','AssetPermissionApi',
@@ -244,8 +245,13 @@ class AssetPermissionApi(Resource):
 class PlatformAuthorizationsApi(Resource):
     @login_required
     def get(self):
-        query_set = PermissionPlatform.select()
-        data = json.loads(AuthorizationPlatformSerializer(many=True).dumps(query_set).data)
+        data = OpsRedis.get('all_platforms_info')
+        if data:
+            data = json.loads(data)
+        else:
+            query_set = PermissionPlatform.select()
+            data = json.loads(AuthorizationPlatformSerializer(many=True).dumps(query_set).data)
+            OpsRedis.set('all_platforms_info',json.dumps(data))
         return jsonify(trueReturn(data))
 
     @login_required
@@ -269,6 +275,9 @@ class PlatformAuthorizationsApi(Resource):
             if args.get(item):
                 for id in args.get(item):
                     getattr(platform_permission, item).add(id)
+        query_set = PermissionPlatform.select()
+        data = json.loads(AuthorizationPlatformSerializer(many=True).dumps(query_set).data)
+        OpsRedis.set('all_platforms_info', json.dumps(data))
         return jsonify(trueReturn(msg='授权规则添加成功'))
 
 class PlatformAuthorizationApi(Resource):
@@ -302,6 +311,9 @@ class PlatformAuthorizationApi(Resource):
             if args.get(item):
                 for id in args.get(item):
                     getattr(platform_permission, item).add(id)
+        query_set = PermissionPlatform.select()
+        data = json.loads(AuthorizationPlatformSerializer(many=True).dumps(query_set).data)
+        OpsRedis.set('all_platforms_info', json.dumps(data))
         return jsonify(trueReturn(msg='授权规则添加成功'))
 
     @login_required
