@@ -28,12 +28,10 @@ class AssetsApi(Resource):
     @login_required
     def get(self):
         args = reqparse.RequestParser() \
-            .add_argument('limit', type = int,location = 'args')\
-            .add_argument('offset', type = int,location = 'args') \
-            .add_argument('search', type=str, location='args')\
+            .add_argument('limit', type = int,location = 'args').add_argument('offset', type = int,location = 'args') \
+            .add_argument('search', type=str, location='args').add_argument('order', type=str, location='args')\
             .add_argument('asset_type', type=str, default='ecs',location='args')\
-            .add_argument('order', type=str, location='args')\
-            .add_argument('node_id', type = str, location = 'args')\
+            .add_argument('node_id', type = str, location = 'args').add_argument('node_value', type=str,location = 'args')\
             .add_argument('un_node', type=bool, default=False,location='args')\
             .add_argument('hostnames', type = str,action='append',location='args') \
             .add_argument('iplist', type=str, action='append',location='args').parse_args()
@@ -42,9 +40,15 @@ class AssetsApi(Resource):
         elif args.get('iplist'):
             page_query_set = Asset.select().where(Asset.InnerAddress.in_(args.get('iplist')))
         else:
-            node_id  = args.get('node_id') or Node.root().id
+            try:
+                if args.get('node_value'):
+                    node = Node.filter(Node.value == args.get('node_value')).get()
+                elif args.get('node_id'):
+                    node = Node.filter(Node.id == args.get('node_id')).get()
+                else:node = Node.root()
+            except Exception as e:
+                return jsonify(falseReturn(msg=str(e)))
             asset_type = args.get('asset_type')
-            node = Node.filter(Node.id == node_id).get()
             if node.is_root():
                 query_set = Asset.filter((Asset.AssetType == asset_type) & (Asset.Status != 'Destroy'))
                 if args.get('un_node') and not args.get('node_id'):
@@ -147,13 +151,12 @@ class BillApi(Resource):
     @login_required
     def get(self):
         args = reqparse.RequestParser()\
-            .add_argument('date_from',type=str,location='args') \
-            .add_argument('date_to', type=str, location='args') \
-            .add_argument('node_id', type=str, location='args') \
-            .add_argument('asset_type', type=str, default='ecs',location='args') \
+            .add_argument('date_from',type=str,location='args').add_argument('date_to', type=str,location='args') \
+            .add_argument('node_id', type=str, location='args')\
             .add_argument('instance_name', type=str, location='args') \
+            .add_argument('asset_type', type=str, default='ecs',location='args') \
             .add_argument('instance_id', type=str,location='args').parse_args()
-        data = {}
+        data = []
         query_set = Bill.select()
         date_from = args.get('date_from')
         date_to = args.get('date_to')
@@ -163,22 +166,19 @@ class BillApi(Resource):
         query_set = query_set.filter(Bill.day.between(date_from, date_to))
         if query_set.count() != 0:
             query_set = query_set.filter(Bill.instance_type.contains(args.get('asset_type')))
-            if args.get('node_id'):
-                node = Node.filter(Node.id == args.get('node_id')).get()
-                if not node.is_root():
-                    instance_ids = [q.InstanceId for q in node.get_all_assets(args.get('asset_type').lower())]
-                    query_set = query_set.filter(Bill.instance_id.in_(instance_ids))
-                sumcost = query_set.select(fn.SUM(Bill.cost)).scalar()
-                data = {"nodeid":args.get('node_id'),"sumcost":sumcost}
+            if args.get('node_id') or args.get('node_value'):
+                node = Node.filter(Node.id == args.get('node_id')).first() or Node.filter(Node.id == args.get('node_value')).first()
+                instances = [[q.InstanceId,q.InstanceName] for q in node.get_all_assets(args.get('asset_type').lower())]
+                for instance in instances:
+                    per_query_set = query_set.filter(Bill.instance_id == instance[0])
+                    sumcost = per_query_set.select(fn.SUM(Bill.cost)).scalar()
+                    data.append({"instance_name":instance[1],"instance_id":instance[0],"sumcost":sumcost})
             if args.get('instance_id'):
                 query_set = query_set.filter(Bill.instance_id == args.get('instanceid'))
                 sumcost = query_set.select(fn.SUM(Bill.cost)).scalar()
                 data = {"instance_id":args.get('instance_id'),"sumcost":sumcost}
             if args.get('instance_name'):
-                instance = Asset.select().where(Asset.InstanceName == args.get('instance_name')).first()
-                if not instance:
-                    return jsonify(falseReturn(msg='没有此实例'))
-                query_set = query_set.filter(Bill.instance_id == instance.InstanceId)
+                query_set = query_set.filter(Bill.instance_name == args.get('instance_name').strip())
                 sumcost = query_set.select(fn.SUM(Bill.cost)).scalar()
                 data = {"instance_name":args.get('instance_name'),"sumcost":sumcost}
         return jsonify(trueReturn(data))
