@@ -63,7 +63,7 @@ def auth_login():
                 return response
 
 @user.route('/logout',methods=['GET','POST'])
-@login_required()
+@login_required(administrator=False)
 def auth_logout():
     response = make_response(redirect(config.get('DEFAULT','SECURITY_LOGIN_URL')))
     response.delete_cookie("access_token")
