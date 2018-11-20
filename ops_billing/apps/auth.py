@@ -30,7 +30,9 @@ def return_response(msg='',isflash=True):
 def adminuser_required(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
+        print(22222)
         token_id = request.cookies.get('access_token') or request.headers.get('Authorization')
+        print(token_id)
         if token_id:
             data = Auth.decode_auth_token(token_id)
             user_id = data['data']['id'][:32]
@@ -44,33 +46,39 @@ def adminuser_required(func):
         return func(*args, **kwargs)
     return decorated_function
 
-def login_required(func):
-    @wraps(func)
-    def decorated_function(*args, **kwargs):
-        token = request.cookies.get('access_token') or request.headers.get('Authorization')
-        if token:
-            data = Auth.decode_auth_token(token)
-            if data['status']:
-                user_id = data['data']['id'][:32]
-                password = data['data']['id'][32:]
-                if OpsRedis.exists(user_id):
-                    userinfo = json.loads(OpsRedis.get(user_id).decode())
-                    if not userinfo.get('is_active'):return return_response(msg='用户被禁用')
-                    if userinfo.get('password') != password:return return_response(msg='密码有变化,请重新登录')
-                    if is_browser_user():g.user = userinfo
+def login_required(administrator=True,users=list()):
+    def adminlogin(func):
+        @wraps(func)
+        def decorated_function(*args, **kwargs):
+            token = request.cookies.get('access_token') or request.headers.get('Authorization')
+            if token:
+                data = Auth.decode_auth_token(token)
+                if data['status']:
+                    user_id = data['data']['id'][:32]
+                    password = data['data']['id'][32:]
+                    if OpsRedis.exists(user_id):
+                        userinfo = json.loads(OpsRedis.get(user_id).decode())
+                        if not userinfo.get('is_active'):return return_response(msg='用户被禁用')
+                        if administrator is True and userinfo.get('role') != 'administrator':
+                            return return_response(msg='非管理员用户')
+                        if users and userinfo.get('username') not in users:
+                            return return_response(msg='你没有权限啊')
+                        if userinfo.get('password') != password:return return_response(msg='密码有变化,请重新登录')
+                        if is_browser_user():g.user = userinfo
+                    else:
+                        user = User.select().where(User.id == user_id).first()
+                        if not user:return return_response(msg='用户不存在')
+                        if not user.is_active:return return_response(msg='用户被禁用')
+                        if user.password != password:return return_response(msg='密码有变化,请重新登录')
+                        if is_browser_user():g.user = user.to_json()
+                        OpsRedis.set(user_id,json.dumps(user.to_json()))
                 else:
-                    user = User.select().where(User.id == user_id).first()
-                    if not user:return return_response(msg='用户不存在')
-                    if not user.is_active:return return_response(msg='用户被禁用')
-                    if user.password != password:return return_response(msg='密码有变化,请重新登录')
-                    if is_browser_user():g.user = user.to_json()
-                    OpsRedis.set(user_id,json.dumps(user.to_json()))
+                    return return_response(msg=data['msg'],isflash=False)
             else:
-                return return_response(msg=data['msg'],isflash=False)
-        else:
-            return return_response('请先登录',isflash=False)
-        return func(*args, **kwargs)
-    return decorated_function
+                return return_response('请先登录',isflash=False)
+            return func(*args, **kwargs)
+        return decorated_function
+    return adminlogin
 
 class Auth():
     @staticmethod

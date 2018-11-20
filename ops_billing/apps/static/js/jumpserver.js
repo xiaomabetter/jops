@@ -224,7 +224,6 @@ function APIUpdateAttr(props) {
         contentType: props.content_type || "application/json; charset=utf-8",
         dataType: props.data_type || "json"
     }).done(function(data, textStatue, jqXHR) {
-        console.log(data);
         if (typeof props.success === 'function') {
            return props.success(data);
         } else if (data['status']) {

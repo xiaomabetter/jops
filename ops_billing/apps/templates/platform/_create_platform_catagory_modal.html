@@ -1,0 +1,54 @@
+<style>
+.modal-body-1 {
+    padding: 10px 10px 10px 10px;
+}
+</style>
+
+<div class="modal fade" id="platform_catagory_create_modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">创建平台接入</h4>
+      </div>
+      <div class="modal-body">
+        <div>
+            <form  method="post" id="platform_catagory_create_form" class="form-horizontal" autocomplete="off" enctype="multipart/form-data" action="" >
+                <div class="form-group">
+                    <label class="col-md-3 control-label">Description</label>
+                    <div class="col-md-9 row">
+                        <input class="form-control" id="description" name="description" placeholder="平台描述" type="text" value="">
+                        <div class="help-block">* required</div>
+                    </div>
+                </div>
+            </form>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="submit_button_1">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
+<script>
+   $("#submit_button_1").on("click",function(){
+       $('#platform_catagory_create_form').ajaxSubmit(
+            {
+                url: "{{ url_for('platform-api.platforms_catagory_api') }}",
+                type: 'post',
+                dataType: 'json',
+                success: function (data) {
+                    if (data['status']) {
+                        $('#platform_catagory_create_modal').hide()
+                        toastr.success(data['msg']);
+                    } else {
+                        alert(data['msg']);
+                    }
+                },
+                clearForm: false,
+                resetForm: false
+       })
+   });
+</script>

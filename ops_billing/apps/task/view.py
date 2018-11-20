@@ -8,7 +8,7 @@ from . import task
 import os
 
 @task.route('/ansible/run',methods=['GET'])
-@login_required
+@login_required()
 def ansible_run():
     roles = {}
     role_path = get_basedir() + '/task/playbooks/roles'

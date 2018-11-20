@@ -8,7 +8,7 @@ from apps.models.base import OpsRedis
 from . import asset
 from .serializer import AssetCreateTemplateSerializer
 from .form import Service_Form,Aly_Create_Instance_Form,Aly_Create_Instance_Template
-from apps.auth import login_required
+from apps.auth import login_required,adminuser_required
 import json
 
 @asset.route('/')
@@ -16,12 +16,12 @@ def index():
     return render_template('base/index.html')
 
 @asset.route('/<asset_type>/list',methods=['GET'])
-@login_required
+@login_required()
 def asset_list(asset_type):
     return render_template('asset/asset_list.html',asset_type=asset_type)
 
 @asset.route('/<assetid>/detail',methods=['GET'])
-@login_required
+@login_required()
 def asset_detail(assetid):
     asset = Asset.select().where(Asset.id == assetid).get()
     nodes = asset.node.objects()
@@ -29,7 +29,7 @@ def asset_detail(assetid):
     return render_template('asset/asset_detail.html',**locals())
 
 @asset.route('/create',methods=['GET'])
-@login_required
+@login_required()
 def asset_create():
     templateid = request.args.get('templateid')
     form = Aly_Create_Instance_Form()
@@ -40,21 +40,21 @@ def asset_create():
     return render_template('asset/asset_create.html',**locals())
 
 @asset.route('/create/template',methods=['GET'])
-@login_required
+@login_required()
 def asset_create_template():
     form = Aly_Create_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template.html',**locals())
 
 @asset.route('/create/template/list',methods=['GET'])
-@login_required
+@login_required()
 def asset_create_template_list():
     form = Aly_Create_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template_list.html',**locals())
 
 @asset.route('/create/template/update/<templateid>',methods=['GET'])
-@login_required
+@login_required()
 def asset_create_template_update(templateid):
     template = Asset_Create_Template.select().where(Asset_Create_Template.id == templateid)
     templatedata = dict(json.loads(AssetCreateTemplateSerializer(many=True).dumps(template).data)[0])
@@ -69,12 +69,12 @@ def asset_create_template_update(templateid):
     return render_template('asset/asset_create_template_update.html',**locals())
 
 @asset.route('/service/list',methods=['GET'])
-@login_required
+@login_required()
 def service_list():
     return render_template('asset/service_list.html')
 
 @asset.route('/service/create',methods=['GET','POST'])
-@login_required
+@login_required()
 def service_create():
     form = Service_Form(request.form)
     if request.method == 'POST' and form.validate():
@@ -88,7 +88,7 @@ def service_create():
     return render_template('asset/service_create.html',form=form)
 
 @asset.route('/service/update/<serviceid>',methods=['GET','POST'])
-@login_required
+@login_required()
 def service_update(serviceid):
     serviceid = serviceid
     form = Service_Form(request.form)
@@ -99,7 +99,7 @@ def service_update(serviceid):
     return render_template('asset/service_update.html',**locals())
 
 @asset.route('/bill/list',methods=['GET','POST'])
-@login_required
+@login_required()
 def bill_list():
     limit = config.get('DEFAULT','ITEMS_PER_PAGE')
     page = 1;nodeid = instanceid = date_from = date_to = ''

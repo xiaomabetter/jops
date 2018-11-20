@@ -14,3 +14,11 @@ class Platforms(BaseModel):
 
     class Meta:
         table_name = 'platform_platforms'
+
+
+class Catagory(BaseModel):
+    id = UUIDField(default=uuid.uuid4, primary_key=True)
+    description = CharField(max_length=500,unique=True,null=False)
+
+    class Meta:
+        table_name = 'platform_catagory'

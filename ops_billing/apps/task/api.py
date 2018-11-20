@@ -14,7 +14,7 @@ import json
 __all__ = ['TaskApi','AlySyncApi','TaskAnsRunApi']
 
 class TaskApi(Resource):
-    @login_required
+    @login_required()
     def get(self,taskid):
         args = reqparse.RequestParser().add_argument('length', type=int,location='args').parse_args()
         celery_task_id = f'celery-task-meta-{taskid}'
@@ -41,7 +41,7 @@ class TaskApi(Resource):
                 return jsonify(falseReturn())
 
 class AlySyncApi(Resource):
-    @login_required
+    @login_required()
     def post(self):
         args = reqparse.RequestParser() \
             .add_argument('task_name', type=str, location=['json', 'form'],required=True) \
@@ -86,7 +86,7 @@ class AlySyncApi(Resource):
             return jsonify(falseReturn(msg='任务提交失败'))
 
 class TaskAnsRunApi(Resource):
-    @login_required
+    @login_required()
     def post(self):
         parse = reqparse.RequestParser()
         for arg in ('name','run_as'):

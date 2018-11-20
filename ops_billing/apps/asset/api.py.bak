@@ -1,6 +1,6 @@
 from flask import jsonify
 from flask_restful import Resource,reqparse
-from apps.auth import login_required,get_login_user
+from apps.auth import login_required,get_login_user,login_required_muti
 from apps.utils import trueReturn,falseReturn
 from apps.models import Asset,Node,Service,Account,Asset_Account,AssetPermission,\
                 AssetPerm_Nodes,Asset_Create_Template,Asset_Node,Asset_Service,Bill
@@ -25,7 +25,7 @@ __all__ = ['AssetsApi','AssetApi','AssetUserApi','AssetCreateApi',
 default_queue = config.get('CELERY', 'CELERY_DEFAULT_QUEUE')
 
 class AssetsApi(Resource):
-    @login_required()
+    @login_required_muti()
     def get(self):
         args = reqparse.RequestParser() \
             .add_argument('limit', type = int,location = 'args').add_argument('offset', type = int,location = 'args') \
@@ -69,7 +69,7 @@ class AssetsApi(Resource):
         results = json.loads(AssetSerializer(many=True,exclude=['account','node']).dumps(page_query_set).data)
         return jsonify(trueReturn(results))
 
-    @login_required()
+    @login_required
     def post(self):
         args = reqparse.RequestParser() \
             .add_argument('hostnames', type = str,action='append',location='json') \
@@ -83,7 +83,7 @@ class AssetsApi(Resource):
         data = json.loads(AssetSerializer(many=True,only=['id']).dumps(query).data) if query else []
         return jsonify(trueReturn(data))
 
-    @login_required()
+    @login_required
     def delete(self):
         args = reqparse.RequestParser() \
             .add_argument('id_list', type = str,action='append',location='json').parse_args()
@@ -96,7 +96,7 @@ class AssetsApi(Resource):
         return jsonify(trueReturn())
 
 class AssetApi(Resource):
-    @login_required()
+    @login_required
     def get(self,assetid):
         asset = Asset.select().where(Asset.id == assetid).get()
         data = json.loads(AssetSerializer(only=['InnerAddress','PublicIpAddress','Status']).dumps(asset).data)
@@ -115,7 +115,7 @@ class AssetApi(Resource):
             return jsonify(trueReturn(data,msg='redis详细信息不存在,即将同步'))
 
 class AssetUserApi(Resource):
-    @login_required()
+    @login_required_muti(administrator=True)
     def get(self,assetid):
         asset = Asset.select().where(Asset.id == assetid).get()
         related_users = []
@@ -147,7 +147,7 @@ class AssetUserApi(Resource):
         return jsonify(trueReturn(related_users))
 
 class BillApi(Resource):
-    @login_required()
+    @login_required
     def get(self):
         args = reqparse.RequestParser()\
             .add_argument('date_from',type=str,location='args').add_argument('date_to', type=str,location='args') \
@@ -183,7 +183,7 @@ class BillApi(Resource):
         return jsonify(trueReturn(data))
 
 class BillsApi(Resource):
-    @login_required()
+    @login_required
     def get(self):
         args = reqparse.RequestParser()\
             .add_argument('date_from',type=str,location='args') \
@@ -221,7 +221,7 @@ class BillsApi(Resource):
         return jsonify(trueReturn(data))
 
 class NodesApi(Resource):
-    @login_required()
+    @login_required
     def get(self):
         args = reqparse.RequestParser()\
             .add_argument('asset_type',type=str,choices=Asset.asset_type(),location='args',required=True)\
@@ -249,7 +249,7 @@ class NodesApi(Resource):
         return jsonify(trueReturn(data))
 
 class NodeApi(Resource):
-    @login_required()
+    @login_required
     def get(self,nodeid):
         args = reqparse.RequestParser() \
             .add_argument('asset_type', type=str,choices=Asset.asset_type(),required=True, location='args')\
@@ -262,7 +262,7 @@ class NodeApi(Resource):
             only=['id','InstanceName','InstanceId','Address','is_active']).dumps(assets).data)
         return jsonify(trueReturn(data))
 
-    @login_required()
+    @login_required
     def post(self,nodeid):
         args = reqparse.RequestParser() \
             .add_argument('value', location='json').parse_args()
@@ -273,7 +273,7 @@ class NodeApi(Resource):
         data = json.loads(NodeSerializer().dumps(node).data)
         return jsonify(trueReturn(data))
 
-    @login_required()
+    @login_required
     def patch(self,nodeid):
         args = reqparse.RequestParser() \
             .add_argument('value',type=str,location='json',required=True).parse_args()
@@ -284,7 +284,7 @@ class NodeApi(Resource):
         except Exception as e:
             return jsonify(falseReturn(msg=u'重命名为{0}失败'.format(args.get('value'))))
 
-    @login_required()
+    @login_required
     def delete(self, nodeid):
         try:
             Node.delete().where(Node.id == nodeid).execute()
@@ -292,7 +292,7 @@ class NodeApi(Resource):
         except Exception as e:
             return jsonify(falseReturn(msg=f'删除失败{e}'))
 
-    @login_required()
+    @login_required
     def put(self,nodeid):
         args = reqparse.RequestParser() \
             .add_argument('targetid', type=str,required=True,location='json').parse_args()
@@ -304,7 +304,7 @@ class NodeApi(Resource):
         return jsonify(trueReturn())
 
 class NodeAssetApi(Resource):
-    @login_required()
+    @login_required
     def post(self,nodeid):
         args = reqparse.RequestParser() \
             .add_argument('assetids',action='append',location='json',required=True)\
@@ -318,7 +318,7 @@ class NodeAssetApi(Resource):
         except Exception as e:
             return jsonify(falseReturn(msg=str(e)))
 
-    @login_required()
+    @login_required
     def delete(self,nodeid):
         args = reqparse.RequestParser()\
             .add_argument('assetids',location='json',action='append',required=True)\
@@ -333,7 +333,7 @@ class NodeAssetApi(Resource):
             return jsonify(falseReturn(msg=str(e)))
 
 class AssetCreateApi(Resource):
-    @login_required()
+    @login_required_muti()
     def post(self):
         args = reqparse.RequestParser() \
             .add_argument('InstanceTemplate', type=str, location='form',required=True) \
@@ -371,7 +371,7 @@ class AssetCreateApi(Resource):
         return jsonify(trueReturn(r.id,msg=u'开始拼命执行创建机器任务'))
 
 class TemplatesApi(Resource):
-    @login_required()
+    @login_required
     def get(self):
         args = reqparse.RequestParser()\
             .add_argument('RegionId',type=str,location='args') \
@@ -384,7 +384,7 @@ class TemplatesApi(Resource):
         data = json.loads(AssetCreateTemplateSerializer(many=True).dumps(query).data)
         return jsonify(trueReturn(data))
 
-    @login_required()
+    @login_required_muti()
     def post(self):
         parse = reqparse.RequestParser()
         for arg in ('name','RegionId','ZoneId','InstanceNetworkType','instance_type',
@@ -422,13 +422,13 @@ class TemplatesApi(Resource):
         return jsonify(trueReturn(msg='创建成功'))
 
 class TemplateApi(Resource):
-    @login_required()
+    @login_required
     def get(self,templateid):
         query = Asset_Create_Template.select().where(Asset_Create_Template.id == templateid)
         data = json.loads(AssetCreateTemplateSerializer().dumps(query).data)
         return jsonify(trueReturn(data))
 
-    @login_required()
+    @login_required
     def put(self,templateid):
         parse = reqparse.RequestParser()
         for arg in ('name','RegionId','ZoneId','InstanceNetworkType','instance_type',
@@ -462,7 +462,7 @@ class TemplateApi(Resource):
         template.save()
         return jsonify(trueReturn(msg='更新成功'))
 
-    @login_required()
+    @login_required
     def delete(self,templateid):
         try:
             Asset_Create_Template.delete().where(Asset_Create_Template.id == templateid).execute()
@@ -471,7 +471,7 @@ class TemplateApi(Resource):
             return jsonify(falseReturn(msg=f'删除失败{e}'))
 
 class ImagesApi(Resource):
-    @login_required()
+    @login_required
     def get(self):
         args = reqparse.RequestParser()\
             .add_argument('image_category',type=str,location='args')\
@@ -495,7 +495,7 @@ class ImagesApi(Resource):
         return jsonify(trueReturn(data))
 
 class SecurityGroupsApi(Resource):
-    @login_required()
+    @login_required
     def get(self):
         args = reqparse.RequestParser()\
             .add_argument('RegionId',type=str,location='args') \
@@ -532,7 +532,7 @@ class SecurityGroupsApi(Resource):
         return jsonify(trueReturn(data))
 
 class VSwitchesApi(Resource):
-    @login_required()
+    @login_required
     def get(self):
         args = reqparse.RequestParser()\
             .add_argument('ZoneId',type=str,location='args').parse_args()
@@ -543,7 +543,7 @@ class VSwitchesApi(Resource):
         return jsonify(trueReturn(data))
 
 class AssetAccountsApi(Resource):
-    @login_required()
+    @login_required_muti()
     def get(self,assetid):
         args = reqparse.RequestParser()\
             .add_argument('username', type=str,location='args').parse_args()
@@ -556,7 +556,7 @@ class AssetAccountsApi(Resource):
             data = json.loads(AssetSerializer(many=True,only=['account']).dumps(asset).data)
         return jsonify(trueReturn(data))
 
-    @login_required()
+    @login_required
     def post(self,assetid):
         args = reqparse.RequestParser() \
             .add_argument('username', type = str,location='json', required=True) \
@@ -580,7 +580,7 @@ class AssetAccountsApi(Resource):
             return jsonify(falseReturn(msg=str(e)))
 
 class AssetAccountApi(Resource):
-    @login_required()
+    @login_required
     def put(self,assetid,accountid):
         args = dict()
         parse= reqparse.RequestParser()
@@ -599,7 +599,7 @@ class AssetAccountApi(Resource):
         except Exception as e:
             return falseReturn(msg=str(e))
 
-    @login_required()
+    @login_required
     def delete(self,assetid,accountid):
         try:
             asset = Asset.select().where(Asset.id == assetid).get()
@@ -609,14 +609,14 @@ class AssetAccountApi(Resource):
             return trueReturn(msg=str(e))
 
 class ServicesApi(Resource):
-    @login_required()
+    @login_required
     def get(self):
         query_set = Service.select()
         serializer = ServiceSerializer(many=True)
         data = json.loads(serializer.dumps(query_set).data)
         return jsonify(trueReturn(data))
 
-    @login_required()
+    @login_required
     def post(self):
         args = reqparse.RequestParser() \
             .add_argument('servicename', type=str, location=['json','form'], required=True) \
@@ -631,7 +631,7 @@ class ServicesApi(Resource):
         except Exception as e:
             return  jsonify(falseReturn(msg=str(e)))
 
-    @login_required()
+    @login_required
     def delete(self):
         args = reqparse.RequestParser()\
             .add_argument('serviceid',type=str,action='append',location='json',required=True).parse_args()
@@ -646,7 +646,7 @@ class ServicesApi(Resource):
             return falseReturn(msg=str(e))
 
 class ServiceApi(Resource):
-    @login_required()
+    @login_required
     def get(self,serviceid):
         service = Service.select().where(Service.id == serviceid).get()
         if service:
@@ -655,7 +655,7 @@ class ServiceApi(Resource):
         else:
             return jsonify(falseReturn(msg='服务不存在'))
 
-    @login_required()
+    @login_required
     def put(self,serviceid):
         args = reqparse.RequestParser() \
             .add_argument('servicename', type=str, location=['json','form']) \
@@ -670,7 +670,7 @@ class ServiceApi(Resource):
         except Exception as e:
             return falseReturn(msg=str(e))
 
-    @login_required()
+    @login_required
     def delete(self,serviceid):
         try:
             Asset_Service.delete().where(Asset_Service.service_id == serviceid).execute()
@@ -680,7 +680,7 @@ class ServiceApi(Resource):
             return jsonify(falseReturn(msg='删除失败%s' % str(e)))
 
 class ServiceAssetApi(Resource):
-    @login_required()
+    @login_required
     def post(self,serviceid,assetid):
         try:
             service = Service.select().where(Service.id == serviceid).get()
@@ -689,7 +689,7 @@ class ServiceAssetApi(Resource):
         except Exception as e:
             return trueReturn(msg=str(e))
 
-    @login_required()
+    @login_required
     def delete(self,serviceid,assetid):
         try:
             service = Service.select().where(Service.id == serviceid).get()

@@ -8,13 +8,13 @@ from datetime import datetime,timedelta
 from .serializer import SessionSerializer
 
 @terminal.route('/terminal/terminal/list',methods=['GET','POST'])
-@login_required
+@login_required()
 def terminal_list():
     form = Terminal_Form()
     return render_template('terminal/terminal_list.html',form=form)
 
 @terminal.route('/terminal/<type>/session/list',methods=['GET','POST'])
-@login_required
+@login_required()
 def session_list(type):
     date_from = request.args.get('date_from','')
     date_to = request.args.get('date_to', '')
@@ -34,7 +34,7 @@ def session_list(type):
     return render_template('terminal/session_list.html',**locals())
 
 @terminal.route('/terminal/<tid>/update',methods=['GET','POST'])
-@login_required
+@login_required()
 def terminal_update(tid):
     form = Terminal_Form()
     if request.method == 'POST' and form.validate():

@@ -18,7 +18,7 @@ __all__ = ['SystemUsersApi','SystemUserApi','AssetPermissionsApi','AssetPermissi
            'PlatformAuthorizationsApi','PlatformAuthorizationApi']
 
 class PermissionGroupsApi(Resource):
-    @login_required
+    @login_required()
     def get(self):
         args = reqparse.RequestParser().add_argument('search', type=str, location='args').parse_args()
         query_set = PermissionGroups.select()
@@ -29,7 +29,7 @@ class PermissionGroupsApi(Resource):
         data = json.loads(PermissionGroupSerializer(many=True).dumps(query_set).data)
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     def post(self):
         locations = ['form', 'json']
         args = reqparse.RequestParser().add_argument('name', type=str,required=True,location=locations) \
@@ -47,7 +47,7 @@ class PermissionGroupsApi(Resource):
             return jsonify(falseReturn(msg=e))
 
 class PermissionGroupApi(Resource):
-    @login_required
+    @login_required()
     def put(self,pgid):
         locations = ['form', 'json']
         args = reqparse.RequestParser().add_argument('name', type=str,required=True,location=locations) \
@@ -73,7 +73,7 @@ class PermissionGroupApi(Resource):
             return jsonify(falseReturn(msg='更新失败'))
 
 class SystemUsersApi(Resource):
-    @login_required
+    @login_required()
     def get(self):
         args = reqparse.RequestParser().add_argument('search', type=str, location='args') \
             .add_argument('order', type=str, location='args').parse_args()
@@ -85,7 +85,7 @@ class SystemUsersApi(Resource):
         data = json.loads(SystemUserSerializer(many=True).dumps(query_set).data)
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     def post(self):
         locations = ['form','json']
         parse = reqparse.RequestParser()
@@ -111,13 +111,13 @@ class SystemUsersApi(Resource):
         return jsonify(trueReturn(msg='创建成功'))
 
 class SystemUserApi(Resource):
-    @login_required
+    @login_required()
     def get(self,sysuserid):
         sysuser = SystemUser.select().where(SystemUser.id == sysuserid).get()
         data = SystemUserSerializer().dumps(sysuser).data
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     def put(self,sysuserid):
         locations = ['form','json']
         parse = reqparse.RequestParser()
@@ -142,7 +142,7 @@ class SystemUserApi(Resource):
         SystemUser.update(**data).where(SystemUser.id == sysuserid).execute()
         return jsonify(trueReturn(msg='更新成功'))
 
-    @login_required
+    @login_required()
     def delete(self,sysuserid):
         try:
             sysuser = SystemUser.select().where(SystemUser.id == sysuserid).get()
@@ -155,13 +155,13 @@ class SystemUserApi(Resource):
             return jsonify(falseReturn(msg='删除失败'))
 
 class AssetPermissionsApi(Resource):
-    @login_required
+    @login_required()
     def get(self):
         query_set = AssetPermission.select()
         data = json.loads(AssetPermissionSerializer(many=True).dumps(query_set).data)
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     def post(self):
         locations = ['form','json']
         parse = reqparse.RequestParser()
@@ -189,7 +189,7 @@ class AssetPermissionsApi(Resource):
                     getattr(asset_permission, item).add(id)
         return jsonify(trueReturn(msg='授权规则添加成功'))
 
-    @login_required
+    @login_required()
     def delete(self):
         args = reqparse.RequestParser().add_argument('id', type=str, location='json').parse_args()
         for model in [AssetPerm_SystemUser, AssetPerm_Users, AssetPerm_Nodes, AssetPerm_Groups, AssetPerm_Assets]:
@@ -198,13 +198,13 @@ class AssetPermissionsApi(Resource):
         return  jsonify(trueReturn(msg='删除成功'))
 
 class AssetPermissionApi(Resource):
-    @login_required
+    @login_required()
     def get(self,permissionid):
         asset_permission = AssetPermission.select().where(AssetPermission.id == permissionid).get()
         data= json.loads(AssetPermissionSerializer().dumps(asset_permission).data)
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     def put(self,permissionid):
         locations = ['form','json']
         parse = reqparse.RequestParser()
@@ -232,7 +232,7 @@ class AssetPermissionApi(Resource):
                     getattr(asset_permission, item).add(id)
         return jsonify(trueReturn(msg='授权规则更新成功'))
 
-    @login_required
+    @login_required()
     def delete(self,permissionid):
         try:
             for model in [AssetPerm_SystemUser, AssetPerm_Users, AssetPerm_Nodes, AssetPerm_Groups, AssetPerm_Assets]:
@@ -243,7 +243,7 @@ class AssetPermissionApi(Resource):
             return jsonify(falseReturn(msg='删除失败'))
 
 class PlatformAuthorizationsApi(Resource):
-    @login_required
+    @login_required()
     def get(self):
         data = OpsRedis.get('all_platforms_info')
         if data:
@@ -254,7 +254,7 @@ class PlatformAuthorizationsApi(Resource):
             OpsRedis.set('all_platforms_info',json.dumps(data))
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     def post(self):
         locations = ['form','json']
         parse = reqparse.RequestParser()
@@ -281,13 +281,13 @@ class PlatformAuthorizationsApi(Resource):
         return jsonify(trueReturn(msg='授权规则添加成功'))
 
 class PlatformAuthorizationApi(Resource):
-    @login_required
+    @login_required()
     def get(self,permissionid):
         platform_permission = PermissionPlatform.select().where(PermissionPlatform.id == permissionid)
         data = json.loads(AuthorizationPlatformSerializer(many=True).dumps(platform_permission).data)
         return jsonify(trueReturn(data=data))
 
-    @login_required
+    @login_required()
     def put(self,permissionid):
         locations = ['form','json']
         parse = reqparse.RequestParser()
@@ -316,7 +316,7 @@ class PlatformAuthorizationApi(Resource):
         OpsRedis.set('all_platforms_info', json.dumps(data))
         return jsonify(trueReturn(msg='授权规则添加成功'))
 
-    @login_required
+    @login_required()
     def delete(self,permissionid):
         try:
             platform_perm = PermissionPlatform.select().where(PermissionPlatform.id ==permissionid).get()
@@ -328,7 +328,7 @@ class PlatformAuthorizationApi(Resource):
             return jsonify(falseReturn(msg='删除失败'))
 
 class UserGrantAssets(Resource):
-    @login_required
+    @login_required()
     def get(self,uid):
         results = []
         node_result = []
@@ -356,7 +356,7 @@ class UserGrantAssets(Resource):
         return jsonify({'data':results})
 
 class UserGrantNodes(Resource):
-    @login_required
+    @login_required()
     def get(self,uid):
         results = []
         assetpermissions = AssetPermission.select().join(AssetPerm_Users).\

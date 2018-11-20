@@ -10,13 +10,13 @@ from .ldapapi import ldapconn
 import json,time,uuid,ldap,datetime
 
 class UsersApi(Resource):
-    @login_required
+    @login_required()
     def get(self):
         query_set = User.select()
         data = json.loads(UserSerializer(many=True,exclude=['password']).dumps(query_set).data)
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     @adminuser_required
     def post(self):
         parse = reqparse.RequestParser()
@@ -42,13 +42,13 @@ class UsersApi(Resource):
         return jsonify(trueReturn(msg='创建成功'))
 
 class UserApi(Resource):
-    @login_required
+    @login_required()
     def get(self,userid):
         user = User.select().where(User.id == userid)
         data = json.loads(UserSerializer(exclude=['password']).dumps(user).data)
         return jsonify(data)
 
-    @login_required
+    @login_required()
     def put(self,userid):
         parse = reqparse.RequestParser()
         arg_names = ('ding', 'password', 'wechat', 'role' ,'user', 'username','comment','email',
@@ -86,7 +86,7 @@ class UserApi(Resource):
         if is_del_userkey:OpsRedis.delete(userid)
         return jsonify(trueReturn(msg='更新成功'))
 
-    @login_required
+    @login_required()
     @adminuser_required
     def delete(self,userid):
         user = User.select().where(User.id == userid).get()
@@ -101,7 +101,7 @@ class UserApi(Resource):
         User.delete().where(User.id == userid).execute()
         return jsonify(trueReturn(msg='删除成功'))
 
-    @login_required
+    @login_required()
     @adminuser_required
     def patch(self,userid):
         user = User.select().where(User.id == userid).get()
@@ -114,7 +114,7 @@ class UserApi(Resource):
         return jsonify(trueReturn(msg=msg))
 
 class GroupsApi(Resource):
-    @login_required
+    @login_required()
     def get(self):
         args = reqparse.RequestParser()\
             .add_argument('group_id', type=str,location='args').parse_args()
@@ -134,7 +134,7 @@ class GroupsApi(Resource):
         data = json.loads(GroupSerializer(many=True).dumps(query_set).data)
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     @adminuser_required
     def post(self):
         args = reqparse.RequestParser()\
@@ -152,7 +152,7 @@ class GroupsApi(Resource):
         return jsonify(trueReturn(msg='创建成功'))
 
 class GroupApi(Resource):
-    @login_required
+    @login_required()
     def get(self,groupid):
         group = Groups.select().where(Groups.id == groupid)
         if group.get().is_root() :
@@ -162,7 +162,7 @@ class GroupApi(Resource):
             data = json.loads(GroupSerializer(many=True,only=['user']).dumps(group).data)[0]['user']
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     @adminuser_required
     def post(self,groupid):
         args = reqparse.RequestParser() \
@@ -182,7 +182,7 @@ class GroupApi(Resource):
             return jsonify(trueReturn(msg=str(e)))
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     @adminuser_required
     def delete(self,groupid):
         group = Groups.select().where(Groups.id == groupid).first()
@@ -193,7 +193,7 @@ class GroupApi(Resource):
         Groups.delete().where(Groups.id == groupid).execute()
         return jsonify(trueReturn('已经删除'))
 
-    @login_required
+    @login_required()
     @adminuser_required
     def put(self,groupid):
         args = reqparse.RequestParser()\
@@ -210,7 +210,7 @@ class GroupApi(Resource):
         return jsonify(trueReturn(msg='更新成功'))
 
 class UserLogin(Resource):
-    @login_required
+    @login_required()
     def get(self):
         return jsonify(trueReturn(1))
 

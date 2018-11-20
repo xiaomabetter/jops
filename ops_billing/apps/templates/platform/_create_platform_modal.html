@@ -28,8 +28,9 @@
                     <label class="col-md-3 control-label">Catagory</label>
                     <div class="col-md-9 row">
                         <select class="form-control" id="catagory" name="catagory" >
-                              <option selected value="kefu">客服系统</option>
-                              <option value="kefu_monitor">客服监控</option>
+                            {% for catagory in catagorys %}
+                                  <option value="{{ catagory.description }}">{{ catagory.description }}</option>
+                            {% endfor %}
                         </select>
                         <div class="help-block">* required</div>
                     </div>
@@ -55,24 +56,24 @@
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
 <script>
    $("#submit_button").on("click",function(){
-   $('#platform_create_form').ajaxSubmit(
-        {
-            url: "{{ url_for('platform-api.platforms_api') }}",
-            type: 'post',
-            dataType: 'json',
-            success: function (data) {
-                if (data['status']) {
-                    $('#platform_create_modal').hide()
-                    toastr.success(data['msg']);
-                    var $data_table = $('#platform_list_table').DataTable();
-                    $data_table.ajax.reload();
+       $('#platform_create_form').ajaxSubmit(
+            {
+                url: "{{ url_for('platform-api.platforms_api') }}",
+                type: 'post',
+                dataType: 'json',
+                success: function (data) {
+                    if (data['status']) {
+                        $('#platform_create_modal').hide()
+                        toastr.success(data['msg']);
+                        var $data_table = $('#platform_list_table').DataTable();
+                        $data_table.ajax.reload();
 
-                } else {
-                    alert(data['msg']);
-                }
-            },
-            clearForm: false,
-            resetForm: false
-        })
-});
+                    } else {
+                        alert(data['msg']);
+                    }
+                },
+                clearForm: false,
+                resetForm: false
+       })
+   });
 </script>

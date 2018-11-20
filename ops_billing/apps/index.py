@@ -4,7 +4,7 @@ from apps.auth import login_required
 from apps.models import User,Asset,Platforms
 
 @app.route('/')
-@login_required
+@login_required(administrator=False)
 def index():
     users_count = User.select().count()
     assets_count = Asset.select().count()

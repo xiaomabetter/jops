@@ -1,17 +1,18 @@
 from flask import jsonify,request
 from flask_restful import Resource,reqparse
 from apps.auth import login_required,adminuser_required,get_login_user
-from apps.models import Platforms,OpsRedis
+from apps.models import Platforms,OpsRedis,Catagory
 from apps.platform.serializer import PlatformSerializer
 from apps.perm.serializer import AuthorizationPlatformSerializer
 from apps.utils import trueReturn,falseReturn
 from peewee import fn
 import json
 
-__all__ = ['PlatformsApi','PlatformApi','PlatformProxyApi','PlatformUrlMappingPortApi']
+__all__ = ['PlatformsApi','PlatformApi','PlatformProxyApi',
+                            'PlatformUrlMappingPortApi','PlatformCatagoryApi']
 
 class PlatformsApi(Resource):
-    @login_required
+    @login_required(administrator=False)
     def get(self):
         args = reqparse.RequestParser() \
             .add_argument('limit', type = int,location = 'args') \
@@ -38,7 +39,7 @@ class PlatformsApi(Resource):
                             data = data + permission_data['platform_urls']
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     @adminuser_required
     def post(self):
         locations = ['form', 'json']
@@ -55,7 +56,7 @@ class PlatformsApi(Resource):
             return falseReturn(msg=str(e))
 
 class PlatformApi(Resource):
-    @login_required
+    @login_required()
     def get(self,platformid):
         if OpsRedis.exists(platformid):
             data = json.loads(OpsRedis.get(platformid).decode())
@@ -65,7 +66,7 @@ class PlatformApi(Resource):
             OpsRedis.set(platformid,json.dumps(data))
         return jsonify(trueReturn(data))
 
-    @login_required
+    @login_required()
     def put(self,platformid):
         locations = ['form', 'json']
         args = reqparse.RequestParser().add_argument('description', type=str,required=True,location=locations) \
@@ -83,22 +84,36 @@ class PlatformApi(Resource):
         except Exception as e:
             return jsonify(trueReturn(msg="更新失败%s" % str(e)))
 
-    @login_required
+    @login_required()
     def delete(self,platformid):
         try:
             platform = Platforms.select().where(Platforms.id == platformid).get()
-            if platform.platform_permission:
-                permission_names = [permission.name for permission in platform.platform_permission.objects()]
-                name = ",".join(permission_names)
-                return jsonify(falseReturn(msg="请先将授权规则(%s)中去除此平台" % name))
+            # if platform.platform_permission:
+            #     permission_names = [permission.name for permission in
+            #                                   platform.platform_permission.objects()]
+            #     name = ",".join(permission_names)
+            #     return jsonify(falseReturn(msg="请先将授权规则(%s)中去除此平台" % name))
+            platform.platform_permission.clear()
             Platforms.delete().where(Platforms.id == platformid).execute()
             return jsonify(trueReturn(msg="更新成功"))
         except Exception as e:
-            return jsonify(trueReturn(msg="更新失败%s" % str(e)))
+            return jsonify(falseReturn(msg="更新失败%s" % str(e)))
 
+
+class PlatformCatagoryApi(Resource):
+    @login_required()
+    def post(self):
+        locations = ['form', 'json']
+        args = reqparse.RequestParser().\
+            add_argument('description',type=str,required=True,location=locations).parse_args()
+        try:
+            Catagory.create(description=args.get('description'))
+            return jsonify(trueReturn(msg='创建成功'))
+        except Exception as e:
+            return jsonify(falseReturn(msg='创建失败%s' % str(e)))
 
 class PlatformUrlMappingPortApi(Resource):
-    @login_required
+    @login_required()
     def get(self,port):
         data = ''
         platform_port_dict = json.loads(OpsRedis.get('platform_proxy_port').decode())
@@ -114,7 +129,7 @@ class PlatformUrlMappingPortApi(Resource):
         return jsonify(trueReturn(data))
 
 class PlatformProxyApi(Resource):
-    @login_required
+    @login_required()
     def get(self):
         args = reqparse.RequestParser().\
             add_argument('platform_id', type=str,required=True, location='args').parse_args()
@@ -135,7 +150,7 @@ class PlatformProxyApi(Resource):
         else:
             return jsonify(falseReturn(msg=u'请先配置或者启动proxy server'))
 
-    @login_required
+    @login_required()
     def post(self):
         locations = ['form', 'json']
         args = reqparse.RequestParser().add_argument('platform_proxy_port',

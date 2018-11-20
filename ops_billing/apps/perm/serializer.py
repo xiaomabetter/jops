@@ -42,7 +42,7 @@ class AuthorizationPlatformSerializer(Schema):
     is_active = fields.Boolean()
     users = fields.Nested(UserSerializer,many=True,only=['id','username','email'])
     groups = fields.Nested(PermissionGroupSerializer,only=['id','name'],many=True)
-    platform_urls = fields.Nested(PlatformSerializer,only=['id','description','platform_url'],many=True)
+    platform_urls = fields.Nested(PlatformSerializer,many=True)
 
     class Meta:
         fields = ("id","name","users","groups","platform_urls","is_active")

@@ -63,19 +63,19 @@ def auth_login():
                 return response
 
 @user.route('/logout',methods=['GET','POST'])
-@login_required
+@login_required()
 def auth_logout():
     response = make_response(redirect(config.get('DEFAULT','SECURITY_LOGIN_URL')))
     response.delete_cookie("access_token")
     return response
 
 @user.route('/users/list',methods=['GET','POST'])
-@login_required
+@login_required()
 def users_list():
     return render_template('user/user_list.html')
 
 @user.route('/users/detail/<userid>',methods=['GET','POST'])
-@login_required
+@login_required()
 def users_detail(userid):
     userid = userid
     user_object = User.select().where(User.id==userid).first()
@@ -84,7 +84,7 @@ def users_detail(userid):
     return render_template('user/user_detail.html',**locals())
 
 @user.route('/users/create',methods=['GET','POST'])
-@login_required
+@login_required()
 def users_create():
     form = User_Create_Form()
     form.ldap_groups.choices = [(ug.id.hex,ug.value) for ug in  Groups.select().
@@ -94,7 +94,7 @@ def users_create():
     return render_template('user/user_create.html', form=form)
 
 @user.route('/users/update/<userid>',methods=['GET'])
-@login_required
+@login_required()
 def users_update(userid):
     user = User.select().where(User.id == userid)
     if user.get().is_ldap_user:
@@ -110,19 +110,19 @@ def users_update(userid):
     return render_template('user/user_update.html',form=form,userid=userid)
 
 @user.route('/groups/list',methods=['GET','POST'])
-@login_required
+@login_required()
 def groups_list():
     return render_template('user/group_list.html')
 
 @user.route('/groups/create',methods=['GET','POST'])
-@login_required
+@login_required()
 def groups_create():
     action = u"创建用户组"
     form = Groups_Form(request.form)
     return render_template('user/user_group_create.html',**locals())
 
 @user.route('/groups/update/<gid>',methods=['GET','POST'])
-@login_required
+@login_required()
 def groups_update(gid):
     groupid = gid
     action = u"更新用户组"
@@ -132,6 +132,6 @@ def groups_update(gid):
     return render_template('user/user_group_update.html', **locals())
 
 @user.route('/userlog/list',methods=['GET','POST'])
-@login_required
+@login_required()
 def userlogin_log_list():
     return  redirect('/auth/login')

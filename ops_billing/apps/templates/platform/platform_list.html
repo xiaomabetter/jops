@@ -12,9 +12,14 @@
             <div class="ibox float-e-margins">
                 <div class="ibox-content">
                     <div class="" id="content_start">
-                        <div class="uc pull-left m-r-5">
-                            <input class="btn btn-primary btn-sm" id="platform_create" type="button" value="创建">
-                        </div>
+                        {% if g.user.role == 'administrator' %}
+                            <div class="uc pull-left m-r-5">
+                                <input class="btn btn-primary btn-sm" id="platform_create" type="button" value="创建平台">
+                            </div>
+                            <div class="uc pull-left m-r-5">
+                                <input class="btn btn-primary btn-sm" id="platform_catagory_create" type="button" value="创建平台分类">
+                            </div>
+                        {% endif %}
                     </div>
                         <table class="table table-striped table-bordered table-hover " id="platform_list_table" style="width: 100%">
                             <thead>
@@ -41,7 +46,10 @@
         </div>
     </div>
 </div>
-{% include 'platform/_create_platform_modal.html' %}
+{% if g.user.role == 'administrator' %}
+    {% include 'platform/_create_platform_modal.html' %}
+    {% include 'platform/_create_platform_catagory_modal.html' %}
+{% endif %}
 {% endblock %}
 {% block custom_foot_js %}
 <script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
@@ -132,7 +140,7 @@ $(document).ready(function(){
 
 .on('click', '.btn_permission_group_delete', function () {
     var $this = $(this);
-    var $data_table = $('#system_user_list_table').DataTable();
+    var $data_table = $('#platform_list_table').DataTable();
     var name = $(this).closest("tr").find(":nth-child(2)").children('a').html();
     var platformid = $this.data('uid');
     var the_url = "{{ url_for('platform-api.platform_api',platformid='PK') }}".replace('PK',platformid);
@@ -168,6 +176,9 @@ $(document).ready(function(){
 
 $("#platform_create").on("click",function(){
    $('#platform_create_modal').modal('show');
+})
+$("#platform_catagory_create").on("click",function(){
+   $('#platform_catagory_create_modal').modal('show');
 })
 </script>
 {% endblock %}

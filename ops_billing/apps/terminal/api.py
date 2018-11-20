@@ -16,14 +16,14 @@ def get_terminal_id():
     return tid
 
 class TerminalListApi(Resource):
-    @login_required
+    @login_required()
     def get(self):
         serializer = TerminalSerializer()
         query_set = Terminal.select().order_by(Terminal.name)
         result = serializer.dump(query_set,many=True)
         return jsonify({'results':result.data})
 
-    @login_required
+    @login_required()
     def delete(self):
         args = reqparse.RequestParser().add_argument('id', type=str, location='json').parse_args()
         tid = args.get('id')
@@ -33,7 +33,7 @@ class TerminalListApi(Resource):
         return jsonify({})
 
 class TerminalDetailApi(Resource):
-    @login_required
+    @login_required()
     def get(self,tid):
         query_set = Terminal.select().where(Terminal.id==tid)
         serializer = TerminalSerializer(many=True)
@@ -115,7 +115,7 @@ class SessionListApi(Resource):
         instance.terminal.add(tid)
         return make_response(jsonify({}), 201)
 
-    @login_required
+    @login_required()
     def put(self):
         validated_session = []
         for session_id in json.loads(request.data):
