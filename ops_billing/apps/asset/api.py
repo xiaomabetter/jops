@@ -152,6 +152,7 @@ class BillApi(Resource):
         args = reqparse.RequestParser()\
             .add_argument('date_from',type=str,location='args').add_argument('date_to', type=str,location='args') \
             .add_argument('node_id', type=str, location='args').add_argument('asset_type', type=str,location='args') \
+            .add_argument('node_value', type=str, location='args') \
             .add_argument('instance_name', type=str, location='args') \
             .add_argument('instance_id', type=str,location='args').parse_args()
         data = []
@@ -166,7 +167,7 @@ class BillApi(Resource):
             if args.get('asset_type'):
                 query_set = query_set.filter(Bill.instance_type.contains(args.get('asset_type').lower()))
             if args.get('node_id') or args.get('node_value'):
-                node = Node.filter(Node.id == args.get('node_id')).first() or Node.filter(Node.id == args.get('node_value')).first()
+                node = Node.filter(Node.id == args.get('node_id')).first() or Node.filter(Node.value == args.get('node_value')).first()
                 instances = [[q.InstanceId,q.InstanceName] for q in node.get_all_assets(args.get('asset_type').lower())]
                 for instance in instances:
                     per_query_set = query_set.filter(Bill.instance_id == instance[0])

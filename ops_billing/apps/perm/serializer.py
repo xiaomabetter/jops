@@ -2,6 +2,8 @@ from marshmallow import schema,fields,Schema
 from apps.asset.serializer import NodeSerializer,AssetSerializer
 from apps.user.serializer import UserSerializer
 from apps.platform.serializer import PlatformSerializer
+from apps.models import PermissionGroups,PermissionPlatform
+import json
 
 class SystemUserSerializer(Schema):
     id = fields.Function(lambda obj: obj.id.hex)
@@ -18,8 +20,29 @@ class PermissionGroupSerializer(Schema):
     id = fields.Function(lambda obj: obj.id.hex)
     users = fields.Nested(UserSerializer, many=True,
                           only=['id','username', 'phone', 'wechat', 'ding', 'email'])
+    asset_permissions = fields.Method('relateAssetPerm',dump_only=True)
+    platform_permissions = fields.Method('relatePlatformPerm',dump_only=True)
+
+    def relateAssetPerm(self,obj):
+        result = {}
+        group = PermissionGroups.select().where(PermissionGroups.id == obj.id).first()
+        if group :
+            objects = group.asset_permissions.objects()
+            result = json.loads(AssetPermissionSerializer(many=True,only=['name']).dumps(objects).data)
+        return result
+
+    def relatePlatformPerm(self,obj):
+        result = {}
+        group = PermissionGroups.select().where(PermissionGroups.id == obj.id).first()
+        if group :
+            objects = group.platform_permission.objects()
+            result = json.loads(AuthorizationPlatformSerializer(many=True,only=['name']).dumps(objects).data)
+        return result
+
     class Meta:
-        fields = ("id","name","users",'date_created','date_updated','created_by','comment')
+        fields = ("id","name","users",'date_created','date_updated','created_by','comment',
+                  'asset_permissions','platform_permissions')
+
 
 class AssetPermissionSerializer(Schema):
     id = fields.Function(lambda obj: obj.id.hex)
