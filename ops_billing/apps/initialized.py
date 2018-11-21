@@ -67,8 +67,7 @@ def initialize():
     api.add_resource(PlatformsApi,'/api/platform/v1/platforms',endpoint = 'platform-api.platforms_api')
     api.add_resource(PlatformApi,'/api/platform/v1/platform/<platformid>',endpoint = 'platform-api.platform_api')
     api.add_resource(PlatformCatagoryApi,'/api/platform/v1/catagory',endpoint = 'platform-api.platforms_catagory_api')
-    api.add_resource(PlatformProxyApi,'/api/platform/v1/platformproxy',endpoint = 'platform-api.platforms_proxy_api')
-    api.add_resource(PlatformUrlMappingPortApi,'/api/platform/v1/<port>/platform',endpoint = 'platform-api.platform_url_mapping_api')
+    api.add_resource(PlatformProxyApi,'/api/platform/v1/proxy',endpoint = 'platform-api.platforms_proxy_api')
     return initapp
 
 

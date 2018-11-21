@@ -210,7 +210,7 @@ class GroupApi(Resource):
         return jsonify(trueReturn(msg='更新成功'))
 
 class UserLogin(Resource):
-    @login_required()
+    @login_required(administrator=False)
     def get(self):
         return jsonify(trueReturn(1))
 

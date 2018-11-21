@@ -6,10 +6,9 @@ from apps.platform.serializer import PlatformSerializer
 from apps.perm.serializer import AuthorizationPlatformSerializer
 from apps.utils import trueReturn,falseReturn
 from peewee import fn
-import json
+import json,random
 
-__all__ = ['PlatformsApi','PlatformApi','PlatformProxyApi',
-                            'PlatformUrlMappingPortApi','PlatformCatagoryApi']
+__all__ = ['PlatformsApi','PlatformApi','PlatformProxyApi','PlatformCatagoryApi']
 
 class PlatformsApi(Resource):
     @login_required(administrator=False)
@@ -88,11 +87,6 @@ class PlatformApi(Resource):
     def delete(self,platformid):
         try:
             platform = Platforms.select().where(Platforms.id == platformid).get()
-            # if platform.platform_permission:
-            #     permission_names = [permission.name for permission in
-            #                                   platform.platform_permission.objects()]
-            #     name = ",".join(permission_names)
-            #     return jsonify(falseReturn(msg="请先将授权规则(%s)中去除此平台" % name))
             platform.platform_permission.clear()
             Platforms.delete().where(Platforms.id == platformid).execute()
             return jsonify(trueReturn(msg="更新成功"))
@@ -112,49 +106,53 @@ class PlatformCatagoryApi(Resource):
         except Exception as e:
             return jsonify(falseReturn(msg='创建失败%s' % str(e)))
 
-class PlatformUrlMappingPortApi(Resource):
-    @login_required()
-    def get(self,port):
-        data = ''
-        platform_port_dict = json.loads(OpsRedis.get('platform_proxy_port').decode())
-        for platform_id,proxy_port in platform_port_dict.items():
-            if port == proxy_port:
-                if OpsRedis.exists(platform_id):
-                    data = json.loads(OpsRedis.get(platform_id).decode())
-                else:
-                    query_set = Platforms.select().where(Platforms.id == platform_id).get()
-                    data = json.loads(PlatformSerializer().dumps(query_set).data)
-                    OpsRedis.set(platform_id, json.dumps(data))
-                break
-        return jsonify(trueReturn(data))
-
 class PlatformProxyApi(Resource):
-    @login_required()
+    @login_required(administrator=False)
     def get(self):
         args = reqparse.RequestParser().\
             add_argument('platform_id', type=str,required=True, location='args').parse_args()
-        print(args)
-        platform_port = None
-        if OpsRedis.exists('platform_proxy_port'):
-            platform_port_dict = json.loads(OpsRedis.get('platform_proxy_port').decode())
-            if args.get('platform_id') in platform_port_dict:
-                platform_port = platform_port_dict.get(args.get('platform_id'))
-            else:
-                for port,platform_id in platform_port_dict.items():
-                    if port == '':
-                        platform_port = port
-                        break
-            if not platform_port:
-                return jsonify(falseReturn(msg=u'没有富裕的端口'))
-            return jsonify(trueReturn(platform_port))
+        platform = Platforms.select().where(Platforms.id == args.get('platform_id')).first()
+        platform_proxy = OpsRedis.get('platform_proxy')
+        if platform and platform_proxy:
+            data = json.loads(PlatformSerializer().dumps(platform).data)
+            location = platform.location
+            if type(platform_proxy) is bytes:platform_proxy = platform_proxy.decode()
+            platform_proxy = json.loads(platform_proxy)
+            if location not in platform_proxy:
+                return jsonify(falseReturn())
+            proxy_binds = platform_proxy[location]
+            if not isinstance(proxy_binds,list):
+                return jsonify(falseReturn())
+            bind = proxy_binds[random.randint(0,len(proxy_binds) -1)]
+            data['bind'] = bind
+            return jsonify(trueReturn(data))
         else:
-            return jsonify(falseReturn(msg=u'请先配置或者启动proxy server'))
+            return jsonify(falseReturn())
 
-    @login_required()
+    @login_required(administrator=False)
     def post(self):
-        locations = ['form', 'json']
-        args = reqparse.RequestParser().add_argument('platform_proxy_port',
-                                    type=str,required=True,location=locations).parse_args()
-        platform_proxy_port = args.get('platform_proxy_port')
-        OpsRedis.set('platform_proxy_url',platform_proxy_port)
+        locations = ['form','json']
+        args = reqparse.RequestParser()\
+            .add_argument('proxy_location',type=str,required=True,location=locations) \
+            .add_argument('proxy_bind', type=str, required=True, location=locations).parse_args()
+        proxy_location = args.get('proxy_location')
+        proxy_bind = args.get('proxy_bind')
+        platform_proxy = OpsRedis.get('platform_proxy')
+        if platform_proxy:
+            if type(platform_proxy) is bytes:platform_proxy = platform_proxy.decode()
+            platform_proxy = json.loads(platform_proxy)
+            if not isinstance(platform_proxy,dict):
+                OpsRedis.delete('platform_proxy')
+                platform_proxy = dict()
+            if proxy_location in platform_proxy:
+                proxy_binds = platform_proxy[proxy_location]
+                if not isinstance(proxy_binds,list):
+                    platform_proxy[proxy_location] = []
+                if proxy_bind not in proxy_binds:
+                    platform_proxy[proxy_location].append(proxy_bind)
+            else:
+                platform_proxy[proxy_location] = [proxy_bind]
+            OpsRedis.set('platform_proxy', json.dumps(platform_proxy))
+        else:
+            OpsRedis.set('platform_proxy',json.dumps({proxy_location:[proxy_bind]}))
         return trueReturn()
