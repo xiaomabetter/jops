@@ -1,5 +1,14 @@
 {% extends 'base/_base_list.html' %}
-{% block table_search %}
+{% block custom_head_css_js %}
+    <style type="text/css">
+        .twoLine {
+            max-width:800px;
+            display:block;
+            text-overflow:ellipsis;
+            overflow:hidden;
+            white-space:nowrap;
+        }
+    </style>
 {% endblock %}
 {% block table_container %}
 <div class="uc pull-left m-r-5">
@@ -11,9 +20,9 @@
         <th class="text-center">
             <input type="checkbox" id="check_all" class="ipt_check_all" >
         </th>
-        <th class="text-center">分组名称</th>
+        <th class="text-center">授权分组名称</th>
+        <th class="text-center">包含用户</th>
         <th class="text-center">备注</th>
-        <th class="text-center">创建时间</th>
         <th class="text-center">动作</th>
     </tr>
     </thead>
@@ -23,10 +32,45 @@
 {% endblock %}
 {% block custom_foot_js %}
 <script>
+var table, show = 0;
+
+function format(d) {
+    var data = "";
+    console.log(d.users);
+    if (d.users.length > 0) {
+        var result = []
+        d.users.forEach(function(e) {
+           result.push(e.username + '(' + e.phone + ')');
+        })
+       data += makeLabel(["用户", result.join(", ")])
+    }
+    return data
+}
+
+function makeLabel(data) {
+    return "<label class='detail-key'><b>" + data[0] + ":   </b></label>" + data[1] + "</br>"
+}
+
 function initTable() {
     var options = {
         ele: $('#permission_group_list_table'),
         columnDefs: [
+           { "width": "5%", "targets": 0 },
+           { "width": "15%", "targets": 1 },
+           { "width": "20%", "targets": 3 },
+           { "width": "15%", "targets": 4 },
+            {targets: 0, createdCell: function (td, cellData, rowData) {
+                $(td).addClass("toggle");
+                $(td).html("<i class='fa fa-angle-right'></i>");
+            }},
+            {targets: 2, createdCell: function (td, cellData, rowData) {
+                $(td).addClass("twoLine");
+                var result = []
+                cellData.forEach(function(e) {
+                    result.push(e.username);
+                })
+                $(td).html(result.join(", "))
+            }},
             {targets: 4, createdCell: function (td, cellData, rowData) {
                 var update_btn = '<a href="{{ url_for('perm.permission_group_update',pgid='PK') }}" class="btn btn-xs m-l-xs btn-info">更新</a>'.replace('PK',cellData);
                 var del_btn = '<a class="btn btn-xs btn-danger m-l-xs btn_permission_group_delete" data-uid="PK">删除</a>'.replace('PK', cellData);
@@ -35,15 +79,39 @@ function initTable() {
         ],
         ajax_url: "{{ url_for('perm-api.permission_groups_api') }}",
         columns: [
-            {data: "id" }, {data: "name" }, {data: "comment" },{data: "date_created"},{data: "id" }
+            {data: "id" }, {data: "name" }, {data: "users" },{data: "comment" },{data: "id" }
         ],
         op_html: $('#actions').html()
         };
-    jumpserver.initDataTable(options);
+    table = jumpserver.initDataTable(options);
+    return table
 }
 
 $(document).ready(function(){
     initTable();
+}).on('click', '.toggle', function (e) {
+    e.preventDefault();
+    var detailRows = [];
+    var tr = $(this).closest('tr');
+    var row = table.row(tr);
+    var idx = $.inArray(tr.attr('id'), detailRows);
+
+    if (row.child.isShown()) {
+        tr.removeClass('details');
+        $(this).children('i:first-child').removeClass('fa-angle-down').addClass('fa-angle-right');
+        row.child.hide();
+        // Remove from the 'open' array
+        detailRows.splice(idx, 1);
+    }
+    else {
+        tr.addClass('details');
+        $(this).children('i:first-child').removeClass('fa-angle-right').addClass('fa-angle-down');
+        row.child(format(row.data())).show();
+        // Add to the 'open' array
+        if ( idx === -1 ) {
+            detailRows.push(tr.attr('id'));
+        }
+    }
 })
 
 .on('click', '.btn_permission_group_delete', function () {
