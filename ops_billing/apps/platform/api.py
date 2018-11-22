@@ -42,7 +42,8 @@ class PlatformsApi(Resource):
     @adminuser_required
     def post(self):
         locations = ['form', 'json']
-        args = reqparse.RequestParser().add_argument('description', type=str,required=True,location=locations) \
+        args = reqparse.RequestParser()\
+            .add_argument('description', type=str,required=True,location=locations) \
             .add_argument('platform_url', type=str,required=True, location=locations) \
             .add_argument('catagory', type=str, required=True, location=locations) \
             .add_argument('location', type=str, required=True, location=locations).parse_args()
@@ -68,7 +69,8 @@ class PlatformApi(Resource):
     @login_required()
     def put(self,platformid):
         locations = ['form', 'json']
-        args = reqparse.RequestParser().add_argument('description', type=str,required=True,location=locations) \
+        args = reqparse.RequestParser()\
+            .add_argument('description', type=str,required=True,location=locations) \
             .add_argument('platform_url', type=str,required=True, location=locations) \
             .add_argument('catagory', type=str, required=True, location=locations) \
             .add_argument('location', type=str, required=True, location=locations).parse_args()
@@ -112,6 +114,7 @@ class PlatformProxyApi(Resource):
         args = reqparse.RequestParser().\
             add_argument('platform_id', type=str,required=True, location='args').parse_args()
         platform = Platforms.select().where(Platforms.id == args.get('platform_id')).first()
+        request_host = request.headers['Host'].split(':')[0]
         platform_proxy = OpsRedis.get('platform_proxy')
         if platform and platform_proxy:
             data = json.loads(PlatformSerializer().dumps(platform).data)
@@ -123,8 +126,14 @@ class PlatformProxyApi(Resource):
             proxy_binds = platform_proxy[location]
             if not isinstance(proxy_binds,list):
                 return jsonify(falseReturn())
-            bind = proxy_binds[random.randint(0,len(proxy_binds) -1)]
-            data['bind'] = bind
+            bind_outerips = [bind['outerip'] for bind in proxy_binds]
+            if request_host in bind_outerips:
+                data['bind'] = request_host
+            else:
+                proxy_bind = proxy_binds[random.randint(0,len(proxy_binds) -1)]
+                if not isinstance(proxy_bind,dict):
+                    return jsonify(falseReturn())
+                data['bind'] = proxy_bind['domain']
             return jsonify(trueReturn(data))
         else:
             return jsonify(falseReturn())
@@ -133,10 +142,12 @@ class PlatformProxyApi(Resource):
     def post(self):
         locations = ['form','json']
         args = reqparse.RequestParser()\
-            .add_argument('proxy_location',type=str,required=True,location=locations) \
-            .add_argument('proxy_bind', type=str, required=True, location=locations).parse_args()
-        proxy_location = args.get('proxy_location')
-        proxy_bind = args.get('proxy_bind')
+            .add_argument('location',type=str,required=True,location=locations) \
+            .add_argument('outerip', type=str, required=True, location=locations) \
+            .add_argument('domain', type=str, required=True, location=locations).parse_args()
+        location = args.get('location')
+        outerip = args.get('outerip')
+        domain = args.get('domain')
         platform_proxy = OpsRedis.get('platform_proxy')
         if platform_proxy:
             if type(platform_proxy) is bytes:platform_proxy = platform_proxy.decode()
@@ -144,15 +155,17 @@ class PlatformProxyApi(Resource):
             if not isinstance(platform_proxy,dict):
                 OpsRedis.delete('platform_proxy')
                 platform_proxy = dict()
-            if proxy_location in platform_proxy:
-                proxy_binds = platform_proxy[proxy_location]
+            if location in platform_proxy:
+                proxy_binds = platform_proxy[location]
                 if not isinstance(proxy_binds,list):
-                    platform_proxy[proxy_location] = []
-                if proxy_bind not in proxy_binds:
-                    platform_proxy[proxy_location].append(proxy_bind)
+                    platform_proxy[location] = []
+                bind_domains = [bind['domain'] for bind in proxy_binds]
+                bind_outerips = [bind['outerip'] for bind in proxy_binds]
+                if outerip not in bind_outerips and domain not in bind_domains:
+                    platform_proxy[location].append({'outerip':outerip,'domain':domain})
             else:
-                platform_proxy[proxy_location] = [proxy_bind]
+                platform_proxy[location] = {'outerip':outerip,'domain':domain}
             OpsRedis.set('platform_proxy', json.dumps(platform_proxy))
         else:
-            OpsRedis.set('platform_proxy',json.dumps({proxy_location:[proxy_bind]}))
+            OpsRedis.set('platform_proxy',json.dumps({location:[{'outerip':outerip,'domain':domain}]}))
         return trueReturn()

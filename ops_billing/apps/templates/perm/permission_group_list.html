@@ -93,7 +93,7 @@ function initTable() {
                 cellData.forEach(function(e) {
                     result.push(e.username);
                 })
-                $(td).html(result.join(", "))
+                $(td).html(result.join(" , "))
             }},
             {targets: 3, createdCell: function (td, cellData, rowData) {
                //$(td).addClass("twoLine1");
@@ -104,7 +104,7 @@ function initTable() {
                 if (result.length === 0 ) {
                     $(td).html("None")
                 } else {
-                    $(td).html(result.join(", "))
+                    $(td).html(result.join(" , "))
                 }
             }},
             {targets: 4, createdCell: function (td, cellData, rowData) {
@@ -116,7 +116,7 @@ function initTable() {
                 if (result.length === 0 ) {
                     $(td).html("None")
                 } else {
-                    $(td).html(result.join(", "))
+                    $(td).html(result.join(" , "))
                 }
             }},
             {targets: 6, createdCell: function (td, cellData, rowData) {
