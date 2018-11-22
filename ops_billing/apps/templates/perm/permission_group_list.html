@@ -2,14 +2,14 @@
 {% block custom_head_css_js %}
     <style type="text/css">
         .twoLine {
-            max-width:800px;
+            max-width:500px;
             display:block;
             text-overflow:ellipsis;
             overflow:hidden;
             white-space:nowrap;
         }
         .twoLine1 {
-            max-width:100px;
+            max-width:115px;
             display:block;
             text-overflow:ellipsis;
             overflow:hidden;
@@ -27,10 +27,8 @@
         <th class="text-center">
             <input type="checkbox" id="check_all" class="ipt_check_all" >
         </th>
-        <th class="text-center">授权分组名称</th>
+        <th class="text-center">分组名称</th>
         <th class="text-center">包含用户</th>
-        <th class="text-center">资产授权规则</th>
-        <th class="text-center">平台授权规则</th>
         <th class="text-center">备注</th>
         <th class="text-center">动作</th>
     </tr>
@@ -77,12 +75,10 @@ function initTable() {
     var options = {
         ele: $('#permission_group_list_table'),
         columnDefs: [
-           { "width": "6%", "targets": 0 },
-           { "width": "14%", "targets": 1 },
-           { "width": "14%", "targets": 3 },
-           { "width": "14%", "targets": 4 },
-           { "width": "12%", "targets": 5 },
-           { "width": "10%", "targets": 6 },
+           { "width": "8%", "targets": 0 },
+           { "width": "20%", "targets": 1 },
+           { "width": "20%", "targets": 3 },
+           { "width": "15%", "targets": 4 },
             {targets: 0, createdCell: function (td, cellData, rowData) {
                 $(td).addClass("toggle");
                 $(td).html("<i class='fa fa-angle-right'></i>");
@@ -95,8 +91,8 @@ function initTable() {
                 })
                 $(td).html(result.join(" , "))
             }},
+            /*
             {targets: 3, createdCell: function (td, cellData, rowData) {
-               //$(td).addClass("twoLine1");
                 var result = []
                 cellData.forEach(function(e) {
                     result.push(e.name);
@@ -106,6 +102,7 @@ function initTable() {
                 } else {
                     $(td).html(result.join(" , "))
                 }
+                //$(td).addClass("twoLine1");
             }},
             {targets: 4, createdCell: function (td, cellData, rowData) {
                 //$(td).addClass("twoLine1");
@@ -119,7 +116,8 @@ function initTable() {
                     $(td).html(result.join(" , "))
                 }
             }},
-            {targets: 6, createdCell: function (td, cellData, rowData) {
+            */
+            {targets: 4, createdCell: function (td, cellData, rowData) {
                 var update_btn = '<a href="{{ url_for('perm.permission_group_update',pgid='PK') }}" class="btn btn-xs m-l-xs btn-info">更新</a>'.replace('PK',cellData);
                 var del_btn = '<a class="btn btn-xs btn-danger m-l-xs btn_permission_group_delete" data-uid="PK">删除</a>'.replace('PK', cellData);
                 $(td).html(update_btn + del_btn)
@@ -127,8 +125,7 @@ function initTable() {
         ],
         ajax_url: "{{ url_for('perm-api.permission_groups_api') }}",
         columns: [
-            {data: "id" }, {data: "name" }, {data: "users" },{data: "asset_permissions"},{data: "platform_permissions"},
-            {data: "comment" },{data: "id" }
+            {data: "id" }, {data: "name" }, {data: "users" },{data: "comment" },{data: "id" }
         ],
         op_html: $('#actions').html()
         };
