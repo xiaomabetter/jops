@@ -132,9 +132,8 @@ $(document).ready(function(){
             var url = "http://" + bind + ":" + proxyport
             var access_token = $.cookie('access_token')
             if (current_domain != bind ) {
-                //$.cookie('access_token',access_token,{expires:7,path:'/',domain:'easemob.com'})
-                $.cookie('access_token',access_token,{expires:7,path:'/',domain:'172.17.2.236'})
-                //$.cookie('access_token',access_token,{expires:7,path:'/',domain:'172.17.2.236:9023'})
+                $.cookie('access_token',access_token,{expires:7,path:'/',domain:'easemob.com'})
+                $.cookie('access_token',access_token,{expires:7,path:'/',domain:bind})
             }
             jQuery.url.setUrl(platform_url)
             if (jQuery.url.attr("path")) {
