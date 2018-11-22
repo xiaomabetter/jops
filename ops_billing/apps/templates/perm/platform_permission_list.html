@@ -82,6 +82,9 @@ function initTable() {
         toggle: true,
         columnDefs: [
             { "width": "8%", "targets": 0 },
+            { "width": "8%", "targets": 2 },
+            { "width": "8%", "targets": 4 },
+            { "width": "8%", "targets": 5 },
             {targets: 0, createdCell: function (td, cellData, rowData) {
                 $(td).addClass("toggle");
                 $(td).html("<i class='fa fa-angle-right'></i>");
