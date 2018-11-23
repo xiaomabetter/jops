@@ -127,7 +127,7 @@ $(document).ready(function () {
         }
         var ht = ''
         $.each(data['data'], function (key, value) {
-            ht = ht + '<tr><td>'+key + '</td><td><b>' + JSON.stringify(value).replace(/\"/g,"") + '</b></td></tr>'
+            ht = ht + '<tr><td>'  + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +key + ':</td><td><b>' + JSON.stringify(value).replace(/\"/g,"") + '</b></td></tr>'
         });
         $('#Detail').html(ht.replace('"',''));
     }

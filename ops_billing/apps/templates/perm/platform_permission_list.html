@@ -9,6 +9,15 @@
             width: 70px;
         }
     </style>
+    <style type="text/css">
+        .twoLine {
+            max-width:300px;
+            display:block;
+            text-overflow:ellipsis;
+            overflow:hidden;
+            white-space:nowrap;
+        }
+    </style>
 {% endblock %}
 {% block content %}
 <div class="wrapper wrapper-content">
@@ -23,12 +32,12 @@
               <table class="table table-striped table-bordered table-hover" id="permission_list_table" style="width: 100%">
                   <thead>
                   <tr>
-                       <th>详细信息</th>
+                       <th>详细</th>
                        <th>规则名称</th>
                        <th class="text-center">用户</th>
                        <th class="text-center">授权组</th>
-                       <th class="text-center">平台url</th>
-                       <th class="text-center">激活中</th>
+                       <th class="text-center">授权平台</th>
+                       <th class="text-center">激活</th>
                       <th class="text-center">动作</th>
                    </tr>
                   </thead>
@@ -81,17 +90,26 @@ function initTable() {
         ele: $('#permission_list_table'),
         toggle: true,
         columnDefs: [
-            { "width": "8%", "targets": 0 },
-            { "width": "8%", "targets": 2 },
-            { "width": "8%", "targets": 4 },
-            { "width": "8%", "targets": 5 },
+            { "width": "10%", "targets": 0 },
+            { "width": "30%", "targets": 1 },
+            { "width": "25%", "targets": 3 },
+            { "width": "9%", "targets": 5 },
+            { "width": "19%", "targets": 6 },
             {targets: 0, createdCell: function (td, cellData, rowData) {
                 $(td).addClass("toggle");
                 $(td).html("<i class='fa fa-angle-right'></i>");
             }},
             {targets: 2, createdCell: function (td, cellData) {
-                var num = cellData.length;
-                $(td).html(num);
+                $(td).addClass("twoLine");
+                var result = []
+                cellData.forEach(function(e) {
+                    result.push(e.username);
+                })
+                if (result.length === 0 ) {
+                    $(td).html("None")
+                } else {
+                    $(td).html(result.join(", "))
+                }
             }},
             {targets: 3, createdCell: function (td, cellData) {
                 var result = []
@@ -105,8 +123,16 @@ function initTable() {
                 }
             }},
             {targets: 4, createdCell: function (td, cellData) {
-                var num = cellData.length;
-                $(td).html(num);
+                $(td).addClass("twoLine");
+                var result = []
+                cellData.forEach(function(e) {
+                    result.push(e.description);
+                })
+                if (result.length === 0 ) {
+                    $(td).html("None")
+                } else {
+                    $(td).html(result.join(", "))
+                }
             }},
             {targets: 5, createdCell: function (td, cellData) {
                 if (!cellData) {
