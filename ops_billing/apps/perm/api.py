@@ -246,6 +246,7 @@ class PlatformAuthorizationsApi(Resource):
     def get(self):
         data = OpsRedis.get('all_platforms_info')
         if data:
+            print(11111)
             data = json.loads(data)
         else:
             query_set = PermissionPlatform.select()

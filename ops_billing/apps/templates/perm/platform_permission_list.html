@@ -62,7 +62,7 @@ function format(d) {
         d.users.forEach(function(e) {
            result.push(e.username + '(' + e.email + ')');
         })
-        data += makeLabel(["用户", result.join(", ")])
+        data += makeLabel(["授权用户", result.join(", ")])
     }
     if (d.groups.length > 0) {
         var result = []
@@ -76,7 +76,7 @@ function format(d) {
         d.platform_urls.forEach(function(e) {
            result.push(e.description + '(' + e.platform_url + ')');
         })
-        data += makeLabel(["平台url", result.join(", ")])
+        data += makeLabel(["代理平台", result.join(", ")])
     }
     return data
 }
@@ -91,7 +91,7 @@ function initTable() {
         toggle: true,
         columnDefs: [
             { "width": "10%", "targets": 0 },
-            { "width": "30%", "targets": 1 },
+            { "width": "20%", "targets": 1 },
             { "width": "25%", "targets": 3 },
             { "width": "9%", "targets": 5 },
             { "width": "19%", "targets": 6 },

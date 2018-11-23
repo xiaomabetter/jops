@@ -98,31 +98,29 @@ def service_update(serviceid):
     form.description.data = service.description
     return render_template('asset/service_update.html',**locals())
 
-@asset.route('/bill/list',methods=['GET','POST'])
+@asset.route('/<asset_type>/bill',methods=['GET','POST'])
 @login_required()
-def bill_list():
+def bill_list(asset_type):
     limit = config.get('DEFAULT','ITEMS_PER_PAGE')
-    page = 1;nodeid = instanceid = date_from = date_to = ''
-    asset_type = 'ALL'
+    page = int(request.args.get('page') or 1)
+    nodeid = instanceid = date_from = date_to = ''
     if request.method == 'POST':
         formdata = request.form.to_dict()
-        print(formdata)
         page = int(formdata.get('page',1))
         nodeid = formdata.get('nodeid','')
         instanceid = formdata.get('instanceid','')
         date_from = formdata.get('date_from','')
         date_to = formdata.get('date_to', '')
-        asset_type = formdata.get('asset_type','ALL')
     query_set = Bill.select()
     if not date_from or not date_to:
         date_to = datetime.now().strftime('%Y-%m-%d')
         date_from = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
     query_set = query_set.filter(Bill.day.between(date_from, date_to))
     if query_set.count() != 0:
-        if asset_type != 'ALL':
+        if asset_type != 'all':
             query_set = query_set.filter(Bill.instance_type.contains(asset_type))
         if instanceid:
-            query_set = query_set.filter(Bill.instance_id == instanceid)
+            query_set = query_wset.filter(Bill.instance_id == instanceid)
         else:
             if nodeid :
                 node = Node.select().where(Node.id == nodeid).get()

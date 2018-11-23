@@ -184,7 +184,7 @@ class SyncAliAssets(object):
     def get_oss_instances(self):
         result = []
         auth = oss2.Auth(self.AccessKeyId,self.AccessKeySecret)
-        fuc_buckets = oss2.Service(auth, 'oss-cn-hangzhou.aliyuncs.com').list_buckets(max_keys=200)
+        fuc_buckets = oss2.Service(auth, 'oss-cn-hangzhou.aliyuncs.com').list_buckets(max_keys=300)
         for Instance in fuc_buckets.buckets:
             result.append({
                 'InstanceId':Instance.name,

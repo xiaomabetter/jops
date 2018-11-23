@@ -25,10 +25,21 @@
             <div class="ibox float-e-margins">
                 <div class="ibox-content">
                     <div class="" id="content_start">
+                        <div class="btn-group uc pull-left m-r-5" >
+                          <button data-toggle="dropdown" class="btn btn-default btn-sm dropdown-toggle"> 资产类型: {{asset_type}}<span class="caret"></span></button>
+                          <ul class="dropdown-menu labels">
+                                <li style="margin:0px 0px 0px 0px"><a href="{{ url_for('asset.bill_list',asset_type='all') }}">All</a></li>
+                                <li style="margin:0px 0px 0px 0px"><a href="{{ url_for('asset.bill_list',asset_type='slb') }}">Slb</a></li>
+                                <li style="margin:0px 0px 0px 0px"><a href="{{ url_for('asset.bill_list',asset_type='ecs') }}">Ecs</a></li>
+                                <li style="margin:0px 0px 0px 0px"><a href="{{ url_for('asset.bill_list',asset_type='rds') }}">Rds</a></li>
+                                <li style="margin:0px 0px 0px 0px"><a href="{{ url_for('asset.bill_list',asset_type='redis') }}">Redis</a></li>
+                                <li style="margin:0px 0px 0px 0px"><a href="{{ url_for('asset.bill_list',asset_type='oss') }}">Oss</a></li>
+                          </ul>
+                        </div>
+                        <div class="pull-left" style="margin:0px 0px 0px">
+                            <input class="btn btn-default btn-sm" id="sync_aly_bill" type="button" value="同步阿里云费用">
+                        </div>
                         <form id="search_form" method="post" action=""  autocomplete="off" enctype="multipart/form-data" class="form-inline">
-                            <div class="pull-left" style="margin:0px 0px 0px">
-                                <input class="btn btn-default btn-sm" id="sync_aly_bill" type="button" value="同步阿里云费用">
-                            </div>
                             <div class="input-group">
                                 <input type="text"  class="form-control input-sm" style="display:none" name="nodeid"  value="">
                             </div>
@@ -47,17 +58,6 @@
                                     <span class="input-group-addon">to</span>
                                     <input type="text" class="input-sm form-control" style="width: 100px;height:34px" name="date_to" value="{{date_to}}">
                                 </div>
-                            </div>
-                            <div class="input-group uc pull-right m-r-5">
-                                <select class="selectpicker" name="asset_type">
-                                    {% for astp in ['ECS','SLB','RDS','OSS','ALL'] %}
-                                        {% if astp == asset_type %}
-                                            <option selected>{{ astp }}</option>
-                                        {% else %}
-                                            <option>{{ astp }}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                </select>
                             </div>
                         </form>
                     </div>
@@ -105,6 +105,7 @@
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/loadingoverlay.min.js') }}"></script>
 <script>
+var asset_type = "{{ asset_type }}"
 function initTree() {
     var setting = {
         view: {
@@ -119,7 +120,7 @@ function initTree() {
         async: {
 			enable: true,
 			url: "{{ url_for('assets-api.assets_api') }}",
-			autoParam:["id=node_id"],
+			autoParam:["id=node_id","assetType=asset_type"],
 			dataFilter: filter,
             type: 'get'
 		},
@@ -139,15 +140,24 @@ function initTree() {
     };
 
     var zNodes = [];
-    var data = {'asset_type':'ecs'};
+    if ( asset_type === 'all') {
+        var data = {'simple':true};
+    } else {
+        var data = {'asset_type':asset_type};
+    }
     $.get("{{ url_for('assets-api.nodes_api') }}",data,function(data, status){
         var result = data['data'];
         $.each(result, function (index, value) {
             value["pId"] = value["parent"];
             value["open"] = value["open"];
             value["isParent"] = value["is_node"];
-            value["name"] = value["value"] + ' (' + value['assets_amount'] + ')';
+            if (value['assets_amount']) {
+                value["name"] = value["value"] + ' (' + value['assets_amount'] + ')';
+            } else {
+                value["name"] = value["value"]
+            }
             value["iconSkin"] = value["is_node"] ? null : 'file';
+            value["assetType"] = "{{ asset_type }}";
         });
         zNodes = result;
         {#$.fn.zTree.init($("#assetTree"), setting);#}

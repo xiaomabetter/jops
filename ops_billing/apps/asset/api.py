@@ -50,12 +50,12 @@ class AssetsApi(Resource):
                 return jsonify(falseReturn(msg=str(e)))
             asset_type = args.get('asset_type')
             if node.is_root():
-                query_set = Asset.filter((Asset.AssetType == asset_type) & (Asset.Status != 'Destroy'))
+                query_set = Asset.filter((Asset.AssetType==asset_type)&((Asset.Status != 'Destroy')|(Asset.Status == None)))
                 if args.get('un_node') and not args.get('node_id'):
                     assetids = node.get_family_assetids(asset_type)
                     query_set = query_set.filter(Asset.id.not_in(assetids))
             else:
-                query_set = node.get_all_assets(asset_type).filter(Asset.Status != 'Destroy')
+                query_set = node.get_all_assets(asset_type).filter((Asset.Status != 'Destroy')|(Asset.Status == None))
             if args.get('search'):
                 search = args.get('search')
                 query_set = query_set.filter(Asset.InstanceName.contains(search) |
@@ -195,7 +195,6 @@ class BillsApi(Resource):
             .add_argument('offset', type=int, location='args') \
             .add_argument('search', type=str, location='args') \
             .add_argument('instanceid', type=str,location='args').parse_args()
-        print(args)
         data = []
         query_set = Bill.select()
         date_from = args.get('date_from')
@@ -225,28 +224,26 @@ class NodesApi(Resource):
     @login_required()
     def get(self):
         args = reqparse.RequestParser()\
-            .add_argument('asset_type',type=str,choices=Asset.asset_type(),location='args',required=True)\
+            .add_argument('asset_type',type=str,location='args')\
             .add_argument('simple', type=bool,location='args').parse_args()
         asset_type = args.get('asset_type')
-        Node.asset_type  = asset_type
         data = json.loads(NodeSerializer(many=True,exclude=['full_value']).dumps(Node.select()).data)
         if args.get('simple'):
             for index, item in enumerate(data):
-                data[index]['assets_amount'] = 0
+                data[index]['assets_amount'] = ''
             return jsonify(trueReturn(data))
-        node_redis_keys = ['{}_{}'.format(asset_type,node['value'])  for node in data]
+        node_redis_keys = ['{}_{}'.format(asset_type,node['value']) for node in data]
         assets_amounts = OpsRedis.mget(node_redis_keys)
         for index,item in enumerate(data):
             key = '{}_{}'.format(asset_type, item['value'])
-            if key in node_redis_keys:
-                amounts = assets_amounts[node_redis_keys.index(key)]
-                if amounts:
-                    data[index]['assets_amount'] = amounts.decode()
-                else:
-                    node = Node.select().where(Node.id == item['id']).get()
-                    amounts = node.get_all_assets(asset_type).count()
-                    OpsRedis.set(key,amounts)
-                    data[index]['assets_amount'] = amounts
+            amounts = assets_amounts[node_redis_keys.index(key)]
+            if amounts:
+                data[index]['assets_amount'] = amounts.decode()
+            else:
+                node = Node.select().where(Node.id == item['id']).get()
+                amounts = node.get_all_assets(asset_type).count()
+                OpsRedis.set(key, amounts)
+                data[index]['assets_amount'] = amounts
         return jsonify(trueReturn(data))
 
 class NodeApi(Resource):
