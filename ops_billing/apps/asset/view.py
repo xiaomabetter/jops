@@ -120,7 +120,7 @@ def bill_list(asset_type):
         if asset_type != 'all':
             query_set = query_set.filter(Bill.instance_type.contains(asset_type))
         if instanceid:
-            query_set = query_wset.filter(Bill.instance_id == instanceid)
+            query_set = query_set.filter(Bill.instance_id == instanceid)
         else:
             if nodeid :
                 node = Node.select().where(Node.id == nodeid).get()

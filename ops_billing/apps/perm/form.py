@@ -8,7 +8,7 @@ from wtforms.validators import DataRequired
 class Perm_Base_Form(FlaskForm):
     name = StringField(u'名称', [DataRequired(message=u'必须填写规则名称')],
                             widget=TextInput(), render_kw={"class": "form-control","placeholder":"填写规则名称"})
-    is_active = BooleanField(u'激活中', widget=CheckboxInput(), render_kw={"class": "form-control", 'checked': 'true'})
+    is_active = BooleanField(u'激活中', widget=CheckboxInput(), render_kw={"class": "form-control"})
     comment = TextAreaField('备注', render_kw={"class": "form-control"})
 
 class Perm_Create_Form(Perm_Base_Form):

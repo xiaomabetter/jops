@@ -110,4 +110,5 @@ def platform_permission_update(permissionid):
     form.platform_urls.data = [platform_url.id.hex for platform_url in platform_perm.platform_urls.objects()]
     form.groups.data = [group.id.hex for group in platform_perm.groups.objects() if platform_perm.groups]
     form.users.data = [user.id.hex for user in platform_perm.users.objects() if platform_perm.users]
+    form.is_active.data = platform_perm.is_active
     return render_template(template_name,form=form,permissionid=permissionid)

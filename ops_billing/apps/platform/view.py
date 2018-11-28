@@ -7,7 +7,7 @@ from apps.models.platform import Platforms,Catagory
 @platform.route('/platforms/list',methods=['GET'])
 @login_required(administrator=False)
 def platform_list():
-    catagorys = Catagory.select()
+    catagorys =  [p.description for p in Catagory.select()]
     return render_template('platform/platform_list.html',**locals())
 
 @platform.route('/platforms/update/<platformid>',methods=['GET'])

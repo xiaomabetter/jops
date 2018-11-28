@@ -27,6 +27,14 @@
                             <div class="uc pull-left m-r-5">
                                 <input class="btn btn-primary btn-sm" id="platform_catagory_create" type="button" value="创建平台分类">
                             </div>
+                            <div class="uc pull-left m-r-5">
+                                <select id="category_select" class="form-control input-sm">
+                                    <option value="ALL">ALL</option>
+                                   {% for cata in catagorys %}
+                                       <option value="{{ cata }}">{{ cata }}</option>
+                                   {% endfor %}
+                                </select>
+                            </div>
                         {% endif %}
                     </div>
                         <table class="table table-striped table-bordered table-hover " id="platform_list_table" style="width: 100%">
@@ -61,6 +69,7 @@
 {% block custom_foot_js %}
 <script src="{{ url_for('static', filename='js/jquery.cookie.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.url.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
 <script>
 var table, show = 0;
 
@@ -114,11 +123,45 @@ function initTable() {
         op_html: $('#actions').html()
         };
     table = jumpserver.initDataTable(options);
+    console.log(table);
     return table
+}
+
+function initComplete() {
+    table.columns().indexes().flatten().each( function ( i ) {
+        var column = table.column( i );
+        var select = $('<select><option value=""></option></select>')
+            .appendTo( $(column.footer()).empty() )
+            .on( 'change', function () {
+                var val = $.fn.dataTable.util.escapeRegex(
+                    $(this).val()
+                );
+                column
+                    .search( val ? '^'+val+'$' : '', true, false )
+                    .draw();
+            } );
+        column.data().unique().sort().each( function ( d, j ) {
+            select.append( '<option value="'+d+'">'+d+'</option>' )
+        } );
+    } );
+}
+
+function catagorySearch() {
+    catagory_val = $("#category_select").val()
+    if (catagory_val == 'ALL') {
+        table.column( 3 ).search('',true,true).draw()
+    } else {
+        table.column( 3 ).search(catagory_val,true,true).draw()
+    }
 }
 
 $(document).ready(function(){
     initTable();
+    initComplete();
+    $("#category_select").change(function () {
+        catagorySearch();
+    });
+
 }).on('click', '#do_transfer_url', function () {
     var $this = $(this);
     var platform_id = $this.data('uid');
@@ -144,9 +187,7 @@ $(document).ready(function(){
             alert('错误');
         }
     });
-})
-
-.on('click', '.btn_permission_group_delete', function () {
+}).on('click', '.btn_permission_group_delete', function () {
     var $this = $(this);
     var $data_table = $('#platform_list_table').DataTable();
     var name = $(this).closest("tr").find(":nth-child(2)").children('a').html();
@@ -179,13 +220,50 @@ $(document).ready(function(){
             detailRows.push(tr.attr('id'));
         }
     }
+}).on('click', '#platform_create', function () {
+   $('#platform_create_modal').modal();
+}).on('click', '#platform_catagory_create', function () {
+   $('#platform_catagory_create_modal').modal();
 })
 
-$("#platform_create").on("click",function(){
-   $('#platform_create_modal').modal('show');
-})
-$("#platform_catagory_create").on("click",function(){
-   $('#platform_catagory_create_modal').modal('show');
-})
+$("#submit_button").on("click",function(){
+   $('#platform_create_form').ajaxSubmit(
+        {
+            url: "{{ url_for('platform-api.platforms_api') }}",
+            type: 'post',
+            dataType: 'json',
+            success: function (data) {
+                if (data['status']) {
+                    $('#platform_create_modal').hide()
+                    toastr.success(data['msg']);
+                    var $data_table = $('#platform_list_table').DataTable();
+                    $data_table.ajax.reload();
+                } else {
+                    alert(data['msg']);
+                }
+            },
+            clearForm: false,
+            resetForm: false
+   })
+});
+
+$("#submit_button_1").on("click",function(){
+   $('#platform_catagory_create_form').ajaxSubmit(
+        {
+            url: "{{ url_for('platform-api.platforms_catagory_api') }}",
+            type: 'post',
+            dataType: 'json',
+            success: function (data) {
+                if (data['status']) {
+                    $('#platform_catagory_create_modal').hide()
+                    toastr.success(data['msg']);
+                } else {
+                    alert(data['msg']);
+                }
+            },
+            clearForm: false,
+            resetForm: false
+   })
+});
 </script>
 {% endblock %}

@@ -10,7 +10,7 @@
     padding: 0px 0px 0px 0px;
 }
 .twoLine {
-    max-width:300px;
+    max-width:100px;
     display:block;
     text-overflow:ellipsis;
     overflow:hidden;
@@ -39,8 +39,8 @@
                             <input type="checkbox" class="ipt_check_all">
                         </th>
                         <th class="text-center">镜像名称</th>
-                        <th class="text-center">镜像描述</th>
                         <th class="text-center">系统名称</th>
+                        <th class="text-center">镜像描述</th>
                     </thead>
                </table>
            </div>
@@ -55,16 +55,14 @@ function initTable() {
         ele: $('#images_list_table'),
         buttons: [],
         columnDefs: [
-           { "width": "40%", "targets": 2 },
-           { "width": "30%", "targets": 2 },
-           { "width": "30%", "targets": 3 },
-          {targets: 2, createdCell: function (td, cellData,rowData) {
+          { "width": "30%", "targets": 1 },
+          {targets: 3, createdCell: function (td, cellData,rowData) {
                 $(td).addClass("twoLine");
                 $(td).html(cellData);
            }},
         ],
         ajax_url: "{{ url_for('assets-api.images_api') }}",
-        columns: [{data: "ImageId" }, {data: "ImageName"},{data: "Description"}, {data: "OSName"}],
+        columns: [{data: "ImageId" }, {data: "ImageName"}, {data: "OSName"},{data: "Description"}],
         order: [],
         op_html: $('#actions').html()
     };

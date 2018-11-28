@@ -246,7 +246,6 @@ class PlatformAuthorizationsApi(Resource):
     def get(self):
         data = OpsRedis.get('all_platforms_info')
         if data:
-            print(11111)
             data = json.loads(data)
         else:
             query_set = PermissionPlatform.select()
@@ -294,7 +293,8 @@ class PlatformAuthorizationApi(Resource):
         for arg in ('users','groups','platform_urls'):
             parse.add_argument(arg,type=str,action='append',location=locations)
         args = parse.add_argument('name', type=str,location=locations,required=True) \
-                .add_argument('is_active', type=bool, default=True,location=locations).parse_args()
+                .add_argument('is_active', type=bool,location=locations).parse_args()
+        args['is_active'] = args.get('is_active') or False
         if not args.get('users') and not args.get('groups'):
             return jsonify(falseReturn(msg=u'用户和用户组，必须选择一项'))
         data,errors = AuthorizationPlatformSerializer(only=['name','is_active']).load(args)
