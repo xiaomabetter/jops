@@ -149,7 +149,7 @@ function initComplete() {
 function catagorySearch() {
     catagory_val = $("#category_select").val()
     if (catagory_val == 'ALL') {
-        table.column( 3 ).search('',true,true).draw()
+        table.column( 3 ).search('',false,true).draw()
     } else {
         table.column( 3 ).search(catagory_val,true,true).draw()
     }

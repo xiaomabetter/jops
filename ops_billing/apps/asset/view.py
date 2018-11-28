@@ -11,10 +11,6 @@ from .form import Service_Form,Aly_Create_Instance_Form,Aly_Create_Instance_Temp
 from apps.auth import login_required,adminuser_required
 import json
 
-@asset.route('/')
-def index():
-    return render_template('base/index.html')
-
 @asset.route('/<asset_type>/list',methods=['GET'])
 @login_required()
 def asset_list(asset_type):

@@ -18,27 +18,36 @@ def auth_login():
         username = request.form.get('username',False)
         password = request.form.get('password',False)
         is_ldap_login = request.form.get('is_ldap_login',False)
-        success = make_response(redirect('/'))
+
+        def redirectResponse(role):
+            if role == 'user':
+                return make_response(redirect(url_for('platform.platform_list')))
+            else:
+                return make_response(redirect("/"))
+
         if is_ldap_login:
             ldapuser = ldapconn.ldap_search_user(username)
             if not ldapuser:
                 flash(message='ldapuser不存在',category='error')
                 return response
-            else:ldapuser = ldapuser[0]
+            else:
+                ldapuser = ldapuser[0]
             department = ldapuser['department'];ldapuser.pop('department')
             if password == ldapuser['password']:
                 user = User.select().where(User.username == username).first()
                 if not user:
                     ldapuser['password'] = encryption_md5(ldapuser['password'])
                     user = User.create(**ldapuser)
-                group = Groups.select().where(Groups.value == department).first()
+                group = Groups.select().where(Groups.value == department and Groups.is_ldap_group == True).first()
                 if not group:
-                    ROOT = Groups.root(); group = Groups.create(value=department,key=0)
+                    ROOT = Groups.root()
+                    group = Groups.create(value=department, key=0, is_ldap_login = True)
                     group.parent = ROOT; group.save()
                     user.group.add(group.id)
                 else:
                     user_group = user.group.select().where(Groups.value == department)
                     if user_group.count() == 0:user.group.add(group.id)
+                success = redirectResponse(user.role)
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
                 UserLoginLog.create(username=user.username,login_at=datetime.datetime.now(),
@@ -54,6 +63,7 @@ def auth_login():
             user = User.select().where((User.is_ldap_user == False) & (User.username == username)).first()
             if user and user.verify_password(password):
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
+                success = redirectResponse(user.role)
                 token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
                 success.set_cookie('access_token', token)
                 if  isinstance(token,bytes) : token.decode()

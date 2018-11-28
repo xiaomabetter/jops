@@ -232,12 +232,13 @@ class UserLogin(Resource):
                 if not user :
                     ldapuser['password'] = encryption_md5(ldapuser['password'])
                     user = User.create(**ldapuser)
-                group = Groups.select().where(Groups.value == department).first()
+                group = Groups.select().where(Groups.value == department and Groups.is_ldap_group == True).first()
                 if group:
                     user_group = user.group.select().where(Groups.value == department)
                     if user_group.count() == 0:user.group.add(group.id)
                 else:
-                    ROOT = Groups.root(); group = Groups.create(value=department,key=0)
+                    ROOT = Groups.root()
+                    group = Groups.create(value=department,key=0,is_ldap_login = True)
                     group.parent = ROOT; group.save()
                     user.group.add(group.id)
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))

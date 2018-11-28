@@ -2,53 +2,40 @@
 {% block content %}
 <div class="wrapper wrapper-content">
     <div class="row">
-        <div class="col-sm-5">
+        <div class="col-sm-4">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
                     <span class="label label-success pull-right">Users</span>
                     <h5>用户总数</h5>
                 </div>
                 <div class="ibox-content">
-                    <h1 class="no-margins"><a href="">{{ users_count }}</a></h1>
+                    <h1 class="no-margins"><a href="{{ url_for('user.users_list') }}">{{ users_count }}</a></h1>
                     <small>All users</small>
                 </div>
             </div>
         </div>
-        <div class="col-sm-5">
+        <div class="col-sm-4">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
                     <span class="label label-info pull-right">Hosts</span>
                     <h5>主机总数</h5>
                 </div>
                 <div class="ibox-content">
-                    <h1 class="no-margins"><a href="">{{ assets_count }}</a></h1>
+                    <h1 class="no-margins"><a href="{{ url_for('asset.asset_list',asset_type='ecs') }}">{{ assets_count }}</a></h1>
                     <small>All hosts</small>
                 </div>
             </div>
         </div>
 
-        <div class="col-sm-5">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <span class="label label-primary pull-right">Online</span>
-                    <h5>在线用户</h5>
-                </div>
-                <div class="ibox-content">
-                    <h1 class="no-margins"><a href=""> <span id="online_users"></span>{{ online_user_count }}</a></h1>
-                    <small>Online users</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-5">
+        <div class="col-sm-4">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
                     <span class="label label-danger pull-right">Connected</span>
                     <h5>代理平台数量</h5>
                 </div>
                 <div class="ibox-content">
-                        <h1 class="no-margins"><a href=""> <span id="online_hosts"></span>{{ platform_count }}</a></h1>
-                    <small>Online sessions</small>
+                        <h1 class="no-margins"><a href="{{ url_for('platform.platform_list') }}"> <span id="online_hosts"></span>{{ platform_count }}</a></h1>
+                    <small>Online platforms</small>
                 </div>
             </div>
         </div>
