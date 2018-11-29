@@ -35,14 +35,14 @@ def asset_create():
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create.html',**locals())
 
-@asset.route('/create/template',methods=['GET'])
+@asset.route('/template/create',methods=['GET'])
 @login_required()
 def asset_create_template():
     form = Aly_Create_Instance_Template()
     Zones = OpsRedis.get('aly_zones').decode()
     return render_template('asset/asset_create_template.html',**locals())
 
-@asset.route('/create/template/list',methods=['GET'])
+@asset.route('/template/list',methods=['GET'])
 @login_required()
 def asset_create_template_list():
     form = Aly_Create_Instance_Template()

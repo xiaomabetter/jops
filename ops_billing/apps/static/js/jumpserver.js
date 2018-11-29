@@ -152,6 +152,8 @@ function activeNav() {
                 $('#bill_list').addClass('active');
             } else if (resource === 'create') {
                 $('#asset_create').addClass('active');
+            } else if (resource === 'template') {
+                $('#template_list').addClass('active');
             } else if (resource === 'service') {
                 $('#service_list').addClass('active');
             }
