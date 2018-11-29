@@ -22,10 +22,10 @@
                     <div class="" id="content_start">
                         {% if g.user.role == 'administrator' %}
                             <div class="uc pull-left m-r-5">
-                                <input class="btn btn-primary btn-sm" id="platform_create" type="button" value="创建平台">
+                                <button class="btn btn-primary btn-sm" id="platform_create" type="button">创建平台</button>
                             </div>
                             <div class="uc pull-left m-r-5">
-                                <input class="btn btn-primary btn-sm" id="platform_catagory_create" type="button" value="创建平台分类">
+                                <button class="btn btn-primary btn-sm" id="platform_catagory_create" type="button">创建平台分类</button>
                             </div>
                             <div class="uc pull-left m-r-5">
                                 <select id="category_select" class="form-control input-sm">
@@ -149,7 +149,7 @@ function initComplete() {
 function catagorySearch() {
     catagory_val = $("#category_select").val()
     if (catagory_val == 'ALL') {
-        table.column( 3 ).search('',false,true).draw()
+        table.column( 3 ).search('',true,true).draw()
     } else {
         table.column( 3 ).search(catagory_val,true,true).draw()
     }
@@ -158,6 +158,10 @@ function catagorySearch() {
 $(document).ready(function(){
     initTable();
     initComplete();
+    catagory_val = $("#category_select").val()
+    if (catagory_val != 'ALL') {
+        table.column( 3 ).search(catagory_val,true,true).draw()
+    }
     $("#category_select").change(function () {
         catagorySearch();
     });
@@ -221,9 +225,9 @@ $(document).ready(function(){
         }
     }
 }).on('click', '#platform_create', function () {
-   $('#platform_create_modal').modal();
+   $('#platform_create_modal').modal("show");
 }).on('click', '#platform_catagory_create', function () {
-   $('#platform_catagory_create_modal').modal();
+   $('#platform_catagory_create_modal').modal("show");
 })
 
 $("#submit_button").on("click",function(){
@@ -234,7 +238,7 @@ $("#submit_button").on("click",function(){
             dataType: 'json',
             success: function (data) {
                 if (data['status']) {
-                    $('#platform_create_modal').hide()
+                    $('#platform_create_modal').modal('hide')
                     toastr.success(data['msg']);
                     var $data_table = $('#platform_list_table').DataTable();
                     $data_table.ajax.reload();
@@ -255,7 +259,7 @@ $("#submit_button_1").on("click",function(){
             dataType: 'json',
             success: function (data) {
                 if (data['status']) {
-                    $('#platform_catagory_create_modal').hide()
+                    $('#platform_catagory_create_modal').modal('hide')
                     toastr.success(data['msg']);
                 } else {
                     alert(data['msg']);

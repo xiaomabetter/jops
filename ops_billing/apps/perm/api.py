@@ -20,13 +20,13 @@ __all__ = ['SystemUsersApi','SystemUserApi','AssetPermissionsApi','AssetPermissi
 class PermissionGroupsApi(Resource):
     @login_required()
     def get(self):
-        args = reqparse.RequestParser().add_argument('search', type=str, location='args').parse_args()
-        query_set = PermissionGroups.select()
-        if args.get('search'):
-            search = args.get('search')
-            query_set = PermissionGroups.filter(PermissionGroups.name.contains(search))
-        query_set = query_set.order_by(PermissionGroups.name)
-        data = json.loads(PermissionGroupSerializer(many=True).dumps(query_set).data)
+        data = OpsRedis.get('all_platform_groups_info')
+        if data:
+            data = json.loads(data)
+        else:
+            query_set = PermissionGroups.select().order_by(PermissionGroups.name)
+            data = json.loads(PermissionGroupSerializer(many=True).dumps(query_set).data)
+            OpsRedis.set('all_platform_groups_info',json.dumps(data))
         return jsonify(trueReturn(data))
 
     @login_required()
@@ -41,6 +41,9 @@ class PermissionGroupsApi(Resource):
             if args.get('users'):
                 for userid in args.get('users'):
                     pgroup.users.add(userid)
+            query_set = PermissionGroups.select().order_by(PermissionGroups.name)
+            data = json.loads(PermissionGroupSerializer(many=True).dumps(query_set).data)
+            OpsRedis.set('all_platform_groups_info', json.dumps(data))
             return jsonify(trueReturn(msg='创建成功'))
         except Exception as e:
             return jsonify(falseReturn(msg=e))
@@ -66,6 +69,9 @@ class PermissionGroupApi(Resource):
                 elif new_users - current_users:
                     for uid in list(new_users - current_users):pgroup.users.add(uid)
             pgroup.save()
+            query_set = PermissionGroups.select().order_by(PermissionGroups.name)
+            data = json.loads(PermissionGroupSerializer(many=True).dumps(query_set).data)
+            OpsRedis.set('all_platform_groups_info', json.dumps(data))
             return jsonify(trueReturn(msg='更新成功'))
         except Exception as e:
             print(e)

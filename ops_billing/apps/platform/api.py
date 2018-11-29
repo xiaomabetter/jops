@@ -164,7 +164,7 @@ class PlatformProxyApi(Resource):
                 if outerip not in bind_outerips and domain not in bind_domains:
                     platform_proxy[location].append({'outerip':outerip,'domain':domain})
             else:
-                platform_proxy[location] = {'outerip':outerip,'domain':domain}
+                platform_proxy[location] = [{'outerip':outerip,'domain':domain}]
             OpsRedis.set('platform_proxy', json.dumps(platform_proxy))
         else:
             OpsRedis.set('platform_proxy',json.dumps({location:[{'outerip':outerip,'domain':domain}]}))

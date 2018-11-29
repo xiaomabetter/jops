@@ -57,7 +57,7 @@
            </div>
            <div class="mail-box-header">
                <div class="btn-group uc pull-left m-r-5" >
-                  <button data-toggle="dropdown" class="btn btn-default btn-sm dropdown-toggle"> 资产类型: {{asset_type}}<span class="caret"></span></button>
+                  <button data-toggle="dropdown" class="btn btn-primary btn-sm dropdown-toggle"> 资产类型: {{asset_type}}<span class="caret"></span></button>
                   <ul class="dropdown-menu labels">
                         <li><a href="{{ url_for('asset.asset_list',asset_type='slb') }}">Slb</a></li>
                         <li><a href="{{ url_for('asset.asset_list',asset_type='ecs') }}">Ecs</a></li>
@@ -67,10 +67,10 @@
                   </ul>
                </div>
                <div class="btn-group pull-right m-r-5">
-                    <button class="btn btn-default btn-sm" id="asset_notin_node">点击查看未分组资产</button>
+                    <button class="btn btn-info btn-sm" id="asset_notin_node">点击查看未分组资产</button>
                </div>
-               <div class="btn-group pull-right m-r-5">
-                    <button class="btn btn-default btn-sm" id="sync_aly_asset">同步阿里云资产</button>
+               <div class="btn-group pull-left m-r-5">
+                    <button class="btn btn-primary btn-sm" id="sync_aly_asset">同步阿里云资产</button>
                </div>
                <table class="table table-striped table-bordered table-hover " id="asset_list_table" style="width: 100%">
                    <thead>

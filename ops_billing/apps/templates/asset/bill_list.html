@@ -26,7 +26,7 @@
                 <div class="ibox-content">
                     <div class="" id="content_start">
                         <div class="btn-group uc pull-left m-r-5" >
-                          <button data-toggle="dropdown" class="btn btn-default btn-sm dropdown-toggle"> 资产类型: {{asset_type}}<span class="caret"></span></button>
+                          <button data-toggle="dropdown" class="btn btn-primary btn-sm dropdown-toggle"> 资产类型: {{asset_type}}<span class="caret"></span></button>
                           <ul class="dropdown-menu labels">
                                 <li style="margin:0px 0px 0px 0px"><a href="{{ url_for('asset.bill_list',asset_type='all') }}">All</a></li>
                                 <li style="margin:0px 0px 0px 0px"><a href="{{ url_for('asset.bill_list',asset_type='slb') }}">Slb</a></li>
@@ -37,7 +37,7 @@
                           </ul>
                         </div>
                         <div class="pull-left" style="margin:0px 0px 0px">
-                            <input class="btn btn-default btn-sm" id="sync_aly_bill" type="button" value="同步阿里云费用">
+                            <input class="btn btn-primary btn-sm" id="sync_aly_bill" type="button" value="同步阿里云费用">
                         </div>
                         <form id="search_form" method="post" action=""  autocomplete="off" enctype="multipart/form-data" class="form-inline">
                             <div class="input-group">

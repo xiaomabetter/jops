@@ -4,15 +4,19 @@
     创建模板
 {% endblock %}
 {% block ibox_title_right %}
-    <div class="pull-right" style="margin:0px 40px 10px 10px"><input class="btn btn-default btn-sm" id="sync_vswitches" type="button" value="同步阿里云交换机"></div>
-    <div class="pull-right" style="margin:0px 10px 10px 10px"><input class="btn btn-default btn-sm" id="sync_image" type="button" value="同步阿里云镜像"></div>
-    <div class="pull-right"><input class="btn btn-default btn-sm" id="sync_SecurityGroup" type="button" value="同步阿里云安全组"></div>
 {% endblock %}
 {% block form %}
 <form  method="post" id="create_template" class="form-horizontal" autocomplete="off" enctype="multipart/form-data" action="" >
     <h4>基本</h4>
     {{ render_field(form.name,'required') }}
     <div class="hr-line-dashed"></div>
+    <div class="form-group row">
+        <label class="col-md-2 control-label">阿里云数据同步</label>
+        <input class="btn btn-default btn-sm" style="padding-right: 10px" id="sync_vswitches" type="button" value="同步阿里云交换机">
+        <input class="btn btn-default btn-sm" id="sync_image" type="button" value="同步阿里云镜像">
+        <input class="btn btn-default btn-sm" id="sync_SecurityGroup" type="button" value="同步阿里云安全组">
+          ...当选择交换机、镜像及安全组不存在时，点击同步相应信息
+    </div>
     <div class="form-group">
         {{ render_field_no_form_group(form.RegionId,'required') }}
         {{ render_field_no_form_group(form.ZoneId,'required') }}
