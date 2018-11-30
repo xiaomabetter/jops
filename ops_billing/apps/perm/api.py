@@ -95,9 +95,10 @@ class SystemUsersApi(Resource):
         locations = ['form','json']
         parse = reqparse.RequestParser()
         for arg in ('name', 'username', 'protocol', 'password' ,'sudo','comment','shell'):
-            args = parse.add_argument(arg,type=str,location=locations).parse_args()
+            parse.add_argument(arg,type=str,location=locations)
         for arg in ('auto_generate_key','auto_push') :
-            args = parse.add_argument(arg,type=bool,location=locations).parse_args()
+            parse.add_argument(arg,type=bool,location=locations)
+        args = parse.parse_args()
         if not args.get('auto_generate_key') :
             args = parse.add_argument('private_key', type=FileStorage,location='files').parse_args()
         data,errors = SystemUserSerializer().load(args)
@@ -127,9 +128,10 @@ class SystemUserApi(Resource):
         locations = ['form','json']
         parse = reqparse.RequestParser()
         for arg in ('name', 'username', 'protocol', 'password' ,'sudo','comment','shell'):
-            args = parse.add_argument(arg,type=str,location=locations).parse_args()
+            parse.add_argument(arg,type=str,location=locations)
         for arg in ('auto_generate_key','auto_push') :
-            args = parse.add_argument(arg,type=bool,location=locations).parse_args()
+            parse.add_argument(arg,type=bool,location=locations)
+        args = parse.parse_args()
         if not args.get('auto_generate_key') :
             args = parse.add_argument('private_key', type=FileStorage,location='files').parse_args()
         data,errors = SystemUserSerializer().load(args)

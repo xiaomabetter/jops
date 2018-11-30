@@ -6,16 +6,16 @@
 {% block modal_body %}
 <script src="{{ url_for('static', filename='js/jquery.form.min.js') }}"></script>
 <style>
-.modal-body {
-    padding: 0px 0px 0px 0px;
-}
-.twoLine {
-    max-width:100px;
-    display:block;
-    text-overflow:ellipsis;
-    overflow:hidden;
-    white-space:nowrap;
-}
+    .modal-body {
+        padding: 0px 0px 0px 0px;
+    }
+    .twoLine {
+        max-width:140px;
+        display:block;
+        text-overflow:ellipsis;
+        overflow:hidden;
+        white-space:nowrap;
+    }
 </style>
 <div class="wrapper wrapper-content">
    <div class="row">
@@ -35,12 +35,15 @@
                </div>
                <table class="table table-striped table-bordered table-hover" id="images_list_table" style="width: 100%">
                      <thead>
-                        <th class="text-center">
-                            <input type="checkbox" class="ipt_check_all">
-                        </th>
-                        <th class="text-center">镜像名称</th>
-                        <th class="text-center">系统名称</th>
-                        <th class="text-center">镜像描述</th>
+                         <tr>
+                            <th class="text-center">
+                                <input type="checkbox" class="ipt_check_all">
+                            </th>
+                            <th class="text-center">镜像名称</th>
+                            <th class="text-center">系统名称</th>
+                            <th class="text-center">镜像描述</th>
+                            <th class="text-center">区域</th>
+                         </tr>
                     </thead>
                </table>
            </div>
@@ -55,14 +58,20 @@ function initTable() {
         ele: $('#images_list_table'),
         buttons: [],
         columnDefs: [
-          { "width": "30%", "targets": 1 },
+          { "width": "20%", "targets": 1 },
+          { "width": "20%", "targets": 2 },
+          { "width": "5%", "targets": 4 },
+          { "width": "5%", "targets": 5 },
+          {"targets": [ 4 ],"visible": false,"searchable": true},
+          {"targets": [ 5 ],"visible": false,"searchable": true},
           {targets: 3, createdCell: function (td, cellData,rowData) {
                 $(td).addClass("twoLine");
                 $(td).html(cellData);
            }},
         ],
         ajax_url: "{{ url_for('assets-api.images_api') }}",
-        columns: [{data: "ImageId" }, {data: "ImageName"}, {data: "OSName"},{data: "Description"}],
+        columns: [{data: "ImageId" }, {data: "ImageName"}, {data: "OSName"},{data: "Description"},
+                    {data:"RegionId"},{data:"ImageOwnerAlias"}],
         order: [],
         op_html: $('#actions').html()
     };
@@ -71,17 +80,14 @@ function initTable() {
 }
 
 function ImageChangeSelect() {
-    var init_image_url = image_table.ajax.url();
     var regionid = $('#RegionId_select').val()
     if (regionid) {
-        init_image_url = setUrlParam(init_image_url, "RegionId", regionid);
+        image_table.column( 4 ).search(regionid,true,true).draw()
     }
-    var image_category = $('#image_category_select').val()
-    if (image_category) {
-        init_image_url = setUrlParam(init_image_url, "image_category", image_category);
+    var ImageOwnerAlias = $('#image_category_select').val()
+    if (ImageOwnerAlias) {
+        image_table.column( 5 ).search(ImageOwnerAlias,true,true).draw()
     }
-    image_table.ajax.url(init_image_url);
-    image_table.ajax.reload();
 }
 
 $(document).ready(function() {

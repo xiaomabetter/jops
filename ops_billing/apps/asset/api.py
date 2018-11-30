@@ -471,62 +471,17 @@ class TemplateApi(Resource):
 class ImagesApi(Resource):
     @login_required()
     def get(self):
-        args = reqparse.RequestParser()\
-            .add_argument('image_category',type=str,location='args')\
-            .add_argument('RegionId',type=str,location='args').parse_args()
         if not OpsRedis.exists('aly_images'):
             return jsonify(falseReturn(msg='先同步镜像信息'))
-        result = json.loads(OpsRedis.get('aly_images').decode())
-        if args.get('image_category') and args.get('RegionId'):
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
-                    for r in result if r['RegionId'] == args.get('RegionId')
-                    and r['ImageOwnerAlias'] == args.get('image_category') ]
-        elif args.get('image_category') :
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
-            for r in result if r['ImageOwnerAlias'] == args.get('image_category') ]
-        elif args.get('RegionId') :
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
-                    for r in result if r['RegionId'] == args.get('RegionId')  ]
-        else:
-            data = [dict(ImageName=r['ImageName'],ImageId=r['ImageId'],Description=r['Description'],OSName=r['OSName'])
-                    for r in result ]
+        data = json.loads(OpsRedis.get('aly_images').decode())
         return jsonify(trueReturn(data))
 
 class SecurityGroupsApi(Resource):
     @login_required()
     def get(self):
-        args = reqparse.RequestParser()\
-            .add_argument('RegionId',type=str,location='args') \
-            .add_argument('VSwitchId', type=str, location='args').parse_args()
         if not OpsRedis.exists('aly_security_groups'):
             return jsonify(falseReturn(msg='先同步安全组信息'))
-        results = []
-        vpcid = None
-        for sg in json.loads(OpsRedis.get('aly_security_groups').decode()):
-            results.append(
-                {
-                    'SecurityGroupId': sg['SecurityGroupId'],
-                    'SecurityGroupName': sg['SecurityGroupName'],
-                    'RegionId': sg['RegionId'],
-                    'CreationTime': sg['CreationTime'],
-                    'NetworkType': 'vpc' if sg.get('VpcId') else 'classic',
-                    'VpcId': sg.get('VpcId')
-                }
-            )
-        if args.get('VSwitchId'):
-            if not OpsRedis.exists('aly_vswitches_vpcs'):
-                return jsonify(falseReturn(msg='先同步交换机信息'))
-            swinfos = json.loads(OpsRedis.get('aly_vswitches_vpcs').decode())
-            vpcid = swinfos.get(args.get('VSwitchId'))
-        if args.get('RegionId') and args.get('VSwitchId'):
-            data = [info for info in results if args.get('RegionId') == info.get('RegionId')
-                                                                and vpcid == info.get('VpcId')]
-        elif args.get('RegionId'):
-            data = [info for info in results if args.get('RegionId') == info.get('RegionId')]
-        elif args.get('VSwitchId'):
-            data = [info for info in results if vpcid == info.get('VpcId')]
-        else:
-            data = results
+        data = json.loads(OpsRedis.get('aly_security_groups').decode())
         return jsonify(trueReturn(data))
 
 class VSwitchesApi(Resource):

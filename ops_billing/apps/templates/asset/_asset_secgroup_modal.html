@@ -28,13 +28,16 @@
                </div>
                <table class="table table-striped table-bordered table-hover" id="securitygroups_list_table" style="width: 100%">
                      <thead>
-                        <th class="text-center">
-                            <input type="checkbox" class="ipt_check_all">
-                        </th>
-                        <th class="text-center">安全组ID</th>
-                        <th class="text-center">安全组名称</th>
-                        <th class="text-center">区域</th>
-                        <th class="text-center">创建时间</th>
+                         <tr>
+                            <th class="text-center">
+                                <input type="checkbox" class="ipt_check_all">
+                            </th>
+                            <th class="text-center">安全组ID</th>
+                            <th class="text-center">安全组名称</th>
+                            <th class="text-center">区域</th>
+                            <th class="text-center">创建时间</th>
+                            <th class="text-center">VpcId</th>
+                         </tr>
                     </thead>
                </table>
            </div>
@@ -45,17 +48,15 @@
 <script>
 securitygroup_table = 0;
 function SecinitTable() {
-    var init_securitygroup_url = "{{ url_for('assets-api.securitygroups_api') }}";
-    var VSwitchId = $('#VSwitchId').val()
-    if (VSwitchId){
-        init_securitygroup_url = setUrlParam(init_securitygroup_url, "VSwitchId", VSwitchId);
-    }
     var options = {
         ele: $('#securitygroups_list_table'),
         buttons: [],
-        columnDefs: [],
-        ajax_url: init_securitygroup_url,
-        columns: [{data: "SecurityGroupId" },{data: "SecurityGroupId" }, {data: "SecurityGroupName"},{data: "RegionId"}, {data: "CreationTime"}],
+        columnDefs: [
+             {"targets": [ 5 ],"visible": false,"searchable": true},
+        ],
+        ajax_url: "{{ url_for('assets-api.securitygroups_api') }}",
+        columns: [{data: "SecurityGroupId" },{data: "SecurityGroupId" }, {data: "SecurityGroupName"},
+                    {data: "RegionId"}, {data: "CreationTime"},{data:"VpcId"}],
         order: [],
         op_html: $('#actions').html()
     };
@@ -64,17 +65,14 @@ function SecinitTable() {
 }
 
 function SecurityGroupChangeSelect() {
-    var init_securitygroup_url = "{{ url_for('assets-api.securitygroups_api') }}";
     var regionid = $('#SecRegionId_select').val()
     var VSwitchId = $('#VSwitchId').val()
     if (regionid) {
-        init_securitygroup_url = setUrlParam(init_securitygroup_url, "RegionId", regionid);
+        securitygroup_table.column( 3 ).search(regionid,true,true).draw()
     }
     if (VSwitchId){
-        init_securitygroup_url = setUrlParam(init_securitygroup_url, "VSwitchId", VSwitchId);
+        securitygroup_table.column( 5 ).search(VSwitchId,true,true).draw()
     }
-    securitygroup_table.ajax.url(init_securitygroup_url);
-    securitygroup_table.ajax.reload();
 }
 
 $(document).ready(function() {
