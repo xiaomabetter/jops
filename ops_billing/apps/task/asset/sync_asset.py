@@ -148,7 +148,7 @@ class SyncAliAssets(object):
                 OpsRedis.set(Instance['DBInstanceId'], json.dumps(attr))
         return result
 
-    def get_redis_instances(self,pageSize=50):
+    def get_kvstore_instances(self,pageSize=50):
         result = []
         request = kvInstancesRequest.DescribeInstancesRequest()
         request.set_accept_format('json')
@@ -172,7 +172,7 @@ class SyncAliAssets(object):
                 attr = r['Instances']['DBInstanceAttribute'][0]
                 result.append({
                     'InstanceId': attr['InstanceId'],
-                    'AssetType': 'redis',
+                    'AssetType': 'kvstore',
                     'InnerAddress': attr['ConnectionDomain'],
                     'InstanceName': attr['InstanceName'],
                     'RegionId': attr['RegionId'],
@@ -193,6 +193,7 @@ class SyncAliAssets(object):
                 'PublicIpAddress':'.'.join([Instance.name,Instance.location,'aliyuncs.com']),
                 'InstanceName': Instance.name,
                 'RegionId': Instance.location.strip('oss-'),
+                'Status':"Running"
                 })
         return result
 
@@ -204,8 +205,8 @@ class SyncAliAssets(object):
             instances = self.get_rds_instances()
         elif asset_type == 'slb':
             instances = self.get_slb_instances()
-        elif asset_type == 'redis':
-            instances = self.get_redis_instances()
+        elif asset_type == 'kvstore':
+            instances = self.get_kvstore_instances()
         elif asset_type == 'oss':
             instances = self.get_oss_instances()
         else:

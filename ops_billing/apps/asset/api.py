@@ -234,6 +234,7 @@ class NodesApi(Resource):
             return jsonify(trueReturn(data))
         node_redis_keys = ['{}_{}'.format(asset_type,node['value']) for node in data]
         assets_amounts = OpsRedis.mget(node_redis_keys)
+        print(assets_amounts)
         for index,item in enumerate(data):
             key = '{}_{}'.format(asset_type, item['value'])
             amounts = assets_amounts[node_redis_keys.index(key)]

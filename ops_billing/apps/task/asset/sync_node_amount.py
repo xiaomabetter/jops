@@ -10,8 +10,7 @@ class NodeAmount(object):
             for asset_type in asset_types:
                 key = '{}_{}'.format(asset_type, 'ROOT')
                 asset_amount = Node.root().get_all_assets(asset_type)\
-                    .filter(Asset.Status != 'Destroy').count()
-                print(asset_amount)
+                                        .filter(Asset.Status != 'Destroy').count()
                 OpsRedis.set(key, asset_amount)
         except Exception as e:
             print(str(e))
@@ -26,7 +25,7 @@ class NodeAmount(object):
                 for asset_type in asset_types:
                     key = '{}_{}'.format(asset_type, node.value)
                     asset_amount = node.get_all_assets(asset_type)\
-                                .filter(Asset.Status != 'Destroy').count()
+                                            .filter(Asset.Status != 'Destroy').count()
                     OpsRedis.set(key,asset_amount)
         except Exception as e:
             print(str(e))
@@ -40,7 +39,7 @@ class NodeAmount(object):
                 for asset_type in asset_types:
                     key = '{}_{}'.format(asset_type, node.value)
                     asset_amount = node.get_all_assets(asset_type)\
-                                .filter(Asset.Status != 'Destroy').count()
+                                            .filter(Asset.Status != 'Destroy').count()
                     OpsRedis.set(key,asset_amount)
             except Exception as e:
                 print(str(e))

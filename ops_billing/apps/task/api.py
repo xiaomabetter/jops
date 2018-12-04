@@ -49,6 +49,7 @@ class AlySyncApi(Resource):
             .add_argument('day_to', type=str, location=['json', 'form']) \
             .add_argument('is_update', type=str,default='no',location=['json', 'form']) \
             .add_argument('asset_type', type=str, location=['json','form']).parse_args()
+        print(args)
         r = None
         task_name = args.get('task_name')
         default_queue = config.get('CELERY', 'CELERY_DEFAULT_QUEUE')
@@ -63,6 +64,7 @@ class AlySyncApi(Resource):
                 is_update = False
             r = run_sync_asset.apply_async([args.get('asset_type'),is_update],queue=default_queue)
         elif task_name == 'syncbill':
+            print(task_name)
             if not args.get('day_from') or not args.get('day_to'):
                 return jsonify(falseReturn(msg=u'确少参数'))
             user = get_login_user()

@@ -75,10 +75,7 @@ var table, show = 0;
 
 function format(d) {
     var data = "";
-    data += makeLabel(["平台URL", d.platform_url])
     data += makeLabel(["平台位于", d.location])
-    data += makeLabel(["平台代理端口", d.proxyport])
-    data += makeLabel(["平台代理类型", d.catagory])
     data += makeLabel(["平台创建时间", d.date_created])
     return data
 }
