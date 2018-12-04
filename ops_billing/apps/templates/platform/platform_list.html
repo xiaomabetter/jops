@@ -6,6 +6,7 @@
     <script src="{{ url_for('static', filename='js/plugins/datatables/datatables.min.js') }}"></script>
     <style type="text/css">
         .twoLine {
+            max-width:350px;
             display:block;
             text-overflow:ellipsis;
             overflow:hidden;
@@ -47,6 +48,7 @@
                                 <th class="text-center">平台Url</th>
                                 <th class="text-center">业务分类</th>
                                 <th class="text-center">代理端口</th>
+                                <th class="text-center">是否代理</th>
                                 <th class="text-center">动作</th>
                             </tr>
                             </thead>
@@ -93,12 +95,14 @@ function initTable() {
            { "width": "20%", "targets": 1 },
            { "width": "12%", "targets": 3 },
            { "width": "10%", "targets": 4 },
-           { "width": "15%", "targets": 5 },
+           { "width": "10%", "targets": 5 },
+           { "width": "15%", "targets": 6 },
             {targets: 0, createdCell: function (td, cellData, rowData) {
                 $(td).addClass("toggle");
                 $(td).html("<i class='fa fa-angle-right'></i>");
             }},
             {targets: 2, createdCell: function (td, cellData, rowData) {
+                $(td).addClass("twoLine");
                 if (rowData['isproxy']) {
                     $(td).html(cellData);
                 } else {
@@ -106,7 +110,14 @@ function initTable() {
                     $(td).html(detail_btn.replace('PK',cellData));
                 }
             }},
-            {targets: 5, createdCell: function (td, cellData, rowData) {
+            {targets: 5, createdCell: function (td, cellData) {
+                if (!cellData) {
+					$(td).html('<i class="fa fa-times text-danger"></i>')
+				} else {
+					$(td).html('<i class="fa fa-check text-navy"></i>')
+				}
+            }},
+            {targets: 6, createdCell: function (td, cellData, rowData) {
                 var transfer_btn = '<a class="btn btn-xs m-l-xs btn-info" id="do_transfer_url" data-uid="PK">跳转</a>'
                         .replace('PK',rowData['id']);
                 {% if g.user.role == 'administrator' %}
@@ -120,8 +131,8 @@ function initTable() {
         ],
         ajax_url: "{{ url_for('platform-api.platforms_api') }}",
         columns: [
-            {data: "id" },{data: "description" },{data: "platform_url",searching: false },{data: "catagory" },{data: "proxyport" }
-            ,{data: "id" }
+            {data: "id" },{data: "description" },{data: "platform_url",searching: false },{data: "catagory" },
+            {data: "proxyport" },{data: "isproxy" },{data: "id" }
         ],
         op_html: $('#actions').html()
         };

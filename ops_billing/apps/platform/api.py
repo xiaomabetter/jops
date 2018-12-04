@@ -58,7 +58,9 @@ class PlatformsApi(Resource):
                              platform_url=args.get('platform_url'), catagory=args.get('catagory'))
             if args.get('isproxy'):
                 platform.proxyport = int(maxport) + 1
-                platform.save()
+            else:
+                platform.proxyport = 0
+            platform.save()
             return trueReturn(msg='创建成功')
         except Exception as e:
             return falseReturn(msg=str(e))
@@ -88,6 +90,8 @@ class PlatformApi(Resource):
                             catagory=args.get('catagory'),location=args.get('location'),
                             isproxy=args.get('isproxy')).where(Platforms.id == platformid).execute()
             query_set = Platforms.select().where(Platforms.id == platformid).get()
+            query_set.proxyport = 0
+            query_set.save()
             data = json.dumps(json.loads(PlatformSerializer().dumps(query_set).data))
             OpsRedis.set(platformid,data)
             return jsonify(trueReturn(msg="更新成功"))
