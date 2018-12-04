@@ -20,10 +20,10 @@
         </a>
         <ul class="nav nav-second-level">
             <li id="asset_list"><a href="{{ url_for('asset.asset_list',asset_type='ecs') }}">资产列表</a></li>
-            <li id="template_list"><a href="{{ url_for('asset.asset_create_template_list')}}">模板列表</a></li>
             <li id="asset_create"><a href="{{ url_for('asset.asset_create') }}">创建资产</a></li>
+            <li id="template_list"><a href="{{ url_for('asset.asset_create_template_list')}}">创建资产模板</a></li>
             <li id="service_list"><a href="{{ url_for('asset.service_list') }}">服务列表</a></li>
-            <li id="bill_list"><a href="{{ url_for('asset.bill_list',asset_type='all') }}">费用列表</a></li>
+            <li id="bill_list"><a href="{{ url_for('asset.bill_list',asset_type='all') }}">阿里云费用</a></li>
         </ul>
     </li>
     <li id="Perm">

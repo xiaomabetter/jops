@@ -6,7 +6,7 @@ from apps.platform.serializer import PlatformSerializer
 from apps.perm.serializer import AuthorizationPlatformSerializer
 from apps.utils import trueReturn,falseReturn
 from peewee import fn
-import json,random
+import json,random,re
 
 __all__ = ['PlatformsApi','PlatformApi','PlatformProxyApi','PlatformCatagoryApi']
 
@@ -41,7 +41,7 @@ class PlatformsApi(Resource):
     @login_required()
     @adminuser_required
     def post(self):
-        locations = ['form', 'json']
+        locations = ['form','json']
         args = reqparse.RequestParser()\
             .add_argument('description', type=str,required=True,location=locations) \
             .add_argument('platform_url', type=str,required=True, location=locations) \
@@ -49,6 +49,10 @@ class PlatformsApi(Resource):
             .add_argument('location', type=str, required=True, location=locations).parse_args()
         try:
             maxport = Platforms.select(fn.Max(Platforms.proxyport)).scalar()
+            pattern = re.compile(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
+            pattern_result = pattern.findall(args.get('platform_url'))
+            if not pattern_result:
+                return falseReturn(msg="platform_url不合法")
             Platforms.create(description=args.get('description'),location=args.get('location'),
                         platform_url=args.get('platform_url'),catagory=args.get('catagory'),proxyport=int(maxport) + 1)
             return trueReturn(msg='创建成功')

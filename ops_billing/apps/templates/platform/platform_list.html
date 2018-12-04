@@ -173,17 +173,24 @@ $(document).ready(function(){
             proxyport = result.data.proxyport
             var current_domain = window.location.hostname
             var bind = result.data.bind
-            var url = "http://" + bind + ":" + proxyport
+            var proxy_port = result.data.proxyport;
             var access_token = $.cookie('access_token')
-            if (current_domain != bind ) {
-                $.cookie('access_token',access_token,{expires:7,path:'/',domain:'easemob.com'})
-                $.cookie('access_token',access_token,{expires:7,path:'/',domain:bind})
+            $.cookie('access_token',access_token,{expires:7,path:'/',domain:'easemob.com'})
+            var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))/;
+            var parse_result = parse_url.exec(platform_url);
+            if (parse_result) {
+                parse_last = platform_url.split(result[0])[1]
+            } else {
+                var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)/;
+                var parse_result = parse_url.exec(platform_url);
+                parse_last = platform_url.split(result[0])[1]
             }
-            jQuery.url.setUrl(platform_url)
-            if (jQuery.url.attr("path")) {
-                url = url + jQuery.url.attr("path");
+            if (parse_last) {
+                proxy_url = "http://" + bind + ":" + parse_last + proxy_port;
+            } else {
+                proxy_url = "http://" + bind + ":" + proxy_port
             }
-            window.open(url)
+            window.open(proxy_url)
         } else {
             alert('错误');
         }
