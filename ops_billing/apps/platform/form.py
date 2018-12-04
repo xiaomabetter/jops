@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask_wtf import FlaskForm
-from wtforms import StringField,SelectMultipleField,SelectField
-from wtforms.widgets import TextInput
+from wtforms import StringField,SelectMultipleField,SelectField,BooleanField
+from wtforms.widgets import TextInput,CheckboxInput
 from wtforms.validators import DataRequired
 
 class Platform_Form(FlaskForm):
@@ -11,4 +11,6 @@ class Platform_Form(FlaskForm):
                                render_kw={"class":"form-control","placeholder":"填写平台的url"})
     catagory = SelectField('Catagory', choices=[],render_kw={"class": "form-control select2"})
     location = SelectField('Location', choices=[], render_kw={"class": "form-control select2"})
+    isproxy = BooleanField(u'是否使用代理', widget=CheckboxInput(),
+                                   render_kw={"class": "form-control",'checked':'true'})
     proxyport = SelectField('Proxyport', choices=[], render_kw={"class": "form-control select2"})

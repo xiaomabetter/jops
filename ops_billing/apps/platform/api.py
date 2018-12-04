@@ -25,7 +25,7 @@ class PlatformsApi(Resource):
             if current_user.platform_permission:
                 platform_auth_query_set = current_user.platform_permission.objects()
                 permission_datas = json.loads(AuthorizationPlatformSerializer(many=True).
-                                         dumps(platform_auth_query_set).data)
+                                                                    dumps(platform_auth_query_set).data)
                 for permission_data in permission_datas:
                     data = data + permission_data['platform_urls']
             if current_user.permission_group:
@@ -46,6 +46,7 @@ class PlatformsApi(Resource):
             .add_argument('description', type=str,required=True,location=locations) \
             .add_argument('platform_url', type=str,required=True, location=locations) \
             .add_argument('catagory', type=str, required=True, location=locations) \
+            .add_argument('isproxy', type=bool,default=False, location=locations) \
             .add_argument('location', type=str, required=True, location=locations).parse_args()
         try:
             maxport = Platforms.select(fn.Max(Platforms.proxyport)).scalar()
@@ -53,8 +54,11 @@ class PlatformsApi(Resource):
             pattern_result = pattern.findall(args.get('platform_url'))
             if not pattern_result:
                 return falseReturn(msg="platform_url不合法")
-            Platforms.create(description=args.get('description'),location=args.get('location'),
-                        platform_url=args.get('platform_url'),catagory=args.get('catagory'),proxyport=int(maxport) + 1)
+            platform = Platforms.create(description=args.get('description'), location=args.get('location'),
+                             platform_url=args.get('platform_url'), catagory=args.get('catagory'))
+            if args.get('isproxy'):
+                platform.proxyport = int(maxport) + 1
+                platform.save()
             return trueReturn(msg='创建成功')
         except Exception as e:
             return falseReturn(msg=str(e))
@@ -77,11 +81,12 @@ class PlatformApi(Resource):
             .add_argument('description', type=str,required=True,location=locations) \
             .add_argument('platform_url', type=str,required=True, location=locations) \
             .add_argument('catagory', type=str, required=True, location=locations) \
+            .add_argument('isproxy', type=bool, default=False, location=locations) \
             .add_argument('location', type=str, required=True, location=locations).parse_args()
         try:
             Platforms.update(description=args.get('description'),platform_url=args.get('platform_url'),
-                            catagory=args.get('catagory'),location=args.get('location'))\
-                            .where(Platforms.id == platformid).execute()
+                            catagory=args.get('catagory'),location=args.get('location'),
+                            isproxy=args.get('isproxy')).where(Platforms.id == platformid).execute()
             query_set = Platforms.select().where(Platforms.id == platformid).get()
             data = json.dumps(json.loads(PlatformSerializer().dumps(query_set).data))
             OpsRedis.set(platformid,data)

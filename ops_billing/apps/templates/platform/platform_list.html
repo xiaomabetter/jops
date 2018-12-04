@@ -76,6 +76,7 @@ var table, show = 0;
 function format(d) {
     var data = "";
     data += makeLabel(["平台位于", d.location])
+    data += makeLabel(["平台URL", d.platform_url])
     data += makeLabel(["平台创建时间", d.date_created])
     return data
 }
@@ -97,8 +98,13 @@ function initTable() {
                 $(td).addClass("toggle");
                 $(td).html("<i class='fa fa-angle-right'></i>");
             }},
-            {targets: 0, createdCell: function (td, cellData, rowData) {
-                $(td).addClass("twoLine");
+            {targets: 2, createdCell: function (td, cellData, rowData) {
+                if (rowData['isproxy']) {
+                    $(td).html(cellData);
+                } else {
+                    var detail_btn = '<a href="PK">' + cellData + '</a>';
+                    $(td).html(detail_btn.replace('PK',cellData));
+                }
             }},
             {targets: 5, createdCell: function (td, cellData, rowData) {
                 var transfer_btn = '<a class="btn btn-xs m-l-xs btn-info" id="do_transfer_url" data-uid="PK">跳转</a>'
@@ -170,27 +176,31 @@ $(document).ready(function(){
     $.get("{{ url_for('platform-api.platforms_proxy_api') }}", data ,function(result){
         if (result['status']) {
             platform_url = result.data.platform_url
-            proxyport = result.data.proxyport
-            var current_domain = window.location.hostname
-            var bind = result.data.bind
-            var proxy_port = result.data.proxyport;
-            var access_token = $.cookie('access_token')
-            $.cookie('access_token',access_token,{expires:7,path:'/',domain:'easemob.com'})
-            var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))/;
-            var parse_result = parse_url.exec(platform_url);
-            if (parse_result) {
-                parse_last = platform_url.split(result[0])[1]
-            } else {
-                var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)/;
+            if (result.data.isproxy) {
+                proxyport = result.data.proxyport
+                var current_domain = window.location.hostname
+                var bind = result.data.bind
+                var proxy_port = result.data.proxyport;
+                var access_token = $.cookie('access_token')
+                $.cookie('access_token',access_token,{expires:7,path:'/',domain:'easemob.com'})
+                var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))/;
                 var parse_result = parse_url.exec(platform_url);
-                parse_last = platform_url.split(result[0])[1]
-            }
-            if (parse_last) {
-                proxy_url = "http://" + bind + ":" + parse_last + proxy_port;
+                if (parse_result) {
+                    parse_last = platform_url.split(result[0])[1]
+                } else {
+                    var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)/;
+                    var parse_result = parse_url.exec(platform_url);
+                    parse_last = platform_url.split(result[0])[1]
+                }
+                if (parse_last) {
+                    proxy_url = "http://" + bind + ":" + parse_last + proxy_port;
+                } else {
+                    proxy_url = "http://" + bind + ":" + proxy_port
+                }
+                window.open(proxy_url)
             } else {
-                proxy_url = "http://" + bind + ":" + proxy_port
+                window.open(platform_url)
             }
-            window.open(proxy_url)
         } else {
             alert('错误');
         }

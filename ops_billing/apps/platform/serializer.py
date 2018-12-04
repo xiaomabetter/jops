@@ -10,4 +10,5 @@ class PlatformSerializer(Schema):
         pass
 
     class Meta:
-        fields = ('id','description','location','proxyport','platform_url','catagory','date_created')
+        fields = ('id','description','location','proxyport','isproxy',
+                    'platform_url','catagory','date_created')
