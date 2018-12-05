@@ -12,5 +12,5 @@ class Platform_Form(FlaskForm):
     catagory = SelectField('Catagory', choices=[],render_kw={"class": "form-control select2"})
     location = SelectField('Location', choices=[], render_kw={"class": "form-control select2"})
     isproxy = BooleanField(u'是否使用代理', widget=CheckboxInput(),
-                                   render_kw={"class": "form-control",'checked':'true'})
+                                   render_kw={"class": "form-control"})
     proxyport = SelectField('Proxyport', choices=[], render_kw={"class": "form-control select2"})

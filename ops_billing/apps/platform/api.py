@@ -55,7 +55,8 @@ class PlatformsApi(Resource):
             if not pattern_result:
                 return falseReturn(msg="platform_url不合法")
             platform = Platforms.create(description=args.get('description'), location=args.get('location'),
-                             platform_url=args.get('platform_url'), catagory=args.get('catagory'))
+                             platform_url=args.get('platform_url'), catagory=args.get('catagory'),
+                                        isproxy=args.get('isproxy'))
             if args.get('isproxy'):
                 platform.proxyport = int(maxport) + 1
             else:
@@ -86,13 +87,19 @@ class PlatformApi(Resource):
             .add_argument('isproxy', type=bool, default=False, location=locations) \
             .add_argument('location', type=str, required=True, location=locations).parse_args()
         try:
+            maxport = Platforms.select(fn.Max(Platforms.proxyport)).scalar()
+            previous = Platforms.select().where(Platforms.id == platformid).get()
             Platforms.update(description=args.get('description'),platform_url=args.get('platform_url'),
                             catagory=args.get('catagory'),location=args.get('location'),
                             isproxy=args.get('isproxy')).where(Platforms.id == platformid).execute()
-            query_set = Platforms.select().where(Platforms.id == platformid).get()
-            query_set.proxyport = 0
-            query_set.save()
-            data = json.dumps(json.loads(PlatformSerializer().dumps(query_set).data))
+            platform = Platforms.select().where(Platforms.id == platformid).get()
+            if args.get('isproxy') and not previous.isproxy:
+                platform.proxyport = int(maxport) + 1
+                platform.save()
+            elif not args.get('isproxy') and previous.isproxy:
+                platform.proxyport = 0
+                platform.save()
+            data = json.dumps(json.loads(PlatformSerializer().dumps(platform).data))
             OpsRedis.set(platformid,data)
             return jsonify(trueReturn(msg="更新成功"))
         except Exception as e:

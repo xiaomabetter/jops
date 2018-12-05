@@ -374,7 +374,7 @@ class TemplatesApi(Resource):
         args = reqparse.RequestParser()\
             .add_argument('RegionId',type=str,location='args') \
             .add_argument('Zoneid', type=str, location='args').parse_args()
-        query = Asset_Create_Template.select()
+        query = Asset_Create_Template.select().order_by(Asset_Create_Template.name)
         if args.get('RegionId'):
             query = query.filter(Asset_Create_Template.RegionId == args.get('RegionId'))
         if args.get('Zoneid'):

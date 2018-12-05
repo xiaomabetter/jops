@@ -21,4 +21,5 @@ def platform_update(platformid):
     form.description.data = platform.description
     form.catagory.data = platform.catagory
     form.location.data = platform.location
+    form.isproxy.data = platform.isproxy
     return render_template('platform/platform_update.html',form=form,platformid=platformid)

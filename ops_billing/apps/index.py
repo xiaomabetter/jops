@@ -7,6 +7,6 @@ from apps.models import User,Asset,Platforms
 @login_required(administrator=False)
 def index():
     users_count = User.select().count()
-    assets_count = Asset.select().count()
+    assets_count = Asset.select().where(Asset.Status != 'Destory').count()
     platform_count = Platforms.select().count()
     return render_template('base/index.html',**locals())

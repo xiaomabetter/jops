@@ -63,7 +63,6 @@
 <script>
 var zonesdata = JSON.parse({{Zones|tojson}});
 var templatedata = {{templatedata|tojson}};
-console.log(templatedata);
 var templateid = "{{templateid}}"
 function AppendZoneid() {
     $("#ZoneId").empty();
@@ -110,16 +109,22 @@ $(document).ready(function () {
         $("#SecurityGroupId").val(templatedata['SecurityGroupId']).trigger('change');
     });
     $("#ImageId").parent().find(".select2").on('click', function (e) {
+        var regionid = $('#RegionId').val()
+        image_table.column( 4 ).search(regionid,true,true).draw()
         $("#image_list_modal").modal();
     });
     $("#SecurityGroupId").parent().find(".select2").on('click', function (e) {
+        var VpcId = $("#VSwitchId").find(" option:selected").attr("id");
+        if (VpcId !== undefined) {
+            securitygroup_table.column( 5 ).search(VpcId,true,true).draw()
+        }
+        var regionid = $('#RegionId').val()
+        securitygroup_table.column( 3 ).search(regionid,true,true).draw()
         $("#securitygroup_list_modal").modal();
     })
     $.each(zonesdata, function (key, value) {
-            option = '<option value=' + key + '>' + key + '</option>';
-            $('#RegionId').append(option);
-            $('#RegionId_select').append(option);
-            $('#SecRegionId_select').append(option);
+        option = '<option value=' + key + '>' + key + '</option>';
+        $('#RegionId').append(option);
     });
     if ( templatedata['RegionId'] ) {
          $.each(zonesdata[templatedata['RegionId']], function (key, value) {
