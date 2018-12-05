@@ -92,7 +92,8 @@ function netvpc() {
         $.get("{{ url_for('assets-api.vswitches_api') }}",{'ZoneId':zoneid}, function(result){
             if (result['data']) {
                 $.each(result['data'], function (key, value) {
-                    option = '<option value=' + value['VSwitchId'] + '>' + value['VSwitchName'] + '</option>';
+                    option = '<option id="PK" value=' + value['VSwitchId'] + '>' + value['VSwitchName'] + '</option>';
+                    option = option.replace('PK',value['VpcId']);
                     $('#VSwitchId').append(option);
                 });
             }
@@ -115,16 +116,22 @@ $(document).ready(function () {
         });
     });
     $("#ImageId").parent().find(".select2").on('click', function (e) {
+        var regionid = $('#RegionId').val()
+        image_table.column( 4 ).search(regionid,true,true).draw()
         $("#image_list_modal").modal();
     });
     $("#SecurityGroupId").parent().find(".select2").on('click', function (e) {
+        var VpcId = $("#VSwitchId").find(" option:selected").attr("id");
+        if (VpcId !== undefined) {
+            securitygroup_table.column( 5 ).search(VpcId,true,true).draw()
+        }
+        var regionid = $('#RegionId').val()
+        securitygroup_table.column( 3 ).search(regionid,true,true).draw()
         $("#securitygroup_list_modal").modal();
     })
     $.each(zonesdata, function (key, value) {
-            var option = '<option value='+key+'>'+key+'</option>';
-            $('#RegionId').append(option);
-            $('#RegionId_select').append(option);
-            $('#SecRegionId_select').append(option);
+        var option = '<option value='+key+'>'+key+'</option>';
+        $('#RegionId').append(option);
     });
     AppendZoneid();
     netvpc()
@@ -234,6 +241,5 @@ function get_sync_asset_result(taskid) {
             }, 2000);
         }}})
 }
-
 </script>
 {% endblock %}

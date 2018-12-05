@@ -4,6 +4,7 @@ from peewee import CharField, BooleanField, IntegerField,UUIDField,\
 from apps.utils.encrypt import encryption_md5
 import uuid
 from .base import BaseModel
+import hashlib
 
 class Groups(BaseModel):
     id = UUIDField(default=uuid.uuid4, primary_key=True)
@@ -114,6 +115,12 @@ class User(BaseModel):
             'is_active':self.is_active,
             'is_ldap_user':self.is_ldap_user
         })
+
+    def gravatar(self,size=100,default='identicon',rating='g'):
+        url = "https://www.gravatar.com/avatar"
+        hash = hashlib.md5(self.email.encode("utf-8")).hexdigest()
+        return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
+            url=url,hash=hash,size=size,default=default,rating=rating)
 
 class UserLoginLog(BaseModel):
     username = CharField(max_length=128,null=True)

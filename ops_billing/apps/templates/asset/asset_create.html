@@ -75,6 +75,8 @@ function bandwidthFieldsDisplay() {
 
 function AppendZoneId() {
     $("#ZoneId_select").empty();
+    $('#ZoneId_select').append("<option value=''>可用区ID</option>");
+    $('#ZoneId_select').append("<option value=''>ALL</option>");
     var regionid = $('#RegionId_select').val();
     if (regionid) {
         $.each(zonesdata[regionid], function (key, value) {
@@ -101,7 +103,6 @@ $(document).ready(function () {
             option = '<option value=' + key + '>' + key + '</option>';
             $('#RegionId_select').append(option);
     });
-    AppendZoneId();
 }).on('change', '#RegionId_select', function () {
     AppendZoneId();
 }).on('click', '#btn_template_modal_confirm', function () {

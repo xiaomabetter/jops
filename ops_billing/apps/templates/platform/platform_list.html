@@ -103,12 +103,7 @@ function initTable() {
             }},
             {targets: 2, createdCell: function (td, cellData, rowData) {
                 $(td).addClass("twoLine");
-                if (rowData['isproxy']) {
-                    $(td).html(cellData);
-                } else {
-                    var detail_btn = '<a href="PK">' + cellData + '</a>';
-                    $(td).html(detail_btn.replace('PK',cellData));
-                }
+                $(td).html(cellData);
             }},
             {targets: 5, createdCell: function (td, cellData) {
                 if (!cellData) {
