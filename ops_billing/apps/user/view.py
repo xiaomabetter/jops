@@ -52,7 +52,7 @@ def auth_login():
                 UserLoginLog.create(username=user.username,login_at=datetime.datetime.now(),login_ip=remote_addr)
                 token = Auth.encode_auth_token(user_id=user.id.hex,password=user.password)
                 token = token.decode() if isinstance(token, bytes) else token
-                success.set_cookie('access_token', token,max_age=1)
+                success.set_cookie('access_token', token,max_age=int(config.get('DEFAULT', 'SECURITY_TOKEN_MAX_AGE')))
                 return success
             else:
                 flash(message='密码不正确', category='error')
@@ -64,7 +64,7 @@ def auth_login():
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 success = redirectResponse(user.role)
                 token = Auth.encode_auth_token(user_id=user.id.hex,password=user.password)
-                success.set_cookie('access_token', token,max_age=1)
+                success.set_cookie('access_token', token,max_age=int(config.get('DEFAULT', 'SECURITY_TOKEN_MAX_AGE')))
                 if  isinstance(token,bytes) : token.decode()
                 return success
             else:
