@@ -35,7 +35,6 @@ def login_required(administrator=True,users=list()):
             token = request.cookies.get('access_token') or request.headers.get('Authorization')
             if token:
                 data = Auth.decode_auth_token(token)
-                print(data)
                 if data['status']:
                     user_id = data['user_id']
                     password = data['password']
