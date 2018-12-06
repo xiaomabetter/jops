@@ -1,6 +1,6 @@
 from flask import jsonify,request
 from flask_restful import Resource,reqparse
-from apps.auth import login_required,adminuser_required,get_login_user
+from apps.auth import login_required,get_login_user
 from apps.models import Platforms,OpsRedis,Catagory
 from apps.platform.serializer import PlatformSerializer
 from apps.perm.serializer import AuthorizationPlatformSerializer
@@ -39,7 +39,6 @@ class PlatformsApi(Resource):
         return jsonify(trueReturn(data))
 
     @login_required()
-    @adminuser_required
     def post(self):
         locations = ['form','json']
         args = reqparse.RequestParser()\

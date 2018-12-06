@@ -8,7 +8,7 @@ from apps.models.base import OpsRedis
 from . import asset
 from .serializer import AssetCreateTemplateSerializer
 from .form import Service_Form,Aly_Create_Instance_Form,Aly_Create_Instance_Template
-from apps.auth import login_required,adminuser_required
+from apps.auth import login_required
 import json
 
 @asset.route('/<asset_type>/list',methods=['GET'])

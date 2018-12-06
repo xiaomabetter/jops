@@ -18,7 +18,6 @@ def auth_login():
         username = request.form.get('username',False)
         password = request.form.get('password',False)
         is_ldap_login = request.form.get('is_ldap_login',False)
-
         def redirectResponse(role):
             if role == 'user':
                 return make_response(redirect(url_for('platform.platform_list')))
@@ -50,21 +49,21 @@ def auth_login():
                 success = redirectResponse(user.role)
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
-                UserLoginLog.create(username=user.username,login_at=datetime.datetime.now(),
-                                    login_ip=remote_addr)
-                token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
+                UserLoginLog.create(username=user.username,login_at=datetime.datetime.now(),login_ip=remote_addr)
+                token = Auth.encode_auth_token(user_id=user.id.hex,password=user.password)
                 token = token.decode() if isinstance(token, bytes) else token
                 success.set_cookie('access_token', token)
                 return success
             else:
                 flash(message='密码不正确', category='error')
+                response.delete_cookie('access_token')
                 return response
         else:
-            user = User.select().where((User.is_ldap_user == False) & (User.username == username)).first()
+            user = User.select().where((User.is_ldap_user == False)&(User.username == username)).first()
             if user and user.verify_password(password):
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
                 success = redirectResponse(user.role)
-                token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
+                token = Auth.encode_auth_token(user_id=user.id.hex,password=user.password)
                 success.set_cookie('access_token', token)
                 if  isinstance(token,bytes) : token.decode()
                 return success

@@ -1,7 +1,7 @@
 from flask import jsonify,request
 from flask_restful import Resource,reqparse
 from apps.models import User,Groups,User_Group,AssetPerm_Users,UserLoginLog
-from apps.auth import Auth,login_required,adminuser_required
+from apps.auth import Auth,login_required
 from apps.utils import  trueReturn,falseReturn
 from .serializer import UserSerializer,GroupSerializer
 from apps.models.base import OpsRedis
@@ -17,7 +17,6 @@ class UsersApi(Resource):
         return jsonify(trueReturn(data))
 
     @login_required()
-    @adminuser_required
     def post(self):
         parse = reqparse.RequestParser()
         arg_names = ('ding', 'password', 'wechat', 'role' ,'user', 'username','comment',
@@ -87,7 +86,6 @@ class UserApi(Resource):
         return jsonify(trueReturn(msg='更新成功'))
 
     @login_required()
-    @adminuser_required
     def delete(self,userid):
         user = User.select().where(User.id == userid).get()
         if user.is_ldap_user:
@@ -102,7 +100,6 @@ class UserApi(Resource):
         return jsonify(trueReturn(msg='删除成功'))
 
     @login_required()
-    @adminuser_required
     def patch(self,userid):
         user = User.select().where(User.id == userid).get()
         if user.is_active:
@@ -135,7 +132,6 @@ class GroupsApi(Resource):
         return jsonify(trueReturn(data))
 
     @login_required()
-    @adminuser_required
     def post(self):
         args = reqparse.RequestParser()\
             .add_argument('value', type=str,location=['form'],required=True) \
@@ -163,7 +159,6 @@ class GroupApi(Resource):
         return jsonify(trueReturn(data))
 
     @login_required()
-    @adminuser_required
     def post(self,groupid):
         args = reqparse.RequestParser() \
             .add_argument('is_ldap_group', type=bool, location=['form','json'], required=True) \
@@ -183,7 +178,6 @@ class GroupApi(Resource):
         return jsonify(trueReturn(data))
 
     @login_required()
-    @adminuser_required
     def delete(self,groupid):
         group = Groups.select().where(Groups.id == groupid).first()
         if group and group.user.count() > 0:
@@ -194,7 +188,6 @@ class GroupApi(Resource):
         return jsonify(trueReturn('已经删除'))
 
     @login_required()
-    @adminuser_required
     def put(self,groupid):
         args = reqparse.RequestParser()\
             .add_argument('value', type=str,location=['form','json']) \
@@ -245,7 +238,7 @@ class UserLogin(Resource):
                 remote_addr = request.headers.get('X-Forwarded-For') or request.remote_addr
                 """UserLoginLog.create(username=user.username,login_at=datetime.datetime.now(),
                                     login_ip=remote_addr)"""
-                token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
+                token = Auth.encode_auth_token(user_id=user.id.hex,password=user.password)
                 return jsonify(trueReturn(dict(token=token.decode() if isinstance(token, bytes) else token)))
             else:
                 return jsonify(falseReturn(msg='password is invalid!'))
@@ -253,7 +246,7 @@ class UserLogin(Resource):
             user = User.select().where((User.is_ldap_user == False)&(User.username == args.get('username'))).first()
             if user and user.verify_password(args.get('password')):
                 OpsRedis.set(user.id.hex,json.dumps(user.to_json()))
-                token = Auth.encode_auth_token(user.id.hex+user.password,int(time.time()))
+                token = Auth.encode_auth_token(user_id=user.id.hex,password=user.password)
                 if  isinstance(token,bytes) :  token = token.decode()
                 return jsonify(trueReturn({"token": token}))
             else:
