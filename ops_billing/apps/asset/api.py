@@ -276,8 +276,10 @@ class NodeApi(Resource):
         args = reqparse.RequestParser() \
             .add_argument('value',type=str,location='json',required=True).parse_args()
         try:
-            query = Node.update(value=args.get('value')).where(Node.id ==nodeid).execute()
-            run_sync_asset_amount.apply_async([query.id.hex],queue=default_queue)
+            node = Node.select().where(Node.id == nodeid).get()
+            node.value = args.get('value')
+            node.save()
+            run_sync_asset_amount.apply_async([node.id.hex],queue=default_queue)
             return jsonify(trueReturn(msg=u'重命名为{0}成功'.format(args.get('value'))))
         except Exception as e:
             return jsonify(falseReturn(msg=u'重命名为{0}失败'.format(args.get('value'))))
